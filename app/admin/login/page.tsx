@@ -16,72 +16,80 @@ export default function AdminLogin() {
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        if (username === "admin" && password === "admin123") {
+        // Updated Credentials
+        if (username === "desacenranaadmin" && password === "digitaldesacenrana") {
             login();
             router.push("/admin");
         } else {
-            setError("Username atau password salah!");
+            setError("Akses Ditolak, periksa kembali data Anda");
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-slate-950">
             {/* Background Effects */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[100px] pointer-events-none animate-pulse"></div>
 
-            <div className="max-w-md w-full glass-panel rounded-[2.5rem] p-10 relative z-10">
-                <div className="text-center mb-10">
-                    <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-blue-500/30 transform rotate-3 hover:rotate-0 transition-transform duration-500">
-                        <span className="text-white font-bold text-3xl">DC</span>
+            {/* Compact Glass Card */}
+            <div className="w-full max-w-[340px] bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-2xl p-8 animate-in zoom-in-95 duration-500 relative z-10">
+
+                {/* Header */}
+                <div className="text-center mb-8">
+                    {/* Logo Maros */}
+                    <div className="w-[60px] h-[60px] mx-auto mb-4 flex items-center justify-center">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            src="/logo-maros.png"
+                            alt="Logo Maros"
+                            className="w-full h-full object-contain drop-shadow-lg"
+                        />
                     </div>
-                    <h1 className="text-3xl font-bold text-white mb-2">Admin Portal</h1>
-                    <p className="text-slate-400">Masuk untuk mengelola sistem desa.</p>
+                    <h1 className="text-xl font-bold text-white mb-1">Admin Portal</h1>
+                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Desa Cenrana</p>
                 </div>
 
-                <form onSubmit={handleLogin} className="space-y-6">
+                <form onSubmit={handleLogin} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-bold text-slate-300 mb-2 ml-1">Username</label>
                         <div className="relative group">
                             <input
                                 type="text"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
-                                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-black/20 border border-white/10 text-white placeholder-slate-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all group-hover:bg-black/30"
-                                placeholder="admin"
+                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder-slate-500 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all group-hover:bg-black/30"
+                                placeholder="Username"
                             />
-                            <User className="absolute left-4 top-4 text-slate-500 w-5 h-5 group-focus-within:text-blue-500 transition-colors" />
+                            <User className="absolute left-3 top-3 text-slate-500 w-4 h-4 group-focus-within:text-blue-500 transition-colors" />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-300 mb-2 ml-1">Password</label>
                         <div className="relative group">
                             <input
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-black/20 border border-white/10 text-white placeholder-slate-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all group-hover:bg-black/30"
-                                placeholder="••••••••"
+                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder-slate-500 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all group-hover:bg-black/30"
+                                placeholder="Password"
                             />
-                            <Lock className="absolute left-4 top-4 text-slate-500 w-5 h-5 group-focus-within:text-blue-500 transition-colors" />
+                            <Lock className="absolute left-3 top-3 text-slate-500 w-4 h-4 group-focus-within:text-blue-500 transition-colors" />
                         </div>
                     </div>
 
                     {error && (
-                        <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-2xl text-center font-medium animate-pulse">
+                        <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl text-center font-medium animate-in fade-in slide-in-from-top-2">
                             {error}
                         </div>
                     )}
 
                     <button
                         type="submit"
-                        className="w-full py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-[1.02] transition-all flex items-center justify-center text-lg"
+                        className="w-full py-3 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-[1.02] transition-all flex items-center justify-center gap-2 mt-2"
                     >
-                        Masuk Dashboard <ArrowRight className="ml-2 w-5 h-5" />
+                        Masuk Portal <ArrowRight className="w-4 h-4" />
                     </button>
                 </form>
 
-                <div className="mt-8 text-center">
-                    <Link href="/" className="text-slate-500 hover:text-white text-sm font-medium transition-colors">
+                <div className="mt-6 text-center">
+                    <Link href="/" className="text-slate-500 hover:text-white text-xs font-medium transition-colors">
                         Kembali ke Beranda
                     </Link>
                 </div>

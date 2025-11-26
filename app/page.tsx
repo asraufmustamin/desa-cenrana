@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight, ChevronLeft, ChevronRight, Landmark, MessageSquareText,
   Store, Laptop, HeartPulse, Home as HomeIcon, Lightbulb, Map,
-  Users, MapPin, FileText, Phone, Building2, Wallet, Megaphone
+  Users, MapPin, FileText, Phone, Building2, Wallet, Sprout
 } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 import Editable from "@/components/Editable";
@@ -24,6 +24,7 @@ export default function Home() {
   const { cmsContent, updateContent, news } = useAppContext();
   const { home, sotk_new, programs } = cmsContent;
   const [currentSlide, setCurrentSlide] = useState(0);
+  const sotkScrollRef = useRef<HTMLDivElement>(null);
 
   // Hero Slideshow Effect
   useEffect(() => {
@@ -33,13 +34,34 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  // SOTK Scroll Handlers
+  const scrollSotk = (direction: 'left' | 'right') => {
+    if (sotkScrollRef.current) {
+      const scrollAmount = 300;
+      sotkScrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   // Derive officials from SOTK structure for the slider
-  const displayOfficials = [
+  let displayOfficials = [
     { ...sotk_new.kades, id: 'kades', type: 'kades' },
     { ...sotk_new.sekdes, id: 'sekdes', type: 'sekdes' },
     ...(sotk_new.kaur?.map((item, i) => ({ ...item, id: `kaur-${i}`, type: 'kaur', index: i })) || []),
     ...(sotk_new.kadus?.map((item, i) => ({ ...item, id: `kadus-${i}`, type: 'kadus', index: i })) || []),
   ];
+
+  // Fallback if no officials
+  if (displayOfficials.length === 0 || (displayOfficials.length === 2 && !displayOfficials[0].name)) {
+    displayOfficials = [
+      { id: 'dummy-1', name: 'Pejabat 1', role: 'Kepala Desa', image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400', type: 'dummy' },
+      { id: 'dummy-2', name: 'Pejabat 2', role: 'Sekretaris Desa', image: 'https://images.unsplash.com/photo-1573496359-7013ac2bebb5?auto=format&fit=crop&q=80&w=400', type: 'dummy' },
+      { id: 'dummy-3', name: 'Pejabat 3', role: 'Kaur Keuangan', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400', type: 'dummy' },
+      { id: 'dummy-4', name: 'Pejabat 4', role: 'Kaur Umum', image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=400', type: 'dummy' },
+    ];
+  }
 
   const updateOfficial = (official: any, field: string, value: string) => {
     if (official.type === 'kades') {
@@ -57,8 +79,24 @@ export default function Home() {
     }
   };
 
+  // Stats Configuration
+  const statItems = [
+    { labelField: "statsLabel1", valField: "statsVal1", icon: Users, placeholderLabel: "Penduduk", placeholderVal: "3500" },
+    { labelField: "statsLabel2", valField: "statsVal2", icon: MapPin, placeholderLabel: "Luas Wilayah", placeholderVal: "12" },
+    { labelField: "statsLabel3", valField: "statsVal3", icon: FileText, placeholderLabel: "Layanan Digital", placeholderVal: "98" },
+    { labelField: "statsLabel4", valField: "statsVal4", icon: HomeIcon, placeholderLabel: "Kepala Keluarga", placeholderVal: "850" },
+    { labelField: "statsLabel5", valField: "statsVal5", icon: Building2, placeholderLabel: "UMKM Aktif", placeholderVal: "45" },
+    { labelField: "statsLabel6", valField: "statsVal6", icon: Wallet, placeholderLabel: "Total Dana Desa", placeholderVal: "1.2M" },
+    { labelField: "statsLabel7", valField: "statsVal7", icon: Sprout, placeholderLabel: "Kelompok Tani", placeholderVal: "8" },
+    { labelField: "statsLabel8", valField: "statsVal8", icon: HeartPulse, placeholderLabel: "Fasilitas Kesehatan", placeholderVal: "5" },
+  ];
+
+  // Common Card Style using CSS Variables (glass-card)
+  // This ensures reliable theme switching via globals.css
+  const cardStyle = "glass-card rounded-2xl p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]";
+
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-300">
+    <div className="min-h-screen overflow-x-hidden">
       <EditModeIndicator />
 
       {/* 1. HERO SECTION */}
@@ -84,7 +122,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-black/60 z-10"></div>
 
         {/* Content */}
-        <div className="relative z-20 text-center px-4 max-w-5xl mx-auto animate-fade-in-up">
+        <div className="relative z-20 text-center px-4 max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <div className="inline-block mb-6 px-6 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-sm font-bold tracking-widest uppercase shadow-lg">
             Selamat Datang di Website Resmi
           </div>
@@ -95,26 +133,26 @@ export default function Home() {
             <Editable section="home" field="heroSubtitle" type="textarea" />
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
               href="/profil"
-              className="px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white rounded-full font-bold text-lg transition-all flex items-center justify-center gap-3 group"
+              className="px-8 py-4 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-full font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-lg shadow-orange-500/40 hover:scale-105 hover:shadow-orange-500/60"
             >
-              <Landmark className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <Landmark className="w-5 h-5" />
               Profil Desa
             </Link>
             <Link
               href="/aspirasi"
-              className="px-8 py-4 bg-blue-600/80 hover:bg-blue-600 backdrop-blur-md text-white rounded-full font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-lg shadow-blue-900/20 group"
+              className="px-8 py-4 bg-blue-600/80 hover:bg-blue-600 backdrop-blur-md text-white rounded-full font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-lg shadow-blue-900/20 hover:scale-105"
             >
-              <MessageSquareText className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <MessageSquareText className="w-5 h-5" />
               Layanan Aspirasi
             </Link>
             <Link
               href="/lapak"
-              className="px-8 py-4 bg-emerald-600/80 hover:bg-emerald-600 backdrop-blur-md text-white rounded-full font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-lg shadow-emerald-900/20 group"
+              className="px-8 py-4 bg-emerald-600/80 hover:bg-emerald-600 backdrop-blur-md text-white rounded-full font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-lg shadow-emerald-900/20 hover:scale-105"
             >
-              <Store className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <Store className="w-5 h-5" />
               Lapak Warga
             </Link>
           </div>
@@ -122,87 +160,33 @@ export default function Home() {
       </section>
 
       {/* 2. UNIFIED STATS DASHBOARD */}
-      <section className="relative z-30 -mt-20 px-4 mb-20">
+      <section className="relative z-30 -mt-20 px-4 mb-20 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
         <div className="max-w-7xl mx-auto">
-          <div className="glass-panel p-6 rounded-3xl shadow-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/20 dark:border-white/10">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-              {/* Stat 1: Penduduk */}
-              <div className="text-center p-4 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group">
-                <div className="w-12 h-12 mx-auto mb-3 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Users className="w-6 h-6" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-1">
-                  <Editable section="home" field="statsVal1" />
-                </h3>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  <Editable section="home" field="statsLabel1" />
-                </p>
-              </div>
+          <div className={`${cardStyle} shadow-xl`}>
+            {/* Grid Layout: Compact Crystal Glass (4 cols) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {statItems.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="relative flex flex-col items-center justify-center p-6 rounded-[2rem] border border-white/30 bg-white/80 dark:bg-black/40 backdrop-blur-2xl shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-emerald-500/20 group"
+                >
+                  {/* Icon - Compact & Clean */}
+                  <item.icon className="w-8 h-8 mb-3 text-emerald-600 dark:text-emerald-400 drop-shadow-sm transition-transform group-hover:scale-110" />
 
-              {/* Stat 2: Luas Wilayah */}
-              <div className="text-center p-4 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group">
-                <div className="w-12 h-12 mx-auto mb-3 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <MapPin className="w-6 h-6" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-1">
-                  <Editable section="home" field="statsVal2" />
-                </h3>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  <Editable section="home" field="statsLabel2" />
-                </p>
-              </div>
+                  {/* Number - Big & Sharp */}
+                  <h3 className="text-4xl font-black text-slate-900 dark:text-white mb-1 tracking-tight drop-shadow-sm">
+                    <Editable section="home" field={item.valField} placeholder={item.placeholderVal} />
+                  </h3>
 
-              {/* Stat 3: Indeks Desa */}
-              <div className="text-center p-4 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group">
-                <div className="w-12 h-12 mx-auto mb-3 bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <FileText className="w-6 h-6" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-1">
-                  <Editable section="home" field="statsVal3" />
-                </h3>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  <Editable section="home" field="statsLabel3" />
-                </p>
-              </div>
+                  {/* Label - Small & Precise */}
+                  <p className="text-xs font-bold tracking-widest uppercase text-slate-700 dark:text-slate-300 mb-2">
+                    <Editable section="home" field={item.labelField} placeholder={item.placeholderLabel} />
+                  </p>
 
-              {/* Stat 4: KK */}
-              <div className="text-center p-4 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group">
-                <div className="w-12 h-12 mx-auto mb-3 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <HomeIcon className="w-6 h-6" />
+                  {/* Subtle Glow on Hover (Dark Mode) */}
+                  <div className="absolute inset-0 rounded-[2rem] bg-emerald-400/0 group-hover:bg-emerald-400/5 transition-colors duration-300 pointer-events-none"></div>
                 </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-1">
-                  <Editable section="home" field="statsVal4" />
-                </h3>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  <Editable section="home" field="statsLabel4" />
-                </p>
-              </div>
-
-              {/* Stat 5: UMKM */}
-              <div className="text-center p-4 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group">
-                <div className="w-12 h-12 mx-auto mb-3 bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Building2 className="w-6 h-6" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-1">
-                  <Editable section="home" field="statsVal5" />
-                </h3>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  <Editable section="home" field="statsLabel5" />
-                </p>
-              </div>
-
-              {/* Stat 6: Dana Desa */}
-              <div className="text-center p-4 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group">
-                <div className="w-12 h-12 mx-auto mb-3 bg-cyan-100 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Wallet className="w-6 h-6" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-1">
-                  <Editable section="home" field="statsVal6" />
-                </h3>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  <Editable section="home" field="statsLabel6" />
-                </p>
-              </div>
+              ))}
             </div>
           </div>
         </div>
@@ -212,8 +196,8 @@ export default function Home() {
       <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">Layanan Unggulan</h2>
-            <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-4">Layanan Unggulan</h2>
+            <p className="text-[var(--text-secondary)] max-w-2xl mx-auto">
               Akses berbagai layanan publik dan informasi desa dengan mudah dan cepat.
             </p>
           </div>
@@ -225,16 +209,16 @@ export default function Home() {
               { title: "Peta Desa", desc: "Peta digital wilayah desa.", icon: <Map className="w-6 h-6" />, color: "text-emerald-500", bg: "bg-emerald-100 dark:bg-emerald-500/10", link: "/informasi/peta" },
               { title: "Pengaduan", desc: "Saluran aspirasi masyarakat.", icon: <Phone className="w-6 h-6" />, color: "text-purple-500", bg: "bg-purple-100 dark:bg-purple-500/10", link: "/aspirasi" }
             ].map((item, idx) => (
-              <Link href={item.link} key={idx} className="group">
-                <div className="h-full p-8 rounded-3xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:shadow-xl hover:shadow-blue-500/5 hover:scale-105 transition-all duration-300">
+              <Link href={item.link} key={idx} className="group h-full">
+                <div className={`h-full ${cardStyle} flex flex-col`}>
                   <div className={`w-14 h-14 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
                     {item.icon}
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{item.title}</h3>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-4">
+                  <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">{item.title}</h3>
+                  <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4 flex-grow">
                     {item.desc}
                   </p>
-                  <div className="flex items-center text-sm font-bold text-blue-600 dark:text-blue-400 group-hover:translate-x-2 transition-transform">
+                  <div className="flex items-center text-sm font-bold text-blue-600 dark:text-blue-400 group-hover:translate-x-2 transition-transform mt-auto">
                     Akses Layanan <ChevronRight className="w-4 h-4 ml-1" />
                   </div>
                 </div>
@@ -245,39 +229,38 @@ export default function Home() {
       </section>
 
       {/* 4. PROGRAM UNGGULAN */}
-      <section className="py-16 px-4 bg-slate-100 dark:bg-slate-900/50">
+      <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-end mb-12">
             <div className="mb-6 md:mb-0 text-center md:text-left w-full md:w-auto">
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">Program Unggulan</h2>
-              <p className="text-slate-600 dark:text-slate-400">Inisiatif strategis Desa Cenrana.</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-4">Program Unggulan</h2>
+              <p className="text-[var(--text-secondary)]">Inisiatif strategis Desa Cenrana.</p>
             </div>
-            <Link href="/informasi/program" className="hidden md:flex items-center px-6 py-3 rounded-full bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold hover:bg-slate-50 dark:hover:bg-white/20 transition-all">
+            <Link href="/informasi/program" className="hidden md:flex items-center px-6 py-3 rounded-full bg-white/10 border border-slate-200 dark:border-white/10 text-[var(--text-primary)] font-bold hover:bg-slate-100 dark:hover:bg-white/20 transition-all">
               Lihat Semua <ArrowRight className="ml-2 w-4 h-4" />
             </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {programs?.slice(0, 4).map((program, index) => {
-              // Simple icon mapping
               const IconComponent = {
                 "Road": Map, "Laptop": Laptop, "HeartPulse": HeartPulse, "Home": HomeIcon
               }[program.icon] || Lightbulb;
 
               return (
-                <div key={program.id} className="p-6 rounded-3xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:shadow-xl hover:scale-105 transition-all duration-300 group">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors ${program.status === "Selesai" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400" :
-                      program.status === "Berjalan" ? "bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400" :
-                        "bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400"
+                <div key={program.id} className={`${cardStyle} group h-full flex flex-col`}>
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors ${program.status === "Selesai" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400" :
+                    program.status === "Berjalan" ? "bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400" :
+                      "bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"
                     }`}>
                     <IconComponent className="w-6 h-6" />
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-1">{program.title}</h3>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm line-clamp-2 mb-4">{program.description}</p>
+                  <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2 line-clamp-1">{program.title}</h3>
+                  <p className="text-[var(--text-secondary)] text-sm line-clamp-2 mb-4 flex-grow">{program.description}</p>
                   <div className="flex items-center justify-between mt-auto">
-                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${program.status === "Selesai" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400" :
-                        program.status === "Berjalan" ? "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400" :
-                          "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400"
+                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${program.status === "Selesai" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400" :
+                      program.status === "Berjalan" ? "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400" :
+                        "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
                       }`}>
                       {program.status}
                     </span>
@@ -288,7 +271,7 @@ export default function Home() {
           </div>
 
           <div className="mt-8 text-center md:hidden">
-            <Link href="/informasi/program" className="inline-flex items-center px-6 py-3 rounded-full bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold hover:bg-slate-50 dark:hover:bg-white/20 transition-all">
+            <Link href="/informasi/program" className="inline-flex items-center px-6 py-3 rounded-full bg-white/10 border border-slate-200 dark:border-white/10 text-[var(--text-primary)] font-bold hover:bg-slate-100 dark:hover:bg-white/20 transition-all">
               Lihat Semua <ArrowRight className="ml-2 w-4 h-4" />
             </Link>
           </div>
@@ -298,53 +281,72 @@ export default function Home() {
       {/* 5. PERANGKAT DESA (SOTK) */}
       <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">Perangkat Desa</h2>
-            <p className="text-slate-600 dark:text-slate-400">Jajaran pemerintahan Desa Cenrana.</p>
+          <div className="flex justify-between items-end mb-12">
+            <div className="text-center md:text-left w-full">
+              <h2 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-4">Perangkat Desa</h2>
+              <p className="text-[var(--text-secondary)]">Jajaran pemerintahan Desa Cenrana.</p>
+            </div>
+            {/* Manual Controls */}
+            <div className="hidden md:flex gap-2">
+              <button
+                onClick={() => scrollSotk('left')}
+                className="p-3 rounded-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors shadow-sm"
+              >
+                <ChevronLeft className="w-5 h-5 text-slate-600 dark:text-white" />
+              </button>
+              <button
+                onClick={() => scrollSotk('right')}
+                className="p-3 rounded-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors shadow-sm"
+              >
+                <ChevronRight className="w-5 h-5 text-slate-600 dark:text-white" />
+              </button>
+            </div>
           </div>
 
           <div className="relative group/slider">
-            <div className="overflow-x-auto pb-8 hide-scrollbar snap-x snap-mandatory scroll-smooth">
-              <div className="flex flex-row gap-6 px-4 w-max mx-auto">
-                {displayOfficials.map((official) => (
-                  <div key={official.id} className="snap-center flex flex-col items-center group w-56 flex-shrink-0">
-                    <div className="relative w-40 h-40 mb-6 rounded-full overflow-hidden border-4 border-slate-200 dark:border-white/10 group-hover:border-blue-500 transition-colors shadow-lg">
+            {/* Fixed SOTK Carousel Container with Ref */}
+            <div
+              ref={sotkScrollRef}
+              className="flex flex-row overflow-x-auto snap-x snap-mandatory gap-6 pb-8 scrollbar-hide px-4 scroll-smooth"
+            >
+              {displayOfficials.map((official) => (
+                <div key={official.id} className="snap-center flex flex-col items-center group min-w-[220px] flex-shrink-0">
+                  <div className="relative w-40 h-40 mb-6 rounded-full overflow-hidden border-4 border-slate-200 dark:border-white/10 group-hover:border-blue-500 transition-colors shadow-lg">
+                    <Editable
+                      type="image"
+                      value={official.image}
+                      onSave={(val) => updateOfficial(official, "image", val)}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                  </div>
+                  <div className="text-center w-full">
+                    <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1">
                       <Editable
-                        type="image"
-                        value={official.image}
-                        onSave={(val) => updateOfficial(official, "image", val)}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        value={official.name}
+                        onSave={(val) => updateOfficial(official, "name", val)}
+                      />
+                    </h3>
+                    <div className="inline-block px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-bold">
+                      <Editable
+                        value={official.role}
+                        onSave={(val) => updateOfficial(official, "role", val)}
                       />
                     </div>
-                    <div className="text-center w-full">
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
-                        <Editable
-                          value={official.name}
-                          onSave={(val) => updateOfficial(official, "name", val)}
-                        />
-                      </h3>
-                      <div className="inline-block px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-bold">
-                        <Editable
-                          value={official.role}
-                          onSave={(val) => updateOfficial(official, "role", val)}
-                        />
-                      </div>
-                    </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
       {/* 6. BERITA TERKINI */}
-      <section className="py-16 px-4 bg-slate-100 dark:bg-slate-900/50">
+      <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-end mb-12">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">Kabar Desa</h2>
-              <p className="text-slate-600 dark:text-slate-400">Berita terkini seputar Desa Cenrana.</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-4">Kabar Desa</h2>
+              <p className="text-[var(--text-secondary)]">Berita terkini seputar Desa Cenrana.</p>
             </div>
             <Link href="/informasi/berita" className="hidden md:flex items-center text-blue-600 dark:text-blue-400 font-bold hover:underline transition-all">
               Lihat Semua <ArrowRight className="w-5 h-5 ml-2" />
@@ -354,29 +356,29 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {news && news.length > 0 ? (
               news.slice(0, 4).map((item) => (
-                <div key={item.id} className="bg-white dark:bg-white/5 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group">
-                  <div className="relative h-48 overflow-hidden">
-                    <Image
+                <div key={item.id} className={`${cardStyle} overflow-hidden group h-full flex flex-col`}>
+                  <div className="relative h-48 overflow-hidden flex-shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                       src={item.image}
                       alt={item.title}
-                      fill
-                      className="object-cover transform group-hover:scale-110 transition-transform duration-700"
+                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                     />
                     <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-white">
                       {item.category}
                     </div>
                   </div>
-                  <div className="p-6">
+                  <div className="p-6 flex flex-col flex-grow">
                     <div className="text-slate-500 dark:text-slate-400 text-[10px] mb-2 font-bold uppercase tracking-wider">
                       {item.date}
                     </div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                       {item.title}
                     </h3>
-                    <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed line-clamp-2 mb-4">
+                    <p className="text-[var(--text-secondary)] text-xs leading-relaxed line-clamp-2 mb-4 flex-grow">
                       {item.excerpt}
                     </p>
-                    <Link href={`/informasi/berita`} className="inline-flex items-center text-blue-600 dark:text-blue-400 font-bold text-xs hover:translate-x-2 transition-transform">
+                    <Link href={`/informasi/berita`} className="inline-flex items-center text-blue-600 dark:text-blue-400 font-bold text-xs hover:translate-x-2 transition-transform mt-auto">
                       Baca Selengkapnya <ChevronRight className="w-3 h-3 ml-1" />
                     </Link>
                   </div>
@@ -390,6 +392,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

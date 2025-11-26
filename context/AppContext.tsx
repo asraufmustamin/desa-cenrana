@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 import { newsItems, lapakItems } from "@/data/mockData";
 
 // Define types
@@ -48,7 +49,7 @@ export interface Official {
 export interface Program {
     id: number;
     title: string;
-    status: "Berjalan" | "Selesai" | "Direncanakan";
+    status: "Berjalan" | "Selesai" | "Rencana";
     description: string;
     icon: string;
 }
@@ -57,6 +58,30 @@ export interface GalleryItem {
     id: number;
     title: string;
     image: string;
+}
+
+export interface InfografisData {
+    gender: { name: string; value: number; fill: string }[];
+    education: { name: string; value: number; fill: string }[];
+    job: { name: string; value: number; fill: string }[];
+}
+
+export interface HukumItem {
+    id: number;
+    jenis: "Perdes" | "SK Kades" | "Perkada";
+    nomor: string;
+    tahun: string;
+    judul: string;
+    downloadUrl: string;
+}
+
+export interface AgendaItem {
+    id: number;
+    title: string;
+    date: string;
+    time: string;
+    location: string;
+    description: string;
 }
 export interface CMSContent {
     home: {
@@ -113,7 +138,13 @@ export interface CMSContent {
         batasBarat: string;
         batasTimur: string;
         luasWilayah: string;
+        alamatKantor: string;
+        koordinat: string;
+        jarakKabupaten: string;
     };
+    infografis: InfografisData;
+    hukum: HukumItem[];
+    agenda: AgendaItem[];
 }
 
 type Theme = "dark" | "light";
@@ -131,7 +162,7 @@ interface AppContextType {
     updateContent: (section: keyof CMSContent, field: string, value: any) => void;
 
     isLoggedIn: boolean;
-    theme: Theme;
+    theme: string | undefined; // Updated to match next-themes
     login: () => void;
     logout: () => void;
     toggleTheme: () => void;
@@ -156,6 +187,21 @@ interface AppContextType {
 
     // Gallery Management
     addGalleryItem: (item: Omit<GalleryItem, "id">) => void;
+
+    // Program Management
+    addProgram: () => void;
+    deleteProgram: (id: number) => void;
+    updateProgram: (id: number, updates: Partial<Program>) => void;
+
+    // Hukum Management
+    addHukum: () => void;
+    deleteHukum: (id: number) => void;
+    updateHukum: (id: number, updates: Partial<HukumItem>) => void;
+
+    // Agenda Management
+    addAgenda: () => void;
+    deleteAgenda: (id: number) => void;
+    updateAgenda: (id: number, updates: Partial<AgendaItem>) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -167,7 +213,10 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     const [lapak, setLapak] = useState<LapakItem[]>([]);
     const [aspirasi, setAspirasi] = useState<AspirasiItem[]>([]);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [theme, setTheme] = useState<Theme>("dark");
+
+    // Theme management via next-themes
+    const { theme, setTheme } = useTheme();
+
     const [isInitialized, setIsInitialized] = useState(false);
     const [lastActivity, setLastActivity] = useState<number>(Date.now());
 
@@ -177,17 +226,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         home: {
             heroTitle: "Desa Cenrana",
             heroSubtitle: "Mewujudkan desa yang mandiri, sejahtera, dan berbudaya melalui pelayanan publik yang transparan dan inovatif.",
-            heroDesc: "Selamat Datang di Website Resmi Desa Cenrana.",
-            statsLabel1: "Penduduk", statsVal1: "3500",
-            statsLabel2: "Luas Wilayah", statsVal2: "12",
-            statsLabel3: "Layanan Digital", statsVal3: "98",
-            statsLabel4: "Kepala Keluarga", statsVal4: "850",
-            statsLabel5: "UMKM Aktif", statsVal5: "45",
-            statsLabel6: "Total Dana Desa", statsVal6: "1200000000",
-        },
-        footer: {
-            brandName: "Desa Cenrana",
-            brandDesc: "Mewujudkan pemerintahan desa yang transparan, akuntabel, dan melayani dengan hati.",
             address: "Jl. Poros Cenrana No. 123, Kec. Cenrana, Kab. Maros, Sulawesi Selatan",
             phone: "+62 812-3456-7890",
             email: "admin@desacenrana.id",
@@ -247,8 +285,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         programs: [
             { id: 1, title: "Pembangunan Jalan Tani", status: "Berjalan", description: "Pembangunan jalan tani sepanjang 2km di Dusun Benteng untuk memudahkan akses petani.", icon: "Road" },
             { id: 2, title: "Pelatihan Digital UMKM", status: "Selesai", description: "Pelatihan pemasaran digital bagi pelaku UMKM desa untuk meningkatkan jangkauan pasar.", icon: "Laptop" },
-            { id: 3, title: "Posyandu Lansia", status: "Berjalan", description: "Layanan kesehatan rutin bulanan untuk lansia di setiap dusun.", icon: "HeartPulse" },
-            { id: 4, title: "Renovasi Balai Desa", status: "Direncanakan", description: "Rencana renovasi aula balai desa untuk kenyamanan kegiatan masyarakat.", icon: "Home" },
+            { id: 3, title: "Renovasi Posyandu", status: "Rencana", description: "Rencana renovasi dan penambahan fasilitas kesehatan untuk Posyandu Melati.", icon: "HeartPulse" },
         ],
         gallery: [
             { id: 1, title: "Panen Raya Padi", image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&q=80&w=400" },
@@ -262,8 +299,40 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             batasSelatan: "Desa Limapoccoe",
             batasBarat: "Kecamatan Bantimurung",
             batasTimur: "Hutan Lindung",
-            luasWilayah: "12.5"
-        }
+            luasWilayah: "12.5",
+            alamatKantor: "Jl. Poros Cenrana No. 123, Kec. Cenrana",
+            koordinat: "-4.9666667, 119.7289895",
+            jarakKabupaten: "35 km"
+        },
+        infografis: {
+            gender: [
+                { name: "Laki-laki", value: 1250, fill: "#3b82f6" },
+                { name: "Perempuan", value: 1180, fill: "#ec4899" }
+            ],
+            education: [
+                { name: "SD", value: 450, fill: "#f59e0b" },
+                { name: "SMP", value: 380, fill: "#10b981" },
+                { name: "SMA", value: 520, fill: "#3b82f6" },
+                { name: "S1/D3", value: 210, fill: "#8b5cf6" }
+            ],
+            job: [
+                { name: "Petani", value: 600, fill: "#10b981" },
+                { name: "Pedagang", value: 150, fill: "#f59e0b" },
+                { name: "PNS/TNI/Polri", value: 80, fill: "#3b82f6" },
+                { name: "Wiraswasta", value: 200, fill: "#8b5cf6" },
+                { name: "Lainnya", value: 120, fill: "#64748b" }
+            ]
+        },
+        hukum: [
+            { id: 1, jenis: "Perdes", nomor: "01", tahun: "2024", judul: "Anggaran Pendapatan dan Belanja Desa Tahun 2024", downloadUrl: "#" },
+            { id: 2, jenis: "SK Kades", nomor: "05", tahun: "2024", judul: "Pembentukan Tim Pelaksana Kegiatan Pembangunan Desa", downloadUrl: "#" },
+            { id: 3, jenis: "Perdes", nomor: "03", tahun: "2023", judul: "Rencana Pembangunan Jangka Menengah Desa (RPJMDes) 2023-2029", downloadUrl: "#" }
+        ],
+        agenda: [
+            { id: 1, title: "Musyawarah Perencanaan Pembangunan (Musrenbang)", date: "2024-02-15", time: "09:00 WITA", location: "Aula Kantor Desa", description: "Pembahasan prioritas pembangunan desa tahun anggaran 2025." },
+            { id: 2, title: "Posyandu Balita & Lansia", date: "2024-02-20", time: "08:00 WITA", location: "Posyandu Melati", description: "Pemeriksaan kesehatan rutin untuk balita dan lansia." },
+            { id: 3, title: "Kerja Bakti Lingkungan", date: "2024-02-25", time: "07:00 WITA", location: "Dusun Benteng", description: "Membersihkan saluran irigasi dan jalan desa." }
+        ]
     });
 
     // Derived officials from CMS Content for backward compatibility
@@ -305,7 +374,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         const storedLapak = localStorage.getItem("desa_lapak");
         const storedAspirasi = localStorage.getItem("desa_aspirasi");
         const storedAuth = localStorage.getItem("isAdmin");
-        const storedTheme = localStorage.getItem("theme") as Theme;
         const storedCMSContent = localStorage.getItem("desa_cms_content");
         const storedEditMode = localStorage.getItem("desa_edit_mode");
         const storedLastActivity = localStorage.getItem("last_activity");
@@ -347,20 +415,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (storedEditMode === "true" && isLoggedIn) setIsEditMode(true);
 
-        if (storedTheme) setTheme(storedTheme);
-
         setIsInitialized(true);
     }, []);
-
-    // Apply theme
-    useEffect(() => {
-        if (theme === "dark") {
-            document.documentElement.classList.add("dark");
-        } else {
-            document.documentElement.classList.remove("dark");
-        }
-        localStorage.setItem("theme", theme);
-    }, [theme]);
 
     // Persistence
     useEffect(() => {
@@ -393,7 +449,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const toggleTheme = () => {
-        setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+        setTheme(theme === "dark" ? "light" : "dark");
     };
 
     const toggleEditMode = () => {
@@ -493,6 +549,86 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         setLastActivity(Date.now());
     };
 
+    // Program Management
+    const addProgram = () => {
+        const newProgram: Program = {
+            id: Date.now(),
+            title: "Program Baru",
+            description: "Deskripsi program...",
+            status: "Rencana",
+            icon: "Lightbulb"
+        };
+        setCmsContent(prev => ({
+            ...prev,
+            programs: [newProgram, ...prev.programs]
+        }));
+        setLastActivity(Date.now());
+    };
+
+    const deleteProgram = (id: number) => {
+        setCmsContent(prev => ({
+            ...prev,
+            programs: prev.programs.filter(p => p.id !== id)
+        }));
+        setLastActivity(Date.now());
+    };
+
+    const updateProgram = (id: number, updates: Partial<Program>) => {
+        setCmsContent(prev => ({
+            ...prev,
+            programs: prev.programs.map(p => p.id === id ? { ...p, ...updates } : p)
+        }));
+        setLastActivity(Date.now());
+    };
+
+    // Hukum Management
+    const addHukum = () => {
+        const newItem: HukumItem = {
+            id: Date.now(),
+            jenis: "Perdes",
+            nomor: "XX",
+            tahun: new Date().getFullYear().toString(),
+            judul: "Judul Produk Hukum Baru",
+            downloadUrl: "#"
+        };
+        setCmsContent(prev => ({ ...prev, hukum: [newItem, ...prev.hukum] }));
+        setLastActivity(Date.now());
+    };
+
+    const deleteHukum = (id: number) => {
+        setCmsContent(prev => ({ ...prev, hukum: prev.hukum.filter(i => i.id !== id) }));
+        setLastActivity(Date.now());
+    };
+
+    const updateHukum = (id: number, updates: Partial<HukumItem>) => {
+        setCmsContent(prev => ({ ...prev, hukum: prev.hukum.map(i => i.id === id ? { ...i, ...updates } : i) }));
+        setLastActivity(Date.now());
+    };
+
+    // Agenda Management
+    const addAgenda = () => {
+        const newItem: AgendaItem = {
+            id: Date.now(),
+            title: "Agenda Baru",
+            date: new Date().toISOString().split('T')[0],
+            time: "09:00",
+            location: "Lokasi...",
+            description: "Deskripsi kegiatan..."
+        };
+        setCmsContent(prev => ({ ...prev, agenda: [newItem, ...prev.agenda] }));
+        setLastActivity(Date.now());
+    };
+
+    const deleteAgenda = (id: number) => {
+        setCmsContent(prev => ({ ...prev, agenda: prev.agenda.filter(i => i.id !== id) }));
+        setLastActivity(Date.now());
+    };
+
+    const updateAgenda = (id: number, updates: Partial<AgendaItem>) => {
+        setCmsContent(prev => ({ ...prev, agenda: prev.agenda.map(i => i.id === id ? { ...i, ...updates } : i) }));
+        setLastActivity(Date.now());
+    };
+
     return (
         <AppContext.Provider value={{
             news, lapak, aspirasi, officials,
@@ -502,7 +638,10 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             addNews, deleteNews, updateNews,
             addAspirasi, verifyAspirasi, replyAspirasi, getAspirasiByTicket, deleteAspirasi,
             submitLapak, approveLapak, rejectLapak, deleteLapak,
-            addGalleryItem
+            addGalleryItem,
+            addProgram, deleteProgram, updateProgram,
+            addHukum, deleteHukum, updateHukum,
+            addAgenda, deleteAgenda, updateAgenda
         }}>
             {children}
         </AppContext.Provider>

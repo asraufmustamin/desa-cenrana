@@ -11,7 +11,10 @@ export default function Navbar() {
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
     const { isLoggedIn, theme, toggleTheme } = useAppContext();
 
+    const [mounted, setMounted] = useState(false);
+
     useEffect(() => {
+        setMounted(true);
         const handleScroll = () => {
             setScrolled(window.scrollY > 20);
         };
@@ -39,6 +42,9 @@ export default function Navbar() {
                 { name: "Peta Desa", href: "/informasi/peta" },
                 { name: "Program Kerja", href: "/informasi/program" },
                 { name: "Galeri Desa", href: "/informasi/galeri" },
+                { name: "Infografis", href: "/informasi/infografis" },
+                { name: "Produk Hukum", href: "/informasi/hukum" },
+                { name: "Agenda Kegiatan", href: "/informasi/agenda" },
             ],
         },
         {
@@ -52,27 +58,32 @@ export default function Navbar() {
         { name: "Lapak Warga", href: "/lapak" },
     ];
 
+    // Explicit colors for reliability
+    // Scrolled: White/Dark background, Dark/White text
+    // Transparent: Transparent background, White text (Hero)
+    const navBgClass = scrolled
+        ? "bg-white/90 dark:bg-slate-950/90 backdrop-blur-md shadow-md border-b border-slate-200 dark:border-slate-800"
+        : "bg-transparent";
+
+    const textColorClass = scrolled
+        ? "text-slate-800 dark:text-slate-100"
+        : "text-white dark:text-white"; // Always white on hero
+
     return (
-        <nav
-            className={`fixed w-full z-50 transition-all duration-300 ${scrolled
-                ? "bg-[var(--bg-panel)] backdrop-blur-xl border-b border-[var(--border-color)] shadow-lg"
-                : "bg-transparent"
-                }`}
-        >
+        <nav className={`fixed w-full z-50 transition-all duration-300 ${navBgClass}`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     {/* Logo */}
                     <Link href="/" className="flex items-center space-x-3 group">
                         <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            {/* Kabupaten Maros Logo */}
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src="/logo-maros.png" alt="Logo Maros" className="w-full h-full object-contain drop-shadow-md" />
                         </div>
                         <div className="flex flex-col">
-                            <span className={`font-bold text-lg tracking-tight leading-none transition-colors md:text-shadow-sm ${scrolled ? "text-[var(--text-primary)] group-hover:text-emerald-500" : "text-[var(--text-primary)] md:text-white group-hover:text-emerald-500 md:group-hover:text-emerald-400"}`}>
+                            <span className={`font-bold text-lg tracking-tight leading-none transition-colors md:text-shadow-sm ${textColorClass} group-hover:text-emerald-500`}>
                                 Desa Cenrana
                             </span>
-                            <span className={`text-xs font-bold tracking-wider ${scrolled ? "text-[var(--text-secondary)]" : "text-[var(--text-secondary)] md:text-white/80"}`}>
+                            <span className={`text-xs font-bold tracking-wider ${scrolled ? "text-slate-500 dark:text-slate-400" : "text-white/80"}`}>
                                 Kabupaten Maros
                             </span>
                         </div>
@@ -89,7 +100,7 @@ export default function Navbar() {
                             >
                                 <Link
                                     href={link.href}
-                                    className={`flex items-center font-bold transition-colors py-2 md:text-shadow-sm ${scrolled ? "text-[var(--text-primary)] hover:text-blue-600" : "text-[var(--text-primary)] md:text-white hover:text-blue-600 md:hover:text-emerald-400"}`}
+                                    className={`flex items-center font-bold transition-colors py-2 md:text-shadow-sm ${textColorClass} hover:text-blue-500`}
                                 >
                                     {link.name}
                                     {link.dropdown && (
@@ -105,12 +116,12 @@ export default function Navbar() {
                                             : "opacity-0 scale-95 invisible"
                                             }`}
                                     >
-                                        <div className="glass-panel rounded-2xl overflow-hidden p-2 shadow-xl border border-[var(--border-color)] bg-[var(--bg-panel)] backdrop-blur-xl">
+                                        <div className="rounded-2xl overflow-hidden p-2 shadow-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
                                             {link.dropdown.map((item) => (
                                                 <Link
                                                     key={item.name}
                                                     href={item.href}
-                                                    className="block px-4 py-3 text-sm text-[var(--text-primary)] hover:text-blue-600 hover:bg-[var(--bg-card)] rounded-xl transition-colors font-medium"
+                                                    className="block px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:text-blue-600 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors font-medium"
                                                 >
                                                     {item.name}
                                                 </Link>
@@ -127,10 +138,12 @@ export default function Navbar() {
                         {/* Theme Toggle */}
                         <button
                             onClick={toggleTheme}
-                            className="p-2.5 rounded-full bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] hover:bg-[var(--bg-panel)] transition-all"
+                            className={`p-2.5 rounded-full border transition-all ${scrolled
+                                ? "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200"
+                                : "bg-white/10 border-white/20 text-white hover:bg-white/20"}`}
                             aria-label="Toggle Theme"
                         >
-                            {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                            {mounted ? (theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />) : <div className="w-5 h-5" />}
                         </button>
 
                         {isLoggedIn ? (
@@ -144,7 +157,9 @@ export default function Navbar() {
                         ) : (
                             <Link
                                 href="/admin/login"
-                                className="px-6 py-2.5 bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] rounded-full font-bold hover:bg-[var(--bg-panel)] transition-all flex items-center backdrop-blur-md"
+                                className={`px-6 py-2.5 rounded-full font-bold border transition-all flex items-center backdrop-blur-md ${scrolled
+                                    ? "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700"
+                                    : "bg-white/10 border-white/20 text-white hover:bg-white/20"}`}
                             >
                                 Masuk Admin
                             </Link>
@@ -155,13 +170,13 @@ export default function Navbar() {
                     <div className="md:hidden flex items-center space-x-4">
                         <button
                             onClick={toggleTheme}
-                            className="p-2 rounded-lg bg-[var(--bg-card)] text-[var(--text-primary)]"
+                            className={`p-2 rounded-lg ${scrolled ? "text-slate-800 dark:text-white" : "text-white"}`}
                         >
-                            {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                            {mounted ? (theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />) : <div className="w-5 h-5" />}
                         </button>
                         <button
                             onClick={() => setIsOpen(!isOpen)}
-                            className="text-[var(--text-primary)] p-2 rounded-lg hover:bg-[var(--bg-card)] transition-colors"
+                            className={`p-2 rounded-lg hover:bg-white/10 transition-colors ${scrolled ? "text-slate-800 dark:text-white" : "text-white"}`}
                         >
                             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                         </button>
@@ -171,7 +186,7 @@ export default function Navbar() {
 
             {/* Mobile Menu */}
             <div
-                className={`md:hidden absolute w-full bg-[var(--bg-panel)] backdrop-blur-xl border-b border-[var(--border-color)] transition-all duration-300 overflow-hidden ${isOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
+                className={`md:hidden absolute w-full bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 transition-all duration-300 overflow-hidden ${isOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
                     }`}
             >
                 <div className="px-4 pt-4 pb-8 space-y-2">
@@ -179,14 +194,14 @@ export default function Navbar() {
                         <div key={link.name}>
                             {link.dropdown ? (
                                 <div className="space-y-2">
-                                    <div className="px-4 py-3 text-[var(--text-secondary)] font-bold uppercase text-xs tracking-wider">
+                                    <div className="px-4 py-3 text-slate-500 dark:text-slate-400 font-bold uppercase text-xs tracking-wider">
                                         {link.name}
                                     </div>
                                     {link.dropdown.map((item) => (
                                         <Link
                                             key={item.name}
                                             href={item.href}
-                                            className="block px-4 py-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card)] rounded-xl transition-colors ml-4"
+                                            className="block px-4 py-3 text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-xl transition-colors ml-4"
                                             onClick={() => setIsOpen(false)}
                                         >
                                             {item.name}
@@ -196,7 +211,7 @@ export default function Navbar() {
                             ) : (
                                 <Link
                                     href={link.href}
-                                    className="block px-4 py-3 text-[var(--text-primary)] font-medium hover:bg-[var(--bg-card)] rounded-xl transition-colors"
+                                    className="block px-4 py-3 text-slate-800 dark:text-slate-100 font-medium hover:bg-slate-50 dark:hover:bg-slate-900 rounded-xl transition-colors"
                                     onClick={() => setIsOpen(false)}
                                 >
                                     {link.name}
@@ -204,7 +219,7 @@ export default function Navbar() {
                             )}
                         </div>
                     ))}
-                    <div className="pt-4 border-t border-[var(--border-color)] mt-4">
+                    <div className="pt-4 border-t border-slate-200 dark:border-slate-800 mt-4">
                         <Link
                             href={isLoggedIn ? "/admin" : "/admin/login"}
                             className="block w-full text-center px-6 py-3 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-xl font-bold shadow-lg"
