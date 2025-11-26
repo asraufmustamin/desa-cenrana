@@ -226,6 +226,17 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         home: {
             heroTitle: "Desa Cenrana",
             heroSubtitle: "Mewujudkan desa yang mandiri, sejahtera, dan berbudaya melalui pelayanan publik yang transparan dan inovatif.",
+            heroDesc: "Pusat informasi dan layanan digital untuk warga Desa Cenrana.",
+            statsLabel1: "Penduduk", statsVal1: "3,500+",
+            statsLabel2: "Kepala Keluarga", statsVal2: "850",
+            statsLabel3: "Dusun", statsVal3: "4",
+            statsLabel4: "Luas Wilayah", statsVal4: "12 km²",
+            statsLabel5: "UMKM", statsVal5: "45+",
+            statsLabel6: "Indeks Desa", statsVal6: "Maju",
+        },
+        footer: {
+            brandName: "Desa Cenrana",
+            brandDesc: "Website resmi Pemerintah Desa Cenrana, Kabupaten Maros.",
             address: "Jl. Poros Cenrana No. 123, Kec. Cenrana, Kab. Maros, Sulawesi Selatan",
             phone: "+62 812-3456-7890",
             email: "admin@desacenrana.id",
