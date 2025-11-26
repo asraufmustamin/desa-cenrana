@@ -69,7 +69,7 @@ export default function Aspirasi() {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (form.nik && form.nik.length !== 16) {
@@ -77,7 +77,7 @@ export default function Aspirasi() {
             return;
         }
 
-        const newTicketId = addAspirasi(form);
+        const newTicketId = await addAspirasi(form);
 
         // Update local history
         const updatedHistory = [newTicketId, ...myHistory];
@@ -302,7 +302,7 @@ export default function Aspirasi() {
                                             <div className="flex items-center justify-between mb-6">
                                                 <div>
                                                     <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-1">Status Laporan</h3>
-                                                    <p className="text-[var(--text-secondary)] font-mono">{searchResult.id}</p>
+                                                    <p className="text-[var(--text-secondary)] font-mono">{typeof searchResult.id === 'object' ? JSON.stringify(searchResult.id) : searchResult.id}</p>
                                                 </div>
                                                 <div className={`px-4 py-2 rounded-full font-bold flex items-center ${searchResult.status === "Verified"
                                                     ? "bg-emerald-500/20 text-emerald-500 border border-emerald-500/20"
@@ -313,17 +313,17 @@ export default function Aspirasi() {
                                                     {searchResult.status === "Verified" && <CheckCircle className="w-4 h-4 mr-2" />}
                                                     {searchResult.status === "Rejected" && <AlertCircle className="w-4 h-4 mr-2" />}
                                                     {searchResult.status === "Pending" && <Clock className="w-4 h-4 mr-2" />}
-                                                    {searchResult.status}
+                                                    {typeof searchResult.status === 'object' ? JSON.stringify(searchResult.status) : searchResult.status}
                                                 </div>
                                             </div>
 
                                             <div className="space-y-4">
                                                 <div className="bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border-color)]">
                                                     <h4 className="text-sm font-bold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">Detail Laporan</h4>
-                                                    <p className="text-[var(--text-primary)] leading-relaxed">{searchResult.laporan}</p>
+                                                    <p className="text-[var(--text-primary)] leading-relaxed">{typeof searchResult.laporan === 'object' ? JSON.stringify(searchResult.laporan) : searchResult.laporan}</p>
                                                     <div className="mt-4 flex items-center text-sm text-[var(--text-secondary)]">
-                                                        <span className="mr-4">Oleh: {searchResult.nama}</span>
-                                                        <span>{searchResult.date}</span>
+                                                        <span className="mr-4">Oleh: {typeof searchResult.nama === 'object' ? JSON.stringify(searchResult.nama) : searchResult.nama}</span>
+                                                        <span>{typeof searchResult.date === 'object' ? JSON.stringify(searchResult.date) : searchResult.date}</span>
                                                     </div>
                                                 </div>
 
@@ -333,7 +333,7 @@ export default function Aspirasi() {
                                                             <MessageSquare className="w-5 h-5 text-blue-500 mr-2" />
                                                             <h4 className="text-sm font-bold text-blue-500 uppercase tracking-wider">Tanggapan Admin</h4>
                                                         </div>
-                                                        <p className="text-[var(--text-primary)] leading-relaxed">{searchResult.reply}</p>
+                                                        <p className="text-[var(--text-primary)] leading-relaxed">{typeof searchResult.reply === 'object' ? JSON.stringify(searchResult.reply) : searchResult.reply}</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -367,22 +367,22 @@ export default function Aspirasi() {
                                                     <div className="flex justify-between items-start mb-4">
                                                         <div>
                                                             <div className="flex items-center space-x-3 mb-1">
-                                                                <span className="font-mono font-bold text-blue-500">{item.id}</span>
+                                                                <span className="font-mono font-bold text-blue-500">{typeof item.id === 'object' ? JSON.stringify(item.id) : item.id}</span>
                                                                 <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${item.status === "Verified" ? "bg-emerald-500/20 text-emerald-500" :
                                                                     item.status === "Rejected" ? "bg-red-500/20 text-red-500" :
                                                                         "bg-amber-500/20 text-amber-500"
                                                                     }`}>
-                                                                    {item.status}
+                                                                    {typeof item.status === 'object' ? JSON.stringify(item.status) : item.status}
                                                                 </span>
                                                             </div>
-                                                            <h4 className="font-bold text-[var(--text-primary)]">{item.nama} <span className="text-[var(--text-secondary)] font-normal text-sm">({item.dusun})</span></h4>
+                                                            <h4 className="font-bold text-[var(--text-primary)]">{typeof item.nama === 'object' ? JSON.stringify(item.nama) : item.nama} <span className="text-[var(--text-secondary)] font-normal text-sm">({typeof item.dusun === 'object' ? JSON.stringify(item.dusun) : item.dusun})</span></h4>
                                                         </div>
                                                         <div className="text-xs text-[var(--text-secondary)]">
-                                                            {item.date}
+                                                            {typeof item.date === 'object' ? JSON.stringify(item.date) : item.date}
                                                         </div>
                                                     </div>
 
-                                                    <p className="text-[var(--text-secondary)] mb-4 line-clamp-3">{item.laporan}</p>
+                                                    <p className="text-[var(--text-secondary)] mb-4 line-clamp-3">{typeof item.laporan === 'object' ? JSON.stringify(item.laporan) : item.laporan}</p>
 
                                                     <div className="flex justify-end space-x-2">
                                                         <button
@@ -420,25 +420,25 @@ export default function Aspirasi() {
                                 </div>
                             ) : (
                                 <div className="space-y-3">
-                                    {myHistory.map((id) => {
+                                    {myHistory.filter((value, index, self) => self.indexOf(value) === index).map((id) => {
                                         const item = getAspirasiByTicket(id);
                                         return (
                                             <button
-                                                key={id}
-                                                onClick={() => handleSearch(id)}
+                                                key={typeof id === 'string' || typeof id === 'number' ? id : JSON.stringify(id)}
+                                                onClick={() => handleSearch(typeof id === 'string' ? id : String(id))}
                                                 className="w-full text-left p-4 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--bg-panel)] border border-[var(--border-color)] transition-all group"
                                             >
                                                 <div className="flex justify-between items-center mb-1">
-                                                    <span className="font-mono font-bold text-blue-500 text-sm">{id}</span>
+                                                    <span className="font-mono font-bold text-blue-500 text-sm">{typeof id === 'object' ? JSON.stringify(id) : id}</span>
                                                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${item?.status === "Verified" ? "bg-emerald-500/20 text-emerald-500" :
                                                         item?.status === "Rejected" ? "bg-red-500/20 text-red-500" :
                                                             "bg-amber-500/20 text-amber-500"
                                                         }`}>
-                                                        {item?.status || "Unknown"}
+                                                        {typeof item?.status === 'object' ? JSON.stringify(item?.status) : (item?.status || "Unknown")}
                                                     </span>
                                                 </div>
                                                 <div className="text-xs text-[var(--text-secondary)] line-clamp-1 group-hover:text-[var(--text-primary)]">
-                                                    {item?.laporan || "Memuat..."}
+                                                    {typeof item?.laporan === 'object' ? JSON.stringify(item?.laporan) : (item?.laporan || "Memuat...")}
                                                 </div>
                                             </button>
                                         );

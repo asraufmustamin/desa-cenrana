@@ -74,21 +74,21 @@ const AspirasiTracker = () => {
                     <div className="flex justify-between items-start mb-4 border-b border-gray-200 pb-4">
                         <div>
                             <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Nomor Tiket</p>
-                            <p className="text-xl font-bold text-desa-dark">{result.id}</p>
+                            <p className="text-xl font-bold text-desa-dark">{typeof result.id === 'object' ? JSON.stringify(result.id) : result.id}</p>
                         </div>
                         <div className="text-right">
                             <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Tanggal</p>
-                            <p className="text-sm font-medium">{result.date}</p>
+                            <p className="text-sm font-medium">{typeof result.date === 'object' ? JSON.stringify(result.date) : result.date}</p>
                         </div>
                     </div>
 
                     <div className="mb-6">
                         <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Status Terkini</p>
                         <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-bold ${result.status === "Verified"
-                                ? "bg-green-100 text-green-800"
-                                : result.status === "Rejected"
-                                    ? "bg-red-100 text-red-800"
-                                    : "bg-yellow-100 text-yellow-800"
+                            ? "bg-green-100 text-green-800"
+                            : result.status === "Rejected"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-yellow-100 text-yellow-800"
                             }`}>
                             {result.status === "Verified" && <CheckCircle className="w-4 h-4 mr-2" />}
                             {result.status === "Pending" && <Clock className="w-4 h-4 mr-2" />}
@@ -100,7 +100,7 @@ const AspirasiTracker = () => {
                     <div>
                         <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Detail Laporan</p>
                         <p className="text-gray-700 bg-white p-3 rounded-lg border border-gray-200 text-sm">
-                            {result.laporan}
+                            {typeof result.laporan === 'object' ? JSON.stringify(result.laporan) : result.laporan}
                         </p>
                     </div>
                 </div>
