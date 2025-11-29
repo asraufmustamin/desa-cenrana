@@ -7,7 +7,7 @@ import { Phone, Tag, Search, ShoppingBag, Plus, X, Trophy, ChevronLeft, ChevronR
 import { useAppContext } from "@/context/AppContext";
 
 export default function LapakWarga() {
-    const { lapak, submitLapak } = useAppContext();
+    const { lapak, submitLapak, isLoading } = useAppContext();
     const [activeTab, setActiveTab] = useState("Semua");
     const [searchQuery, setSearchQuery] = useState("");
     const [showModal, setShowModal] = useState(false);
@@ -26,12 +26,16 @@ export default function LapakWarga() {
 
     const categories = ["Semua", "Hasil Tani", "Produk UMKM", "Jasa Warga"];
 
-    // Filter Active Items Only
-    const activeLapak = lapak.filter(item => item.status === "Active");
+    // Filter Active Items Only (Defensive Coding)
+    const safeLapak = Array.isArray(lapak) ? lapak : [];
+    const activeLapak = safeLapak.filter(item => item && item.status === "Active");
 
     const filteredLapak = activeLapak.filter((item) => {
         const matchesCategory = activeTab === "Semua" || item.category === activeTab;
-        const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
+        // Defensive Coding: Check if title exists, fallback to empty string
+        // Also check for 'name' property just in case the DB returns that instead of title
+        const itemTitle = item.title || (item as any).name || "";
+        const matchesSearch = itemTitle.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesCategory && matchesSearch;
     });
 
@@ -57,6 +61,23 @@ export default function LapakWarga() {
             }
         }
     };
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen pt-24 pb-12 flex flex-col items-center justify-center">
+                <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p className="text-xl font-bold text-[var(--text-secondary)]">Memuat data lapak...</p>
+            </div>
+        );
+    }
+
+    if (!safeLapak) {
+        return (
+            <div className="min-h-screen pt-24 pb-12 flex items-center justify-center">
+                <p className="text-xl font-bold text-red-500">Gagal memuat data lapak. Silakan coba lagi nanti.</p>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
@@ -88,7 +109,7 @@ export default function LapakWarga() {
                         ref={scrollRef}
                         className="flex space-x-6 overflow-x-auto hide-scrollbar pb-4 snap-x snap-mandatory"
                     >
-                        {top5Items.map((item) => (
+                        {top5Items?.length > 0 && top5Items.map((item) => (
                             <div key={item.id} className="min-w-[280px] md:min-w-[320px] snap-center glass-card rounded-3xl overflow-hidden flex flex-col group">
                                 <div className="relative h-48">
                                     <Image
@@ -155,7 +176,7 @@ export default function LapakWarga() {
                 {/* Grid */}
                 {filteredLapak.length > 0 ? (
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                        {filteredLapak.map((item) => {
+                        {filteredLapak?.map((item) => {
                             const isInvalidImage = item.image.includes("whatsapp") || item.image.includes("wa.me");
                             const safeImage = isInvalidImage
                                 ? "https://images.unsplash.com/photo-1589923188900-85dae5233271?auto=format&fit=crop&w=800&q=80"

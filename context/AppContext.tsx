@@ -347,7 +347,15 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
                 // Fetch Lapak
                 const { data: lapakData } = await supabase.from('lapak').select('*').order('created_at', { ascending: false });
-                if (lapakData) setLapak(lapakData);
+                if (lapakData) {
+                    // Map DB 'name' to 'title' if necessary
+                    const mappedLapak = lapakData.map((item: any) => ({
+                        ...item,
+                        title: item.title || item.name || "Produk Tanpa Nama", // Fallback
+                        status: item.status || "Active" // Ensure status exists
+                    }));
+                    setLapak(mappedLapak);
+                }
                 else setLapak(lapakItems.map(item => ({ ...item, status: "Active" as const })));
 
                 // Fetch Aspirasi
