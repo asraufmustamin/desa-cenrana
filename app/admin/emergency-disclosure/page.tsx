@@ -17,7 +17,7 @@ interface DisclosureResult {
 }
 
 export default function EmergencyDisclosurePage() {
-    const { isLoggedIn, user } = useAppContext();
+    const { isLoggedIn } = useAppContext();
     const [activeTab, setActiveTab] = useState<'request' | 'history' | 'audit'>('request');
     const [isProcessing, setIsProcessing] = useState(false);
     const [result, setResult] = useState<DisclosureResult | null>(null);
@@ -55,15 +55,20 @@ export default function EmergencyDisclosurePage() {
         setResult(null);
 
         try {
+            // Get admin email from localStorage (fallback)
+            const adminEmail = typeof window !== 'undefined'
+                ? localStorage.getItem('adminEmail') || 'admin@desa.com'
+                : 'admin@desa.com';
+
             const disclosureResult = await requestEmergencyDisclosure(
                 {
                     ticketCode: formData.ticketCode,
-                    requestedBy: user?.email || 'unknown',
+                    requestedBy: adminEmail,
                     requestReason: formData.requestReason,
                     officialDocument: formData.officialDocument,
                     authorizedBy: formData.authorizedBy,
                 },
-                { email: user?.email || '', role: 'super_admin' }
+                { email: adminEmail, role: 'super_admin' }
             );
 
             setResult(disclosureResult);
