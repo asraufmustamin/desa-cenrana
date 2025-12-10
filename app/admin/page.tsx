@@ -678,7 +678,7 @@ export default function AdminDashboard() {
                                                                 Rating Kepuasan Warga
                                                             </h4>
                                                             <span className="px-4 py-1.5 bg-yellow-400 dark:bg-yellow-600 text-yellow-900 dark:text-yellow-100 rounded-full text-sm font-black shadow-sm">
-                                                                {item.rating}/5
+                                                                {item.rating || 0}/5
                                                             </span>
                                                         </div>
                                                         <div className="flex items-center gap-1.5 mb-4">
