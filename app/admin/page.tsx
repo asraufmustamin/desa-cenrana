@@ -685,7 +685,7 @@ export default function AdminDashboard() {
                                                             {[...Array(5)].map((_, i) => (
                                                                 <Star
                                                                     key={i}
-                                                                    className={`w-7 h-7 ${i < item.rating ? "fill-yellow-500 text-yellow-500" : "fill-gray-200 text-gray-200 dark:fill-gray-700 dark:text-gray-700"}`}
+                                                                    className={`w-7 h-7 ${i < (item.rating || 0) ? "fill-yellow-500 text-yellow-500" : "fill-gray-200 text-gray-200 dark:fill-gray-700 dark:text-gray-700"}`}
                                                                 />
                                                             ))}
                                                         </div>
