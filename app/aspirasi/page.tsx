@@ -426,7 +426,7 @@ export default function Aspirasi() {
                                                         <div>
                                                             <div className="flex items-center space-x-3 mb-1">
                                                                 <span className="font-mono font-bold text-blue-500">{typeof item.id === 'object' ? JSON.stringify(item.id) : item.id}</span>
-                                                                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${item.status === "Verified" ? "bg-emerald-500/20 text-emerald-500" :
+                                                                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${item.status === "Selesai" || item.status === "Diproses" ? "bg-emerald-500/20 text-emerald-500" :
                                                                     item.status === "Rejected" ? "bg-red-500/20 text-red-500" :
                                                                         "bg-amber-500/20 text-amber-500"
                                                                     }`}>
