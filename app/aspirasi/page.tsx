@@ -7,7 +7,7 @@ import { useAppContext } from "@/context/AppContext";
 import Image from "next/image";
 
 export default function Aspirasi() {
-    const { addAspirasi, getAspirasiByTicket, aspirasi, deleteAspirasi, isEditMode } = useAppContext();
+    const { addAspirasi, getAspirasiByTicket, aspirasi, deleteAspirasi, isEditMode, checkNikAvailability } = useAppContext();
     const [activeTab, setActiveTab] = useState<"form" | "track" | "admin">("form");
     const [ticketId, setTicketId] = useState("");
     const [searchResult, setSearchResult] = useState<any>(null);
@@ -18,13 +18,15 @@ export default function Aspirasi() {
     const [form, setForm] = useState({
         nama: "",
         nik: "",
-        dusun: "Dusun 1",
+        dusun: "Benteng",
         kategori: "Infrastruktur",
         laporan: "",
-        image: "", // Store image URL or base64
+        image: "",
+        is_anonymous: false,
     });
 
     const [nikError, setNikError] = useState("");
+    const [submitError, setSubmitError] = useState("");
 
     // Load history from local storage on mount
     useEffect(() => {
@@ -71,25 +73,38 @@ export default function Aspirasi() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setSubmitError("");
 
-        if (form.nik && form.nik.length !== 16) {
-            setNikError("NIK wajib 16 digit.");
+        // NIK is required
+        if (!form.nik || form.nik.length !== 16) {
+            setNikError("NIK wajib diisi 16 digit.");
             return;
         }
 
-        const newTicketId = await addAspirasi(form);
+        try {
+            // Validate NIK against penduduk table
+            const nikExists = await checkNikAvailability(form.nik);
+            if (!nikExists) {
+                setSubmitError("Validasi Gagal: NIK Anda tidak terdaftar sebagai warga.");
+                return;
+            }
 
-        // Update local history
-        const updatedHistory = [newTicketId, ...myHistory];
-        setMyHistory(updatedHistory);
-        localStorage.setItem("my_aspirasi_history", JSON.stringify(updatedHistory));
+            const newTicketId = await addAspirasi(form);
 
-        alert(`Aspirasi berhasil dikirim! ID Tiket Anda: ${newTicketId}. Simpan ID ini untuk melacak status laporan Anda.`);
-        setForm({ nama: "", nik: "", dusun: "Dusun 1", kategori: "Infrastruktur", laporan: "", image: "" });
-        setImagePreview(null);
-        setTicketId(newTicketId);
-        setActiveTab("track");
-        handleSearch(newTicketId); // Auto search the new ticket
+            // Update local history
+            const updatedHistory = [newTicketId, ...myHistory];
+            setMyHistory(updatedHistory);
+            localStorage.setItem("my_aspirasi_history", JSON.stringify(updatedHistory));
+
+            alert(`Aspirasi berhasil dikirim! ID Tiket Anda: ${newTicketId}. Simpan ID ini untuk melacak status laporan Anda.`);
+            setForm({ nama: "", nik: "", dusun: "Dusun 1", kategori: "Infrastruktur", laporan: "", image: "", is_anonymous: false });
+            setImagePreview(null);
+            setTicketId(newTicketId);
+            setActiveTab("track");
+            handleSearch(newTicketId);
+        } catch (error: any) {
+            setSubmitError(error.message || "Terjadi kesalahan saat mengirim aspirasi.");
+        }
     };
 
     const handleSearch = (idToSearch = ticketId) => {
@@ -157,6 +172,13 @@ export default function Aspirasi() {
 
                             {activeTab === "form" ? (
                                 <form onSubmit={handleSubmit} className="space-y-6">
+                                    {submitError && (
+                                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-start">
+                                            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 mr-3 flex-shrink-0" />
+                                            <p className="text-sm text-red-800 dark:text-red-200 leading-relaxed font-medium">{submitError}</p>
+                                        </div>
+                                    )}
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Nama Lengkap</label>
@@ -170,15 +192,16 @@ export default function Aspirasi() {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">NIK (Opsional)</label>
+                                            <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">NIK <span className="text-red-500">*</span></label>
                                             <input
                                                 type="text"
+                                                required
                                                 value={form.nik}
                                                 onChange={handleNikChange}
                                                 maxLength={16}
                                                 className={`w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border text-[var(--text-primary)] focus:ring-1 outline-none transition-all ${nikError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-[var(--border-color)] focus:border-blue-500 focus:ring-blue-500"
                                                     }`}
-                                                placeholder="16 digit NIK"
+                                                placeholder="16 digit NIK (wajib)"
                                             />
                                             {nikError && <p className="text-red-500 text-xs mt-1 font-bold">{nikError}</p>}
                                         </div>
@@ -190,11 +213,13 @@ export default function Aspirasi() {
                                             <select
                                                 value={form.dusun}
                                                 onChange={(e) => setForm({ ...form, dusun: e.target.value })}
-                                                className="w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none transition-all"
+                                                className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-[var(--bg-panel)] to-[var(--bg-card)] border-2 border-[var(--border-color)] text-[var(--text-primary)] font-medium text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm hover:shadow-md cursor-pointer"
                                             >
-                                                <option className="bg-[var(--bg-panel)]">Dusun 1</option>
-                                                <option className="bg-[var(--bg-panel)]">Dusun 2</option>
-                                                <option className="bg-[var(--bg-panel)]">Dusun 3</option>
+                                                <option value="Benteng" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Benteng</option>
+                                                <option value="Kajuara" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Kajuara</option>
+                                                <option value="Tanatengnga" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Tanatengnga</option>
+                                                <option value="Panagi" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Panagi</option>
+                                                <option value="Holiang" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Holiang</option>
                                             </select>
                                         </div>
                                         <div>
@@ -202,15 +227,41 @@ export default function Aspirasi() {
                                             <select
                                                 value={form.kategori}
                                                 onChange={(e) => setForm({ ...form, kategori: e.target.value })}
-                                                className="w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none transition-all"
+                                                className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-[var(--bg-panel)] to-[var(--bg-card)] border-2 border-[var(--border-color)] text-[var(--text-primary)] font-medium text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm hover:shadow-md cursor-pointer"
                                             >
-                                                <option className="bg-[var(--bg-panel)]">Infrastruktur</option>
-                                                <option className="bg-[var(--bg-panel)]">Pelayanan Publik</option>
-                                                <option className="bg-[var(--bg-panel)]">Keamanan</option>
-                                                <option className="bg-[var(--bg-panel)]">Kesehatan</option>
-                                                <option className="bg-[var(--bg-panel)]">Lainnya</option>
+                                                <option value="Infrastruktur" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">🏗️ Infrastruktur</option>
+                                                <option value="Pelayanan Publik" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">📋 Pelayanan Publik</option>
+                                                <option value="Kesehatan" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">🏥 Kesehatan</option>
+                                                <option value="Pendidikan" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">📚 Pendidikan</option>
+                                                <option value="Keamanan & Ketertiban" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">🚨 Keamanan & Ketertiban</option>
+                                                <option value="Ekonomi & UMKM" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">💼 Ekonomi & UMKM</option>
+                                                <option value="Sosial & Budaya" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">🎭 Sosial & Budaya</option>
+                                                <option value="Lingkungan" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">🌳 Lingkungan</option>
+                                                <option value="Lainnya" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">📌 Lainnya</option>
                                             </select>
                                         </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="flex items-center space-x-3 cursor-pointer group mb-6 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
+                                            <input
+                                                type="checkbox"
+                                                checked={form.is_anonymous}
+                                                onChange={(e) => setForm({ ...form, is_anonymous: e.target.checked })}
+                                                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                            />
+                                            <div className="flex-1">
+                                                <div className="flex items-center">
+                                                    <Shield className="w-5 h-5 text-blue-600 mr-2" />
+                                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-200 group-hover:text-blue-600 transition-colors">
+                                                        Rahasiakan Identitas Saya (Laporan Anonim)
+                                                    </span>
+                                                </div>
+                                                <p className="mt-1 ml-7 text-xs text-gray-500 dark:text-gray-400">
+                                                    Identitas Anda tetap tersimpan untuk validasi, namun tidak akan ditampilkan kepada admin.
+                                                </p>
+                                            </div>
+                                        </label>
                                     </div>
 
                                     <div>
@@ -304,13 +355,16 @@ export default function Aspirasi() {
                                                     <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-1">Status Laporan</h3>
                                                     <p className="text-[var(--text-secondary)] font-mono">{typeof searchResult.id === 'object' ? JSON.stringify(searchResult.id) : searchResult.id}</p>
                                                 </div>
-                                                <div className={`px-4 py-2 rounded-full font-bold flex items-center ${searchResult.status === "Verified"
+                                                <div className={`px-4 py-2 rounded-full font-bold flex items-center ${searchResult.status === "Selesai"
                                                     ? "bg-emerald-500/20 text-emerald-500 border border-emerald-500/20"
-                                                    : searchResult.status === "Rejected"
-                                                        ? "bg-red-500/20 text-red-500 border border-red-500/20"
-                                                        : "bg-amber-500/20 text-amber-500 border border-amber-500/20"
+                                                    : searchResult.status === "Diproses"
+                                                        ? "bg-blue-500/20 text-blue-500 border border-blue-500/20"
+                                                        : searchResult.status === "Rejected"
+                                                            ? "bg-red-500/20 text-red-500 border border-red-500/20"
+                                                            : "bg-amber-500/20 text-amber-500 border border-amber-500/20"  // Pending
                                                     }`}>
-                                                    {searchResult.status === "Verified" && <CheckCircle className="w-4 h-4 mr-2" />}
+                                                    {searchResult.status === "Selesai" && <CheckCircle className="w-4 h-4 mr-2" />}
+                                                    {searchResult.status === "Diproses" && <Clock className="w-4 h-4 mr-2 text-blue-500" />}
                                                     {searchResult.status === "Rejected" && <AlertCircle className="w-4 h-4 mr-2" />}
                                                     {searchResult.status === "Pending" && <Clock className="w-4 h-4 mr-2" />}
                                                     {typeof searchResult.status === 'object' ? JSON.stringify(searchResult.status) : searchResult.status}
@@ -322,7 +376,11 @@ export default function Aspirasi() {
                                                     <h4 className="text-sm font-bold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">Detail Laporan</h4>
                                                     <p className="text-[var(--text-primary)] leading-relaxed">{typeof searchResult.laporan === 'object' ? JSON.stringify(searchResult.laporan) : searchResult.laporan}</p>
                                                     <div className="mt-4 flex items-center text-sm text-[var(--text-secondary)]">
-                                                        <span className="mr-4">Oleh: {typeof searchResult.nama === 'object' ? JSON.stringify(searchResult.nama) : searchResult.nama}</span>
+                                                        <span className="mr-4">Oleh: {
+                                                            searchResult.is_anonymous
+                                                                ? <span className="flex items-center"><Shield className="w-4 h-4 mr-1 text-blue-500" /> <strong className="text-blue-500">Pelapor Anonim</strong></span>
+                                                                : (typeof searchResult.nama === 'object' ? JSON.stringify(searchResult.nama) : searchResult.nama)
+                                                        }</span>
                                                         <span>{typeof searchResult.date === 'object' ? JSON.stringify(searchResult.date) : searchResult.date}</span>
                                                     </div>
                                                 </div>
@@ -374,8 +432,18 @@ export default function Aspirasi() {
                                                                     }`}>
                                                                     {typeof item.status === 'object' ? JSON.stringify(item.status) : item.status}
                                                                 </span>
+                                                                {item.is_anonymous && (
+                                                                    <span className="flex items-center text-xs px-2 py-0.5 rounded-full font-bold bg-blue-500/20 text-blue-500">
+                                                                        <Shield className="w-3 h-3 mr-1" /> Anonim
+                                                                    </span>
+                                                                )}
                                                             </div>
-                                                            <h4 className="font-bold text-[var(--text-primary)]">{typeof item.nama === 'object' ? JSON.stringify(item.nama) : item.nama} <span className="text-[var(--text-secondary)] font-normal text-sm">({typeof item.dusun === 'object' ? JSON.stringify(item.dusun) : item.dusun})</span></h4>
+                                                            <h4 className="font-bold text-[var(--text-primary)]">
+                                                                {item.is_anonymous
+                                                                    ? <span className="text-blue-500 flex items-center"><Shield className="w-4 h-4 mr-2" />Pelapor Anonim</span>
+                                                                    : <>{typeof item.nama === 'object' ? JSON.stringify(item.nama) : item.nama} <span className="text-[var(--text-secondary)] font-normal text-sm">({typeof item.dusun === 'object' ? JSON.stringify(item.dusun) : item.dusun})</span></>
+                                                                }
+                                                            </h4>
                                                         </div>
                                                         <div className="text-xs text-[var(--text-secondary)]">
                                                             {typeof item.date === 'object' ? JSON.stringify(item.date) : item.date}

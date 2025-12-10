@@ -15,29 +15,37 @@ const NewsWidget = () => {
                     </Link>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {newsItems.map((item) => (
-                        <div key={item.id} className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
-                            <div className="relative h-48 w-full">
-                                <Image
-                                    src={item.image}
-                                    alt={item.title}
-                                    fill
-                                    style={{ objectFit: "cover" }}
-                                />
-                            </div>
-                            <div className="p-6 flex flex-col flex-grow">
-                                <div className="flex items-center text-sm text-gray-500 mb-3">
-                                    <Calendar className="w-4 h-4 mr-2" />
-                                    {item.date}
+                    {newsItems.map((item) => {
+                        // Defensive coding: Check for invalid WhatsApp URLs in image field
+                        const isInvalidImage = item.image.includes("whatsapp") || item.image.includes("wa.me");
+                        const safeImage = isInvalidImage
+                            ? "https://images.unsplash.com/photo-1589923188900-85dae5233271?auto=format&fit=crop&w=800&q=80"
+                            : item.image;
+
+                        return (
+                            <div key={item.id} className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
+                                <div className="relative h-48 w-full">
+                                    <Image
+                                        src={safeImage}
+                                        alt={item.title}
+                                        fill
+                                        style={{ objectFit: "cover" }}
+                                    />
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">{item.title}</h3>
-                                <p className="text-gray-600 mb-4 line-clamp-3 flex-grow">{item.excerpt}</p>
-                                <Link href="#" className="text-desa-green font-medium hover:underline mt-auto">
-                                    Baca Selengkapnya
-                                </Link>
+                                <div className="p-6 flex flex-col flex-grow">
+                                    <div className="flex items-center text-sm text-gray-500 mb-3">
+                                        <Calendar className="w-4 h-4 mr-2" />
+                                        {item.date}
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">{item.title}</h3>
+                                    <p className="text-gray-600 mb-4 line-clamp-3 flex-grow">{item.excerpt}</p>
+                                    <Link href="#" className="text-desa-green font-medium hover:underline mt-auto">
+                                        Baca Selengkapnya
+                                    </Link>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
         </section>

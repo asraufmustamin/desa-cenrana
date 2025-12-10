@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import Image from "next/image";
-import { Award, Check, History, Target, Users } from "lucide-react";
+import { Award, Check, History, Target, Users, ArrowRight } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 import Editable from "@/components/Editable";
 import EditModeIndicator from "@/components/EditModeIndicator";
@@ -55,7 +56,7 @@ export default function Profil() {
                                         <Editable
                                             type="image"
                                             section="profil"
-                                            field="historyImage" // Changed from historyBanner to match new plan if needed, or keep historyBanner
+                                            field="historyBanner"
                                             className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
                                         />
                                     </div>
@@ -71,6 +72,13 @@ export default function Profil() {
                                     <div className="text-[var(--text-secondary)] text-lg leading-relaxed space-y-4">
                                         <Editable section="profil" field="historyText" type="textarea" />
                                     </div>
+                                    <Link
+                                        href="/profil/sejarah"
+                                        className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all group"
+                                    >
+                                        Baca Selengkapnya
+                                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                    </Link>
                                 </div>
                             </div>
                         </div>

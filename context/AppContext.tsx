@@ -31,13 +31,18 @@ export interface LapakItem {
 export interface AspirasiItem {
     id: string;
     nama: string;
-    nik: string;
+    nik?: string; // OPTIONAL: Column removed from DB for privacy
     dusun: string;
     kategori: string;
     laporan: string;
-    status: "Pending" | "Verified" | "Rejected";
+    status: "Pending" | "Diproses" | "Selesai" | "Rejected";
     date: string;
     reply?: string;
+    is_anonymous?: boolean;
+    image?: string;
+    priority?: "Low" | "Medium" | "High" | "Emergency";
+    rating?: number; // 1-5 stars
+    feedback_text?: string;
 }
 
 export interface Official {
@@ -111,6 +116,7 @@ export interface CMSContent {
     profil: {
         historyTitle: string;
         historyText: string;
+        historyFullText: string;
         historyBanner: string;
         visionTitle: string;
         visionText: string;
@@ -169,11 +175,13 @@ interface AppContextType {
     addNews: (item: Omit<NewsItem, "id">) => Promise<void>;
     deleteNews: (id: number) => Promise<void>;
     updateNews: (id: number, item: Partial<NewsItem>) => Promise<void>;
+    checkNikAvailability: (nik: string) => Promise<boolean>;
     addAspirasi: (item: Omit<AspirasiItem, "id" | "status" | "date">) => Promise<string>;
-    verifyAspirasi: (id: string, status: "Verified" | "Rejected") => Promise<void>;
+    verifyAspirasi: (id: string, status: "Diproses" | "Rejected") => Promise<void>;
     replyAspirasi: (id: string, reply: string) => Promise<void>;
     getAspirasiByTicket: (ticketId: string) => AspirasiItem | undefined;
     deleteAspirasi: (id: string) => Promise<void>;
+    submitRating: (ticketId: string, rating: number, feedback?: string) => Promise<void>;
     submitLapak: (item: Omit<LapakItem, "id" | "status">) => Promise<void>;
     approveLapak: (id: number) => Promise<void>;
     rejectLapak: (id: number) => Promise<void>;
@@ -210,10 +218,10 @@ const defaultCMSContent: CMSContent = {
     footer: {
         brandName: "Desa Cenrana",
         brandDesc: "Website resmi Pemerintah Desa Cenrana, Kabupaten Maros.",
-        address: "Jl. Poros Cenrana No. 123, Kec. Cenrana, Kab. Maros, Sulawesi Selatan",
+        address: "Jl. AB Situru Dusun Benteng, Kec. Camba, Kab. Maros, Sulawesi Selatan",
         phone: "+62 812-3456-7890",
         email: "admin@desacenrana.id",
-        copyright: "© 2024 Pemerintah Desa Cenrana. All rights reserved.",
+        copyright: "© 2026 Pemerintah Desa Cenrana. All rights reserved.",
     },
     navbar: {
         brandName: "Desa Cenrana",
@@ -221,6 +229,31 @@ const defaultCMSContent: CMSContent = {
     profil: {
         historyTitle: "Sejarah Desa Cenrana",
         historyText: "Desa Cenrana memiliki sejarah panjang yang berakar dari nilai-nilai gotong royong dan kearifan lokal. Didirikan pada tahun 1950-an, desa ini awalnya merupakan pemukiman kecil para petani yang kemudian berkembang menjadi pusat kegiatan ekonomi dan sosial di wilayah ini.",
+        historyFullText: `Desa Cenrana memiliki sejarah panjang yang berakar dari nilai-nilai gotong royong dan kearifan lokal. Didirikan pada tahun 1950-an, desa ini awalnya merupakan pemukiman kecil para petani yang kemudian berkembang menjadi pusat kegiatan ekonomi dan sosial di wilayah ini.
+
+**Awal Mula Pembentukan**
+
+Sejarah Desa Cenrana tidak terlepas dari perjuangan para pendahulu yang datang ke wilayah ini dengan membawa semangat untuk membangun kehidupan yang lebih baik. Pada awalnya, wilayah ini adalah lahan pertanian yang luas dengan sistem irigasi tradisional yang dikelola secara komunal oleh para petani.
+
+**Perkembangan Ekonomi**
+
+Seiring berjalannya waktu, Desa Cenrana berkembang pesat menjadi sentra ekonomi lokal. Sektor pertanian menjadi pilar utama perekonomian desa, dengan hasil panen padi, jagung, dan palawija yang melimpah. Sistem gotong royong yang diterapkan dalam pengolahan lahan pertanian menjadi kunci keberhasilan produksi pertanian desa.
+
+**Perubahan Administrasi**
+
+Pada tahun 1970-an, Desa Cenrana resmi ditetapkan sebagai desa definitif dengan struktur pemerintahan yang terorganisir. Kepala Desa pertama yang dilantik membawa visi pembangunan infrastruktur dan peningkatan kesejahteraan masyarakat.
+
+**Era Modernisasi**
+
+Memasuki abad ke-21, Desa Cenrana mulai bertransformasi dengan pembangunan infrastruktur modern seperti jalan beraspal, jaringan listrik yang merata, dan akses internet. Pemerintah desa juga mulai menerapkan sistem administrasi digital untuk meningkatkan kualitas pelayanan publik.
+
+**Warisan Budaya**
+
+Hingga kini, Desa Cenrana tetap mempertahankan nilai-nilai budaya dan tradisi lokal. Berbagai upacara adat dan kegiatan keagamaan masih dijalankan dengan penuh hikmat, menjadi pengikat kuat antar generasi dan memperkuat identitas masyarakat desa.
+
+**Tantangan dan Harapan Masa Depan**
+
+Dengan semangat pembangunan berkelanjutan, Desa Cenrana terus berupaya meningkatkan kualitas hidup warganya melalui program-program pemberdayaan ekonomi, pendidikan, dan kesehatan. Visi untuk menjadi desa mandiri, sejahtera, dan berbudaya menjadi panduan dalam setiap langkah pembangunan yang dilakukan.`,
         historyBanner: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=1000",
         visionTitle: "Visi",
         visionText: "Terwujudnya Desa Cenrana yang Mandiri, Sejahtera, dan Berbudaya dengan Tata Kelola Pemerintahan yang Baik.",
@@ -246,24 +279,24 @@ const defaultCMSContent: CMSContent = {
         }
     },
     officials: [
-        { id: 1, name: "H. Abdullah", role: "Kepala Desa", image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200" },
-        { id: 2, name: "Siti Aminah", role: "Sekretaris Desa", image: "https://images.unsplash.com/photo-1573496359-7013ac2bebb5?auto=format&fit=crop&q=80&w=200" },
-        { id: 3, name: "Budi Santoso", role: "Kaur Keuangan", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200" },
-        { id: 4, name: "Rina Wati", role: "Kaur Umum", image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=200" },
-        { id: 5, name: "Ahmad Rizki", role: "Kepala Dusun Benteng", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200" },
+        { id: 1, name: "H. Abdullah", role: "Kepala Desa", image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23e5e7eb' width='200' height='200'/%3E%3Cpath fill='%239ca3af' d='M100 100a30 30 0 1 0 0-60 30 30 0 0 0 0 60zm0 10c-33 0-60 20-60 45v5h120v-5c0-25-27-45-60-45z'/%3E%3C/svg%3E" },
+        { id: 2, name: "Siti Aminah", role: "Sekretaris Desa", image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23e5e7eb' width='200' height='200'/%3E%3Cpath fill='%239ca3af' d='M100 100a30 30 0 1 0 0-60 30 30 0 0 0 0 60zm0 10c-33 0-60 20-60 45v5h120v-5c0-25-27-45-60-45z'/%3E%3C/svg%3E" },
+        { id: 3, name: "Budi Santoso", role: "Kaur Keuangan", image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23e5e7eb' width='200' height='200'/%3E%3Cpath fill='%239ca3af' d='M100 100a30 30 0 1 0 0-60 30 30 0 0 0 0 60zm0 10c-33 0-60 20-60 45v5h120v-5c0-25-27-45-60-45z'/%3E%3C/svg%3E" },
+        { id: 4, name: "Rina Wati", role: "Kaur Umum", image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23e5e7eb' width='200' height='200'/%3E%3Cpath fill='%239ca3af' d='M100 100a30 30 0 1 0 0-60 30 30 0 0 0 0 60zm0 10c-33 0-60 20-60 45v5h120v-5c0-25-27-45-60-45z'/%3E%3C/svg%3E" },
+        { id: 5, name: "Ahmad Rizki", role: "Kepala Dusun Benteng", image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23e5e7eb' width='200' height='200'/%3E%3Cpath fill='%239ca3af' d='M100 100a30 30 0 1 0 0-60 30 30 0 0 0 0 60zm0 10c-33 0-60 20-60 45v5h120v-5c0-25-27-45-60-45z'/%3E%3C/svg%3E" },
     ],
     sotk_new: {
-        kades: { name: "H. Abdullah", role: "Kepala Desa", image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400" },
-        sekdes: { name: "Siti Aminah", role: "Sekretaris Desa", image: "https://images.unsplash.com/photo-1573496359-7013ac2bebb5?auto=format&fit=crop&q=80&w=400" },
+        kades: { name: "H. Abdullah", role: "Kepala Desa", image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23e5e7eb' width='400' height='400'/%3E%3Cpath fill='%239ca3af' d='M200 200a60 60 0 1 0 0-120 60 60 0 0 0 0 120zm0 20c-66 0-120 40-120 90v10h240v-10c0-50-54-90-120-90z'/%3E%3C/svg%3E" },
+        sekdes: { name: "Siti Aminah", role: "Sekretaris Desa", image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23e5e7eb' width='400' height='400'/%3E%3Cpath fill='%239ca3af' d='M200 200a60 60 0 1 0 0-120 60 60 0 0 0 0 120zm0 20c-66 0-120 40-120 90v10h240v-10c0-50-54-90-120-90z'/%3E%3C/svg%3E" },
         kaur: [
-            { name: "Budi Santoso", role: "Kaur Keuangan", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=300" },
-            { name: "Rina Wati", role: "Kaur Umum", image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=300" },
-            { name: "Joko Susilo", role: "Kaur Perencanaan", image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300" },
+            { name: "Budi Santoso", role: "Kaur Keuangan", image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23e5e7eb' width='300' height='300'/%3E%3Cpath fill='%239ca3af' d='M150 150a45 45 0 1 0 0-90 45 45 0 0 0 0 90zm0 15c-50 0-90 30-90 67.5v7.5h180v-7.5c0-37.5-40-67.5-90-67.5z'/%3E%3C/svg%3E" },
+            { name: "Rina Wati", role: "Kaur Umum", image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23e5e7eb' width='300' height='300'/%3E%3Cpath fill='%239ca3af' d='M150 150a45 45 0 1 0 0-90 45 45 0 0 0 0 90zm0 15c-50 0-90 30-90 67.5v7.5h180v-7.5c0-37.5-40-67.5-90-67.5z'/%3E%3C/svg%3E" },
+            { name: "Joko Susilo", role: "Kaur Perencanaan", image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23e5e7eb' width='300' height='300'/%3E%3Cpath fill='%239ca3af' d='M150 150a45 45 0 1 0 0-90 45 45 0 0 0 0 90zm0 15c-50 0-90 30-90 67.5v7.5h180v-7.5c0-37.5-40-67.5-90-67.5z'/%3E%3C/svg%3E" },
         ],
         kadus: [
-            { name: "Ahmad Rizki", role: "Kadus Benteng", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300" },
-            { name: "Dewi Sartika", role: "Kadus Cemara", image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=300" },
-            { name: "Bambang Pamungkas", role: "Kadus Melati", image: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=300" },
+            { name: "Ahmad Rizki", role: "Kadus Benteng", image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23e5e7eb' width='300' height='300'/%3E%3Cpath fill='%239ca3af' d='M150 150a45 45 0 1 0 0-90 45 45 0 0 0 0 90zm0 15c-50 0-90 30-90 67.5v7.5h180v-7.5c0-37.5-40-67.5-90-67.5z'/%3E%3C/svg%3E" },
+            { name: "Dewi Sartika", role: "Kadus Cemara", image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23e5e7eb' width='300' height='300'/%3E%3Cpath fill='%239ca3af' d='M150 150a45 45 0 1 0 0-90 45 45 0 0 0 0 90zm0 15c-50 0-90 30-90 67.5v7.5h180v-7.5c0-37.5-40-67.5-90-67.5z'/%3E%3C/svg%3E" },
+            { name: "Bambang Pamungkas", role: "Kadus Melati", image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23e5e7eb' width='300' height='300'/%3E%3Cpath fill='%239ca3af' d='M150 150a45 45 0 1 0 0-90 45 45 0 0 0 0 90zm0 15c-50 0-90 30-90 67.5v7.5h180v-7.5c0-37.5-40-67.5-90-67.5z'/%3E%3C/svg%3E" },
         ]
     },
     programs: [
@@ -335,6 +368,44 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     // Derived officials from CMS Content
     const officials = cmsContent.officials || [];
 
+    // Load CMS Content from Supabase (Phase 3)
+    useEffect(() => {
+        const loadCMSFromSupabase = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('cms_content')
+                    .select('data')
+                    .eq('id', 1)
+                    .single();
+
+                if (error) {
+                    console.warn('⚠️ Supabase load failed:', error.message);
+                    console.log('📦 Using default CMS content');
+                    return;
+                }
+
+                // Validate data structure
+                if (data?.data && typeof data.data === 'object' && Object.keys(data.data).length > 0) {
+                    console.log('✅ CMS loaded from Supabase (global)');
+                    setCmsContent(data.data as CMSContent);
+                    // Backup to localStorage
+                    try {
+                        localStorage.setItem('cmsContent', JSON.stringify(data.data));
+                    } catch (err) {
+                        console.warn('Failed to backup to localStorage:', err);
+                    }
+                } else {
+                    console.log('📝 Supabase data empty, using defaults');
+                }
+            } catch (err) {
+                console.error('❌ Exception loading CMS:', err);
+                console.log('📦 Falling back to default content');
+            }
+        };
+
+        loadCMSFromSupabase();
+    }, []);
+
     // Fetch Initial Data from Supabase
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -359,22 +430,29 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                 else setLapak(lapakItems.map(item => ({ ...item, status: "Active" as const })));
 
                 // Fetch Aspirasi
-                const { data: aspirasiData } = await supabase.from('aspirasi').select('*').order('created_at', { ascending: false });
-                if (aspirasiData) {
+                const { data: aspirasiData, error: aspirasiError } = await supabase.from('aspirasi').select('*').order('created_at', { ascending: false });
+                if (aspirasiData && !aspirasiError) {
                     // Map back to local interface if needed, or ensure DB columns match
                     // Assuming DB columns: ticket_code, name, nik, dusun, category, message, status, date, reply, photo
                     const mappedAspirasi = aspirasiData.map((item: any) => ({
                         id: item.ticket_code, // Map ticket_code to id
                         nama: item.name,      // Map name to nama
-                        nik: item.nik,
+                        // nik: item.nik, // REMOVED: Column doesn't exist in table (privacy)
                         dusun: item.dusun,
                         kategori: item.category,
                         laporan: item.message, // Map message to laporan
                         status: item.status,
-                        date: item.date,
-                        reply: item.reply      // Ensure reply is mapped
+                        date: item.date || (item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : ''),
+                        reply: item.reply,      // Ensure reply is mapped
+                        is_anonymous: item.is_anonymous || false,  // Include anonymous flag
+                        image: item.photo || "",  // Map photo to image
+                        priority: item.priority || "Medium", // Map priority with default (safe if column missing)
+                        rating: item.rating || undefined,    // Map rating (safe if column missing)
+                        feedback_text: item.feedback_text || undefined // Map feedback (safe if column missing)
                     }));
                     setAspirasi(mappedAspirasi);
+                } else if (aspirasiError) {
+                    console.error("Error fetching aspirasi:", aspirasiError);
                 }
 
                 // Fetch Programs
@@ -384,14 +462,33 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                 const { data: galleryData } = await supabase.from('gallery').select('*').order('id', { ascending: false });
 
                 // Fetch CMS Content (Assuming a single row with id=1 or similar)
-                const { data: cmsData } = await supabase.from('cms_content').select('data').single();
+                // Wrapped in try-catch to handle if table doesn't exist
+                try {
+                    const { data: cmsData, error: cmsError } = await supabase.from('cms_content').select('data').single();
 
-                setCmsContent(prev => ({
-                    ...prev,
-                    ...(cmsData?.data || {}),
-                    programs: programsData || prev.programs,
-                    gallery: galleryData || prev.gallery
-                }));
+                    if (!cmsError && cmsData) {
+                        setCmsContent(prev => ({
+                            ...prev,
+                            ...(cmsData?.data || {}),
+                            programs: programsData || prev.programs,
+                            gallery: galleryData || prev.gallery
+                        }));
+                    } else {
+                        // If table doesn't exist or is empty, just use defaults with fetched programs/gallery
+                        setCmsContent(prev => ({
+                            ...prev,
+                            programs: programsData || prev.programs,
+                            gallery: galleryData || prev.gallery
+                        }));
+                    }
+                } catch (cmsErr) {
+                    console.log("CMS content table not found, using defaults");
+                    setCmsContent(prev => ({
+                        ...prev,
+                        programs: programsData || prev.programs,
+                        gallery: galleryData || prev.gallery
+                    }));
+                }
 
             } catch (error) {
                 console.error("Error fetching data from Supabase:", error);
@@ -458,9 +555,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         setLastActivity(Date.now());
     };
 
-    // CMS Update
+    // CMS Update (Phase 4: with Supabase sync)
     const updateContent = async (section: keyof CMSContent, field: string, value: any) => {
-        // Optimistic update
         setCmsContent(prev => {
             const updated = {
                 ...prev,
@@ -469,10 +565,37 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                     [field]: value
                 }
             };
-            // Sync to Supabase
-            supabase.from('cms_content').upsert({ id: 1, data: updated }).then(({ error }) => {
-                if (error) console.error("Error updating CMS content:", error);
-            });
+
+            // Save to localStorage (optional, may fail if quota exceeded)
+            try {
+                localStorage.setItem('cmsContent', JSON.stringify(updated));
+                console.log('💾 Saved to localStorage');
+            } catch (err) {
+                if (err instanceof DOMException && err.name === 'QuotaExceededError') {
+                    console.warn('⚠️ localStorage quota exceeded, skipping local backup');
+                    console.log('✅ Will save to Supabase only (no limit)');
+                } else {
+                    console.error('Failed to save to localStorage:', err);
+                }
+            }
+
+            // Sync to Supabase in background (non-blocking)
+            supabase
+                .from('cms_content')
+                .upsert({
+                    id: 1,
+                    data: updated,
+                    updated_at: new Date().toISOString()
+                })
+                .then(({ error }) => {
+                    if (error) {
+                        console.warn('⚠️ Supabase sync failed:', error.message);
+                        console.log('📦 Changes saved locally only');
+                    } else {
+                        console.log('✅ Synced to Supabase (global)');
+                    }
+                });
+
             return updated;
         });
         setLastActivity(Date.now());
@@ -508,8 +631,47 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     // Aspirasi Management
+    const checkNikAvailability = async (nik: string): Promise<boolean> => {
+        try {
+            // Import hash function dynamically
+            const { hashNIK } = await import('@/lib/crypto');
+
+            // Hash NIK for privacy-preserving validation
+            const nikHash = await hashNIK(nik);
+
+            // UPSERT: Insert or update timestamp if already exists
+            // CRITICAL: This ensures created_at is FRESH for reverse lookup time proximity!
+            const { error: upsertError } = await supabase
+                .from('nik_validation')
+                .upsert(
+                    { nik_hash: nikHash }, // Data to insert/update
+                    {
+                        onConflict: 'nik_hash', // Conflict column (primary key)
+                        ignoreDuplicates: false // Update on conflict (refresh timestamp)
+                    }
+                );
+
+            if (upsertError) {
+                console.error("Error upserting NIK hash:", upsertError);
+                return false;
+            }
+
+            // Return true (NIK is valid)
+            return true;
+        } catch (error) {
+            console.error("Exception checking NIK:", error);
+            return false;
+        }
+    };
+
     const addAspirasi = async (item: Omit<AspirasiItem, "id" | "status" | "date">) => {
-        // Fetch real count from DB to avoid collisions
+        // Step 1: Validate NIK against penduduk table
+        const nikExists = await checkNikAvailability(item.nik);
+        if (!nikExists) {
+            throw new Error("Validasi Gagal: NIK tidak ditemukan di data penduduk.");
+        }
+
+        // Step 2: Fetch real count from DB to avoid collisions
         const { count } = await supabase.from('aspirasi').select('*', { count: 'exact', head: true });
         const nextId = (count || 0) + 1;
         const ticketId = `ASP-${String(nextId).padStart(3, '0')}`;
@@ -524,18 +686,21 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         // Optimistic update
         setAspirasi(prev => [newItem, ...prev]);
 
-        // Map to DB columns: { nik, name, message, photo, ticket_code, status: 'Pending', dusun, category, reply }
+        // Step 3: Map to DB columns including is_anonymous and priority fields
+        // NOTE: NIK is NOT stored in aspirasi table for privacy!
+        // NIK is only validated (hashed) in nik_validation table
         const dbPayload = {
             ticket_code: ticketId,
             name: item.nama,
-            nik: item.nik,
+            // nik: item.nik, // REMOVED: Column doesn't exist (privacy protection)
             dusun: item.dusun,
             category: item.kategori,
             message: item.laporan,
             status: 'Pending',
-            // date: newItem.date, // Remove date from payload, let Supabase handle created_at
-            reply: null // Ensure reply is null initially
-            // photo: item.image // If image exists in item
+            is_anonymous: item.is_anonymous || false, // Include anonymous flag
+            priority: item.priority || 'Medium', // Include priority with default
+            photo: item.image || null, // Include photo URL
+            reply: null
         };
 
         const { error } = await supabase.from('aspirasi').insert([dbPayload]);
@@ -543,20 +708,21 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             console.error("Error adding aspirasi:", error.message, error.details, error.hint);
             // Revert optimistic update on error
             setAspirasi(prev => prev.filter(p => p.id !== ticketId));
-            alert(`Gagal mengirim aspirasi: ${error.message}`);
+            throw new Error(`Gagal mengirim aspirasi: ${error.message}`);
         }
         return ticketId;
     };
 
-    const verifyAspirasi = async (id: string, status: "Verified" | "Rejected") => {
+    const verifyAspirasi = async (id: string, status: "Diproses" | "Rejected") => {
         setAspirasi(prev => prev.map(item => item.id === id ? { ...item, status } : item));
-        await supabase.from('aspirasi').update({ status }).eq('id', id);
+        await supabase.from('aspirasi').update({ status }).eq('ticket_code', id);
         setLastActivity(Date.now());
     };
 
     const replyAspirasi = async (id: string, reply: string) => {
-        setAspirasi(prev => prev.map(item => item.id === id ? { ...item, reply } : item));
-        await supabase.from('aspirasi').update({ reply }).eq('id', id);
+        // Auto-set status to 'Selesai' when admin provides a reply
+        setAspirasi(prev => prev.map(item => item.id === id ? { ...item, reply, status: "Selesai" } : item));
+        await supabase.from('aspirasi').update({ reply, status: "Selesai" }).eq('ticket_code', id);
         setLastActivity(Date.now());
     };
 
@@ -566,7 +732,18 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
     const deleteAspirasi = async (id: string) => {
         setAspirasi(prev => prev.filter(item => item.id !== id));
-        await supabase.from('aspirasi').delete().eq('id', id);
+        await supabase.from('aspirasi').delete().eq('ticket_code', id);
+        setLastActivity(Date.now());
+    };
+
+    const submitRating = async (ticketId: string, rating: number, feedback?: string) => {
+        setAspirasi(prev => prev.map(item =>
+            item.id === ticketId ? { ...item, rating, feedback_text: feedback } : item
+        ));
+        await supabase.from('aspirasi').update({
+            rating,
+            feedback_text: feedback || null
+        }).eq('ticket_code', ticketId);
         setLastActivity(Date.now());
     };
 
@@ -740,7 +917,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             isLoggedIn, theme,
             login, logout, toggleTheme,
             addNews, deleteNews, updateNews,
-            addAspirasi, verifyAspirasi, replyAspirasi, getAspirasiByTicket, deleteAspirasi,
+            checkNikAvailability, addAspirasi, verifyAspirasi, replyAspirasi, getAspirasiByTicket, deleteAspirasi, submitRating,
             submitLapak, approveLapak, rejectLapak, deleteLapak,
             addGalleryItem,
             addProgram, deleteProgram, updateProgram,

@@ -17,7 +17,12 @@ import {
     Eye,
     Newspaper,
     Trash2,
-    Plus
+    Plus,
+    Shield,
+    Star,
+    Search,
+    AlertTriangle,
+    Users
 } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -44,6 +49,11 @@ export default function AdminDashboard() {
     const [replyText, setReplyText] = useState("");
     const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
 
+    // Search & Filter for Aspirasi
+    const [searchQuery, setSearchQuery] = useState("");
+    const [filterStatus, setFilterStatus] = useState<string>("Semua");
+    const [filterDusun, setFilterDusun] = useState<string>("Semua");
+
     // News form state
     const [newsForm, setNewsForm] = useState({
         title: "",
@@ -62,6 +72,24 @@ export default function AdminDashboard() {
 
     const pendingLapak = lapak.filter(item => item.status === "Pending");
     const pendingAspirasi = aspirasi.filter(item => item.status === "Pending");
+
+    // Filtered Aspirasi based on search and filters
+    const filteredAspirasi = aspirasi.filter(item => {
+        // Search by ticket code, nama, or kategori
+        const matchesSearch = searchQuery === "" ||
+            item.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.kategori.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.laporan.toLowerCase().includes(searchQuery.toLowerCase());
+
+        // Filter by status
+        const matchesStatus = filterStatus === "Semua" || item.status === filterStatus;
+
+        // Filter by dusun
+        const matchesDusun = filterDusun === "Semua" || item.dusun === filterDusun;
+
+        return matchesSearch && matchesStatus && matchesDusun;
+    });
 
     const handleReplySubmit = (id: string) => {
         if (replyText.trim()) {
@@ -153,8 +181,8 @@ export default function AdminDashboard() {
                                 <button
                                     onClick={() => setActiveTab("dashboard")}
                                     className={`w-full flex items-center px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "dashboard"
-                                            ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                            : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"
+                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                                        : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"
                                         }`}
                                 >
                                     <LayoutDashboard className="w-5 h-5 mr-3" />
@@ -163,8 +191,8 @@ export default function AdminDashboard() {
                                 <button
                                     onClick={() => setActiveTab("news")}
                                     className={`w-full flex items-center px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "news"
-                                            ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                            : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"
+                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                                        : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"
                                         }`}
                                 >
                                     <Newspaper className="w-5 h-5 mr-3" />
@@ -173,8 +201,8 @@ export default function AdminDashboard() {
                                 <button
                                     onClick={() => setActiveTab("lapak")}
                                     className={`w-full flex items-center px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "lapak"
-                                            ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                            : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"
+                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                                        : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"
                                         }`}
                                 >
                                     <ShoppingBag className="w-5 h-5 mr-3" />
@@ -188,8 +216,8 @@ export default function AdminDashboard() {
                                 <button
                                     onClick={() => setActiveTab("aspirasi")}
                                     className={`w-full flex items-center px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "aspirasi"
-                                            ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                            : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"
+                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                                        : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"
                                         }`}
                                 >
                                     <MessageSquare className="w-5 h-5 mr-3" />
@@ -199,6 +227,21 @@ export default function AdminDashboard() {
                                             {pendingAspirasi.length}
                                         </span>
                                     )}
+                                </button>
+                                <button
+                                    onClick={() => router.push('/admin/penduduk')}
+                                    className="w-full flex items-center px-4 py-3 rounded-xl font-bold text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)] transition-all"
+                                >
+                                    <Users className="w-5 h-5 mr-3" />
+                                    Data Penduduk
+                                </button>
+                                <button
+                                    onClick={() => router.push('/admin/emergency-disclosure')}
+                                    className="w-full flex items-center px-4 py-3 rounded-xl font-bold text-red-500 hover:bg-red-500/10 border border-red-500/30 transition-all"
+                                >
+                                    <AlertTriangle className="w-5 h-5 mr-3" />
+                                    <span className="flex-1 text-left">Emergency Disclosure</span>
+                                    <Shield className="w-4 h-4" />
                                 </button>
                                 <div className="pt-6 mt-6 border-t border-[var(--border-color)]">
                                     <button
@@ -408,101 +451,255 @@ export default function AdminDashboard() {
                         {activeTab === "aspirasi" && (
                             <div className="glass-panel rounded-[2rem] p-8 animate-fade-in">
                                 <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Aspirasi Warga</h2>
+
+                                {/* Search & Filter Section */}
+                                <div className="mb-6 space-y-4">
+                                    {/* Search Bar */}
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            placeholder="Cari berdasarkan Kode Tiket, Nama, Kategori, atau Isi Laporan..."
+                                            className="w-full px-4 py-3 pl-12 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                        />
+                                        <Search className="absolute left-4 top-3.5 w-5 h-5 text-[var(--text-secondary)]" />
+                                        {searchQuery && (
+                                            <button
+                                                onClick={() => setSearchQuery("")}
+                                                className="absolute right-3 top-3 px-2 py-1 text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                                            >
+                                                Hapus
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Filters */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                        {/* Status Filter */}
+                                        <select
+                                            value={filterStatus}
+                                            onChange={(e) => setFilterStatus(e.target.value)}
+                                            className="px-4 py-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:border-blue-500 transition-all cursor-pointer font-medium"
+                                        >
+                                            <option value="Semua" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Semua Status</option>
+                                            <option value="Pending" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">⏳ Pending</option>
+                                            <option value="Diproses" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">⚙️ Diproses</option>
+                                            <option value="Selesai" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">✅ Selesai</option>
+                                            <option value="Rejected" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">❌ Ditolak</option>
+                                        </select>
+
+                                        {/* Dusun Filter */}
+                                        <select
+                                            value={filterDusun}
+                                            onChange={(e) => setFilterDusun(e.target.value)}
+                                            className="px-4 py-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:border-blue-500 transition-all cursor-pointer font-medium"
+                                        >
+                                            <option value="Semua" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Semua Dusun</option>
+                                            <option value="Benteng" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Benteng</option>
+                                            <option value="Kajuara" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Kajuara</option>
+                                            <option value="Tanatengnga" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Tanatengnga</option>
+                                            <option value="Panagi" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Panagi</option>
+                                            <option value="Holiang" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Holiang</option>
+                                        </select>
+
+                                        {/* Results Counter */}
+                                        <div className="flex items-center justify-center px-4 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                                            <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                                                Menampilkan {filteredAspirasi.length} dari {aspirasi.length} aspirasi
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Quick Filter Buttons */}
+                                    <div className="flex flex-wrap gap-2">
+                                        <button
+                                            onClick={() => { setFilterStatus("Pending"); setFilterDusun("Semua"); setSearchQuery(""); }}
+                                            className="px-3 py-1.5 text-xs font-bold rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-colors"
+                                        >
+                                            🔔 Pending ({pendingAspirasi.length})
+                                        </button>
+                                        <button
+                                            onClick={() => { setFilterStatus("Selesai"); setFilterDusun("Semua"); setSearchQuery(""); }}
+                                            className="px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                                        >
+                                            ✅ Selesai ({aspirasi.filter(a => a.status === "Selesai").length})
+                                        </button>
+                                        <button
+                                            onClick={() => { setFilterStatus("Semua"); setFilterDusun("Semua"); setSearchQuery(""); }}
+                                            className="px-3 py-1.5 text-xs font-bold rounded-lg bg-gray-500/10 text-gray-600 dark:text-gray-400 hover:bg-gray-500/20 transition-colors"
+                                        >
+                                            🔄 Reset Filter
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Aspirasi List */}
                                 <div className="space-y-6">
-                                    {aspirasi.map((item) => (
-                                        <div key={item.id} className="bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border-color)]">
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center space-x-3 mb-1">
-                                                        <span className="font-mono font-bold text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded text-sm">{item.id}</span>
-                                                        <h3 className="font-bold text-[var(--text-primary)]">{item.nama}</h3>
+                                    {filteredAspirasi.length === 0 ? (
+                                        <div className="text-center py-12 bg-[var(--bg-card)] rounded-2xl border border-[var(--border-color)]">
+                                            <Search className="w-16 h-16 text-[var(--text-secondary)] mx-auto mb-4 opacity-20" />
+                                            <p className="text-[var(--text-secondary)] font-medium">
+                                                {searchQuery || filterStatus !== "Semua" || filterDusun !== "Semua"
+                                                    ? "Tidak ada aspirasi yang sesuai dengan filter"
+                                                    : "Belum ada aspirasi masuk"}
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        filteredAspirasi.map((item) => (
+                                            <div key={item.id} className="bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border-color)]">
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center space-x-3 mb-1">
+                                                            <span className="font-mono font-bold text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded text-sm">{item.id}</span>
+                                                            {item.is_anonymous && (
+                                                                <span className="flex items-center text-xs px-2 py-0.5 rounded-full font-bold bg-blue-500/20 text-blue-500">
+                                                                    <Shield className="w-3 h-3 mr-1" /> Anonim
+                                                                </span>
+                                                            )}
+                                                            <h3 className="font-bold text-[var(--text-primary)]">
+                                                                {item.is_anonymous
+                                                                    ? <span className="text-blue-500 flex items-center"><Shield className="w-4 h-4 mr-2" />Pelapor Anonim</span>
+                                                                    : item.nama
+                                                                }
+                                                            </h3>
+                                                        </div>
+                                                        <p className="text-xs text-[var(--text-secondary)]">
+                                                            {item.date} • {item.kategori} • {item.is_anonymous ? "Dusun Dirahasiakan" : item.dusun}
+                                                        </p>
                                                     </div>
-                                                    <p className="text-xs text-[var(--text-secondary)]">{item.date} • {item.kategori} • {item.dusun}</p>
-                                                </div>
-                                                <div className="flex items-center space-x-2">
-                                                    <div className={`px-3 py-1 rounded-full text-xs font-bold flex items-center ${item.status === "Verified" ? "bg-emerald-500/20 text-emerald-500" :
-                                                            item.status === "Rejected" ? "bg-red-500/20 text-red-500" :
-                                                                "bg-amber-500/20 text-amber-500"
-                                                        }`}>
-                                                        {item.status === "Verified" && <CheckCircle className="w-3 h-3 mr-1" />}
-                                                        {item.status === "Rejected" && <XCircle className="w-3 h-3 mr-1" />}
-                                                        {item.status === "Pending" && <Clock className="w-3 h-3 mr-1" />}
-                                                        {item.status}
+                                                    <div className="flex items-center space-x-2">
+                                                        <div className={`px-3 py-1 rounded-full text-xs font-bold flex items-center ${item.status === "Selesai" ? "bg-emerald-500/20 text-emerald-500" :
+                                                            item.status === "Diproses" ? "bg-blue-500/20 text-blue-500" :
+                                                                item.status === "Rejected" ? "bg-red-500/20 text-red-500" :
+                                                                    "bg-amber-500/20 text-amber-500"  // Pending
+                                                            }`}>
+                                                            {item.status === "Selesai" && <CheckCircle className="w-3 h-3 mr-1" />}
+                                                            {item.status === "Diproses" && <Clock className="w-3 h-3 mr-1 text-blue-500" />}
+                                                            {item.status === "Rejected" && <XCircle className="w-3 h-3 mr-1" />}
+                                                            {item.status === "Pending" && <Clock className="w-3 h-3 mr-1" />}
+                                                            {item.status}
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleDeleteItem("aspirasi", item.id)}
+                                                            className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors"
+                                                            title="Hapus"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
                                                     </div>
-                                                    <button
-                                                        onClick={() => handleDeleteItem("aspirasi", item.id)}
-                                                        className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors"
-                                                        title="Hapus"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
                                                 </div>
-                                            </div>
 
-                                            <p className="text-[var(--text-primary)] mb-4 leading-relaxed">{item.laporan}</p>
+                                                <p className="text-[var(--text-primary)] mb-4 leading-relaxed">{item.laporan}</p>
 
-                                            {/* Action Buttons */}
-                                            <div className="flex flex-wrap gap-3 pt-4 border-t border-[var(--border-color)]">
-                                                {item.status === "Pending" && (
-                                                    <>
-                                                        <button
-                                                            onClick={() => verifyAspirasi(item.id, "Verified")}
-                                                            className="px-4 py-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-lg font-bold text-sm transition-colors"
-                                                        >
-                                                            Verifikasi
-                                                        </button>
-                                                        <button
-                                                            onClick={() => verifyAspirasi(item.id, "Rejected")}
-                                                            className="px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg font-bold text-sm transition-colors"
-                                                        >
-                                                            Tolak
-                                                        </button>
-                                                    </>
+                                                {/* Display uploaded image if exists */}
+                                                {item.image && (
+                                                    <div className="mb-4 rounded-xl overflow-hidden border border-[var(--border-color)] bg-[var(--bg-panel)]">
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img
+                                                            src={item.image}
+                                                            alt="Foto Laporan"
+                                                            className="w-full max-h-96 object-contain"
+                                                        />
+                                                    </div>
                                                 )}
 
-                                                <button
-                                                    onClick={() => setSelectedTicketId(selectedTicketId === item.id ? null : item.id)}
-                                                    className="px-4 py-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg font-bold text-sm transition-colors flex items-center ml-auto"
-                                                >
-                                                    <Reply className="w-4 h-4 mr-2" />
-                                                    {item.reply ? "Edit Tanggapan" : "Beri Tanggapan"}
-                                                </button>
-                                            </div>
 
-                                            {/* Reply Section */}
-                                            {(selectedTicketId === item.id || item.reply) && (
-                                                <div className={`mt-4 p-4 rounded-xl ${item.reply ? "bg-blue-500/5 border border-blue-500/10" : "bg-[var(--bg-panel)]"}`}>
-                                                    {selectedTicketId === item.id ? (
-                                                        <div className="flex gap-2">
-                                                            <input
-                                                                type="text"
-                                                                value={replyText}
-                                                                onChange={(e) => setReplyText(e.target.value)}
-                                                                placeholder="Tulis tanggapan admin..."
-                                                                className="flex-1 px-4 py-2 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:border-blue-500"
-                                                            />
+                                                {/* Action Buttons */}
+                                                <div className="flex flex-wrap gap-3 pt-4 border-t border-[var(--border-color)]">
+                                                    {item.status === "Pending" && (
+                                                        <>
                                                             <button
-                                                                onClick={() => handleReplySubmit(item.id)}
-                                                                className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500"
+                                                                onClick={() => verifyAspirasi(item.id, "Diproses")}
+                                                                className="px-4 py-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg font-bold text-sm transition-colors flex items-center"
                                                             >
-                                                                <Send className="w-4 h-4" />
+                                                                <CheckCircle className="w-4 h-4 mr-2" />
+                                                                Proses
                                                             </button>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="flex items-start">
-                                                            <div className="bg-blue-500/20 p-1.5 rounded-lg mr-3">
-                                                                <MessageSquare className="w-4 h-4 text-blue-500" />
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-xs font-bold text-blue-500 mb-1">Tanggapan Admin</p>
-                                                                <p className="text-sm text-[var(--text-primary)]">{item.reply}</p>
-                                                            </div>
-                                                        </div>
+                                                            <button
+                                                                onClick={() => verifyAspirasi(item.id, "Rejected")}
+                                                                className="px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg font-bold text-sm transition-colors"
+                                                            >
+                                                                Tolak
+                                                            </button>
+                                                        </>
                                                     )}
+
+                                                    <button
+                                                        onClick={() => setSelectedTicketId(selectedTicketId === item.id ? null : item.id)}
+                                                        className="px-4 py-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg font-bold text-sm transition-colors flex items-center ml-auto"
+                                                    >
+                                                        <Reply className="w-4 h-4 mr-2" />
+                                                        {item.reply ? "Edit Tanggapan" : "Beri Tanggapan"}
+                                                    </button>
                                                 </div>
-                                            )}
-                                        </div>
-                                    ))}
+
+                                                {/* Reply Section */}
+                                                {(selectedTicketId === item.id || item.reply) && (
+                                                    <div className={`mt-4 p-4 rounded-xl ${item.reply ? "bg-blue-500/5 border border-blue-500/10" : "bg-[var(--bg-panel)]"}`}>
+                                                        {selectedTicketId === item.id ? (
+                                                            <div className="flex gap-2">
+                                                                <input
+                                                                    type="text"
+                                                                    value={replyText}
+                                                                    onChange={(e) => setReplyText(e.target.value)}
+                                                                    placeholder="Tulis tanggapan admin..."
+                                                                    className="flex-1 px-4 py-2 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:border-blue-500"
+                                                                />
+                                                                <button
+                                                                    onClick={() => handleReplySubmit(item.id)}
+                                                                    className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500"
+                                                                >
+                                                                    <Send className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex items-start">
+                                                                <div className="bg-blue-500/20 p-1.5 rounded-lg mr-3">
+                                                                    <MessageSquare className="w-4 h-4 text-blue-500" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-xs font-bold text-blue-500 mb-1">Tanggapan Admin</p>
+                                                                    <p className="text-sm text-[var(--text-primary)]">{item.reply}</p>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {/* Rating & Feedback Section - BELOW Reply */}
+                                                {item.rating && (
+                                                    <div className="mt-4 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-2 border-yellow-300 dark:border-yellow-700 rounded-2xl p-5 shadow-sm">
+                                                        <div className="flex items-center justify-between mb-3">
+                                                            <h4 className="text-base font-bold text-yellow-900 dark:text-yellow-200 flex items-center">
+                                                                <div className="bg-yellow-400 dark:bg-yellow-600 p-2 rounded-xl mr-3">
+                                                                    <Star className="w-5 h-5 fill-yellow-800 text-yellow-800 dark:fill-yellow-200 dark:text-yellow-200" />
+                                                                </div>
+                                                                Rating Kepuasan Warga
+                                                            </h4>
+                                                            <span className="px-4 py-1.5 bg-yellow-400 dark:bg-yellow-600 text-yellow-900 dark:text-yellow-100 rounded-full text-sm font-black shadow-sm">
+                                                                {item.rating}/5
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5 mb-4">
+                                                            {[...Array(5)].map((_, i) => (
+                                                                <Star
+                                                                    key={i}
+                                                                    className={`w-7 h-7 ${i < item.rating ? "fill-yellow-500 text-yellow-500" : "fill-gray-200 text-gray-200 dark:fill-gray-700 dark:text-gray-700"}`}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                        {item.feedback_text && (
+                                                            <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-yellow-200 dark:border-yellow-800">
+                                                                <p className="text-xs font-bold text-yellow-700 dark:text-yellow-400 mb-2 uppercase tracking-wide">💬 Masukan Warga:</p>
+                                                                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed italic">&ldquo;{item.feedback_text}&rdquo;</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
                             </div>
                         )}
