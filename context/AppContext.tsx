@@ -633,21 +633,35 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     // Aspirasi Management
     const checkNikAvailability = async (nik: string): Promise<boolean> => {
         try {
-            // Import hash function dynamically
+            // Step 1: Verify NIK exists in penduduk table
+            const { data: pendudukData, error: pendudukError } = await supabase
+                .from('penduduk')
+                .select('nik')
+                .eq('nik', nik)
+                .single();
+
+            if (pendudukError || !pendudukData) {
+                console.error("NIK not found in penduduk table:", pendudukError);
+                return false;
+            }
+
+            // Step 2: Import hash function dynamically
             const { hashNIK } = await import('@/lib/crypto');
 
             // Hash NIK for privacy-preserving validation
             const nikHash = await hashNIK(nik);
 
-            // UPSERT: Insert or update timestamp if already exists
-            // CRITICAL: This ensures created_at is FRESH for reverse lookup time proximity!
+            // Step 3: UPSERT to nik_validation table
+            // CRITICAL: Explicitly set created_at to ensure FRESH timestamp for reverse lookup!
             const { error: upsertError } = await supabase
                 .from('nik_validation')
                 .upsert(
-                    { nik_hash: nikHash }, // Data to insert/update
                     {
-                        onConflict: 'nik_hash', // Conflict column (primary key)
-                        ignoreDuplicates: false // Update on conflict (refresh timestamp)
+                        nik_hash: nikHash,
+                        created_at: new Date().toISOString() // EXPLICIT timestamp - critical for time proximity!
+                    },
+                    {
+                        onConflict: 'nik_hash' // Update existing record if hash already exists
                     }
                 );
 
@@ -656,7 +670,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                 return false;
             }
 
-            // Return true (NIK is valid)
+            // Return true (NIK is valid and hash saved)
             return true;
         } catch (error) {
             console.error("Exception checking NIK:", error);
