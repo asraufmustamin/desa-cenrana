@@ -99,7 +99,11 @@ export default function PendudukPage() {
             alert("✅ Data penduduk berhasil ditambahkan!");
             setShowModal(false);
             setFormData({ nik: "", nama: "", dusun: "", pekerjaan: "", tanggal_lahir: "" });
-            fetchPenduduk();
+
+            // Small delay to ensure DB commit completes before refresh
+            setTimeout(() => {
+                fetchPenduduk();
+            }, 500);
         } catch (error: any) {
             console.error("❌ Catch block error:", error);
 
