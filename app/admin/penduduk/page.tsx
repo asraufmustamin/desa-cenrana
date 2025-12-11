@@ -12,7 +12,7 @@ interface PendudukItem {
     nama: string;
     dusun: string;
     pekerjaan?: string;
-    tgl_lahir?: string;
+    tanggal_lahir?: string;
 }
 
 export default function PendudukPage() {
@@ -26,7 +26,7 @@ export default function PendudukPage() {
         nama: "",
         dusun: "",
         pekerjaan: "",
-        tgl_lahir: "",
+        tanggal_lahir: "",
     });
 
     // Fetch penduduk data
@@ -82,7 +82,7 @@ export default function PendudukPage() {
                 nama: formData.nama,
                 dusun: formData.dusun,
                 pekerjaan: formData.pekerjaan || null,
-                tgl_lahir: formData.tgl_lahir || null,
+                tanggal_lahir: formData.tanggal_lahir || null,
             };
 
             console.log("📤 Sending payload to Supabase:", payload);
@@ -98,7 +98,7 @@ export default function PendudukPage() {
 
             alert("✅ Data penduduk berhasil ditambahkan!");
             setShowModal(false);
-            setFormData({ nik: "", nama: "", dusun: "", pekerjaan: "", tgl_lahir: "" });
+            setFormData({ nik: "", nama: "", dusun: "", pekerjaan: "", tanggal_lahir: "" });
             fetchPenduduk();
         } catch (error: any) {
             console.error("❌ Catch block error:", error);
@@ -311,8 +311,8 @@ export default function PendudukPage() {
                                 <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Tanggal Lahir (Opsional)</label>
                                 <input
                                     type="date"
-                                    value={formData.tgl_lahir}
-                                    onChange={(e) => setFormData({ ...formData, tgl_lahir: e.target.value })}
+                                    value={formData.tanggal_lahir}
+                                    onChange={(e) => setFormData({ ...formData, tanggal_lahir: e.target.value })}
                                     className="w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none"
                                 />
                             </div>
