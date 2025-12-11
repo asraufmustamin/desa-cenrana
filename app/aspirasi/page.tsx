@@ -498,7 +498,7 @@ export default function Aspirasi() {
                                             >
                                                 <div className="flex justify-between items-center mb-1">
                                                     <span className="font-mono font-bold text-blue-500 text-sm">{typeof id === 'object' ? JSON.stringify(id) : id}</span>
-                                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${item?.status === "Verified" ? "bg-emerald-500/20 text-emerald-500" :
+                                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${item?.status === "Selesai" || item?.status === "Diproses" ? "bg-emerald-500/20 text-emerald-500" :
                                                         item?.status === "Rejected" ? "bg-red-500/20 text-red-500" :
                                                             "bg-amber-500/20 text-amber-500"
                                                         }`}>
@@ -517,6 +517,6 @@ export default function Aspirasi() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

@@ -665,7 +665,12 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const addAspirasi = async (item: Omit<AspirasiItem, "id" | "status" | "date">) => {
-        // Step 1: Validate NIK against penduduk table
+        // Step 1: Validate NIK is provided
+        if (!item.nik) {
+            throw new Error("NIK harus diisi untuk validasi");
+        }
+
+        // Step 2: Validate NIK against penduduk table
         const nikExists = await checkNikAvailability(item.nik);
         if (!nikExists) {
             throw new Error("Validasi Gagal: NIK tidak ditemukan di data penduduk.");
