@@ -71,9 +71,50 @@ export default function Aspirasi() {
         }
     };
 
+    // Validation function for Aspirasi form
+    const validateForm = (): boolean => {
+        // Name required
+        if (!form.nama.trim()) {
+            alert('❌ Mohon isi nama lengkap Anda sesuai KTP');
+            return false;
+        }
+
+        // Name minimum length
+        if (form.nama.trim().length < 3) {
+            alert('❌ Nama minimal 3 karakter');
+            return false;
+        }
+
+        // NIK required and must be 16 digits
+        if (!form.nik || form.nik.length !== 16) {
+            setNikError('NIK harus 16 digit angka');
+            alert('❌ NIK harus diisi dengan 16 digit angka');
+            return false;
+        }
+
+        // Laporan required
+        if (!form.laporan.trim()) {
+            alert('❌ Mohon isi detail laporan Anda');
+            return false;
+        }
+
+        // Laporan minimum length for clarity
+        if (form.laporan.trim().length < 20) {
+            alert('❌ Laporan minimal 20 karakter agar admin dapat memahami dengan jelas');
+            return false;
+        }
+
+        return true;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitError("");
+
+        // ✅ Validate form before submission
+        if (!validateForm()) {
+            return;
+        }
 
         // NIK is required
         if (!form.nik || form.nik.length !== 16) {
@@ -96,7 +137,7 @@ export default function Aspirasi() {
             setMyHistory(updatedHistory);
             localStorage.setItem("my_aspirasi_history", JSON.stringify(updatedHistory));
 
-            alert(`Aspirasi berhasil dikirim! ID Tiket Anda: ${newTicketId}. Simpan ID ini untuk melacak status laporan Anda.`);
+            alert(`✅ Aspirasi berhasil dikirim! ID Tiket Anda: ${newTicketId}. Simpan ID ini untuk melacak status laporan Anda.`);
             setForm({ nama: "", nik: "", dusun: "Dusun 1", kategori: "Infrastruktur", laporan: "", image: "", is_anonymous: false });
             setImagePreview(null);
             setTicketId(newTicketId);

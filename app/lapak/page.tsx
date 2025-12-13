@@ -127,8 +127,78 @@ export default function LapakWarga() {
         setCroppedAreaPixels(croppedAreaPixels);
     };
 
+    // Validation function for Lapak form
+    const validateLapakForm = (): boolean => {
+        // Product title required
+        if (!form.title.trim()) {
+            alert('❌ Mohon isi nama produk');
+            return false;
+        }
+
+        // Title minimum length
+        if (form.title.trim().length < 3) {
+            alert('❌ Nama produk minimal 3 karakter');
+            return false;
+        }
+
+        // Price required and must be valid number
+        if (!form.priceAmount || parseFloat(form.priceAmount) <= 0) {
+            alert('❌ Mohon isi harga yang valid (harus lebih dari 0)');
+            return false;
+        }
+
+        // Custom unit validation
+        if (form.priceUnit === 'Custom' && !customUnit.trim()) {
+            alert('❌ Mohon isi satuan harga custom');
+            return false;
+        }
+
+        // Seller name required
+        if (!form.seller.trim()) {
+            alert('❌ Mohon isi nama penjual');
+            return false;
+        }
+
+        // Seller name minimum length
+        if (form.seller.trim().length < 3) {
+            alert('❌ Nama penjual minimal 3 karakter');
+            return false;
+        }
+
+        // WhatsApp number required and minimum length
+        if (!form.phone.trim()) {
+            alert('❌ Mohon isi nomor WhatsApp');
+            return false;
+        }
+
+        const cleanedPhone = form.phone.replace(/\D/g, '');
+        if (cleanedPhone.length < 10) {
+            alert('❌ Nomor WhatsApp minimal 10 digit');
+            return false;
+        }
+
+        // Description required
+        if (!form.description.trim()) {
+            alert('❌ Mohon isi deskripsi produk');
+            return false;
+        }
+
+        // Description minimum length
+        if (form.description.trim().length < 10) {
+            alert('❌ Deskripsi produk minimal 10 karakter');
+            return false;
+        }
+
+        return true;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // ✅ Validate form before submission
+        if (!validateLapakForm()) {
+            return;
+        }
 
         // Format phone number: 08xxx -> 62xxx
         const formatPhone = (phone: string): string => {
@@ -156,6 +226,7 @@ export default function LapakWarga() {
         const productData = { ...form, price: finalPrice, phone: formattedPhone, image: imagePreview || form.image };
 
         await submitLapak(productData);
+        alert('✅ Produk berhasil disubmit! Menunggu persetujuan admin.');
         setShowModal(false);
         setForm({ title: "", category: "Hasil Tani", priceAmount: "", priceUnit: "/bungkus", seller: "", phone: "", image: "", description: "" });
         setImagePreview(null);
