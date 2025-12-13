@@ -123,13 +123,41 @@ export default function Aspirasi() {
         }
 
         try {
-            // Validate NIK against penduduk table
+            // Step 1: Validate NIK exists in penduduk table & fetch data for cross-validation
             const nikExists = await checkNikAvailability(form.nik);
             if (!nikExists) {
                 setSubmitError("Validasi Gagal: NIK Anda tidak terdaftar sebagai warga.");
                 return;
             }
 
+            // Step 2: CROSS-VALIDATE nama and dusun with penduduk database
+            const { data: pendudukData, error: pendudukError } = await (await import('@/lib/supabase')).supabase
+                .from('penduduk')
+                .select('nama, dusun')
+                .eq('nik', form.nik)
+                .single();
+
+            if (pendudukError || !pendudukData) {
+                setSubmitError("Gagal memvalidasi data. Silakan coba lagi.");
+                return;
+            }
+
+            // Validate NAMA match (case-insensitive, trim whitespace)
+            const submittedNama = form.nama.trim().toLowerCase();
+            const dbNama = pendudukData.nama.trim().toLowerCase();
+
+            if (submittedNama !== dbNama) {
+                setSubmitError(`Validasi Gagal: Nama yang Anda masukkan (${form.nama}) tidak sesuai dengan data penduduk (${pendudukData.nama}). Mohon isi sesuai KTP.`);
+                return;
+            }
+
+            // Validate DUSUN match
+            if (form.dusun !== pendudukData.dusun) {
+                setSubmitError(`Validasi Gagal: Dusun yang Anda pilih (${form.dusun}) tidak sesuai dengan data penduduk (${pendudukData.dusun}). Mohon pilih dusun yang benar.`);
+                return;
+            }
+
+            // All validations passed - proceed with submission
             const newTicketId = await addAspirasi(form);
 
             // Update local history
@@ -212,7 +240,7 @@ export default function Aspirasi() {
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
 
                             {activeTab === "form" ? (
-                                <form onSubmit={handleSubmit} className="space-y-6">
+                                <form onSubmit={handleSubmit} noValidate className="space-y-6">{/* noValidate: disable browser validation untuk test */}
                                     {submitError && (
                                         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-start">
                                             <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 mr-3 flex-shrink-0" />
