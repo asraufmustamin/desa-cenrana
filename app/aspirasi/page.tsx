@@ -36,6 +36,9 @@ export default function Aspirasi() {
         image: ""
     });
 
+    // State untuk loading saat submit
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     // Load history from local storage on mount
     useEffect(() => {
         const history = localStorage.getItem("my_aspirasi_history");
@@ -127,12 +130,15 @@ export default function Aspirasi() {
 
         // NIK is required
         if (!form.nik || form.nik.length !== 16) {
-            setNikError("NIK wajib diisi 16 digit.");
+            setErrors({ ...errors, nik: "NIK wajib diisi 16 digit" });
             return;
         }
 
+        // Set loading state
+        setIsSubmitting(true);
+
         try {
-            // Step 1: Validate NIK exists in penduduk table & fetch data for cross-validation
+            // Validate NIK against penduduk table & fetch data for cross-validation
             const nikExists = await checkNikAvailability(form.nik);
             if (!nikExists) {
                 setSubmitError("Validasi Gagal: NIK Anda tidak terdaftar sebagai warga.");
@@ -182,6 +188,9 @@ export default function Aspirasi() {
             handleSearch(newTicketId);
         } catch (error: any) {
             setSubmitError(error.message || "Terjadi kesalahan saat mengirim aspirasi.");
+        } finally {
+            // Selalu set loading ke false, baik sukses atau error
+            setIsSubmitting(false);
         }
     };
 
@@ -378,8 +387,8 @@ export default function Aspirasi() {
                                                 if (errors.laporan) setErrors({ ...errors, laporan: "" });
                                             }}
                                             className={`w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border text-[var(--text-primary)] focus:ring-1 outline-none transition-all resize-none ${errors.laporan
-                                                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                                                    : "border-[var(--border-color)] focus:border-blue-500 focus:ring-blue-500"
+                                                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                                                : "border-[var(--border-color)] focus:border-blue-500 focus:ring-blue-500"
                                                 }`}
                                             placeholder="Jelaskan detail laporan Anda secara rinci..."
                                         />
@@ -434,14 +443,23 @@ export default function Aspirasi() {
 
                                     <button
                                         type="submit"
-                                        disabled={!!nikError}
-                                        className={`w-full py-4 rounded-xl font-bold shadow-lg transition-all flex items-center justify-center ${nikError
-                                            ? "bg-gray-500 cursor-not-allowed opacity-50 text-white"
-                                            : "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-[1.02]"
+                                        disabled={!!nikError || isSubmitting}
+                                        className={`w-full py-4 rounded-xl font-bold shadow-lg transition-all flex items-center justify-center ${nikError || isSubmitting
+                                                ? "bg-gray-500 cursor-not-allowed opacity-50 text-white"
+                                                : "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-[1.02]"
                                             }`}
                                     >
-                                        <Send className="w-5 h-5 mr-2" />
-                                        Kirim Laporan
+                                        {isSubmitting ? (
+                                            <>
+                                                <Clock className="w-5 h-5 mr-2 animate-spin" />
+                                                Mengirim...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Send className="w-5 h-5 mr-2" />
+                                                Kirim Laporan
+                                            </>
+                                        )}
                                     </button>
                                 </form>
                             ) : (
