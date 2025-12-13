@@ -829,15 +829,10 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             // Increment view count atomically
             const { error } = await supabase.rpc('increment_view_count', { product_id: productId });
 
-            // Fallback if RPC doesn't exist - use raw SQL
+            // Fallback if RPC doesn't exist - just log the error
             if (error) {
-                await supabase
-                    .from('lapak')
-                    .update({
-                        view_count: supabase.sql`view_count + 1`,
-                        last_viewed_at: new Date().toISOString()
-                    })
-                    .eq('id', productId);
+                console.warn('View count increment failed:', error);
+                // Silently fail - view counts are not critical
             }
 
             // Update local state (optional, for real-time UI update)
