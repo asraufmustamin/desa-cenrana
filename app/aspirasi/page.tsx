@@ -28,6 +28,14 @@ export default function Aspirasi() {
     const [nikError, setNikError] = useState("");
     const [submitError, setSubmitError] = useState("");
 
+    // State untuk inline errors di setiap field
+    const [errors, setErrors] = useState({
+        nama: "",
+        nik: "",
+        laporan: "",
+        image: ""
+    });
+
     // Load history from local storage on mount
     useEffect(() => {
         const history = localStorage.getItem("my_aspirasi_history");
@@ -71,40 +79,41 @@ export default function Aspirasi() {
         }
     };
 
-    // Validation function for Aspirasi form
+    // Validation function untuk Aspirasi form dengan inline errors
     const validateForm = (): boolean => {
-        // Name required
+        const newErrors = { nama: "", nik: "", laporan: "", image: "" };
+        let isValid = true;
+
+        // Validasi Nama
         if (!form.nama.trim()) {
-            alert('❌ Mohon isi nama lengkap Anda sesuai KTP');
-            return false;
+            newErrors.nama = "Mohon isi nama lengkap Anda sesuai KTP";
+            isValid = false;
+        } else if (form.nama.trim().length < 3) {
+            newErrors.nama = "Nama minimal 3 karakter";
+            isValid = false;
         }
 
-        // Name minimum length
-        if (form.nama.trim().length < 3) {
-            alert('❌ Nama minimal 3 karakter');
-            return false;
+        // Validasi NIK
+        if (!form.nik) {
+            newErrors.nik = "NIK wajib diisi";
+            isValid = false;
+        } else if (form.nik.length !== 16) {
+            newErrors.nik = "NIK harus 16 digit angka";
+            isValid = false;
         }
 
-        // NIK required and must be 16 digits
-        if (!form.nik || form.nik.length !== 16) {
-            setNikError('NIK harus 16 digit angka');
-            alert('❌ NIK harus diisi dengan 16 digit angka');
-            return false;
-        }
-
-        // Laporan required
+        // Validasi Laporan
         if (!form.laporan.trim()) {
-            alert('❌ Mohon isi detail laporan Anda');
-            return false;
+            newErrors.laporan = "Mohon isi detail laporan Anda";
+            isValid = false;
+        } else if (form.laporan.trim().length < 20) {
+            newErrors.laporan = "Laporan minimal 20 karakter agar admin dapat memahami dengan jelas";
+            isValid = false;
         }
 
-        // Laporan minimum length for clarity
-        if (form.laporan.trim().length < 20) {
-            alert('❌ Laporan minimal 20 karakter agar admin dapat memahami dengan jelas');
-            return false;
-        }
-
-        return true;
+        // Set semua errors sekaligus
+        setErrors(newErrors);
+        return isValid;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -255,10 +264,23 @@ export default function Aspirasi() {
                                                 type="text"
                                                 required
                                                 value={form.nama}
-                                                onChange={(e) => setForm({ ...form, nama: e.target.value })}
-                                                className="w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                                                onChange={(e) => {
+                                                    setForm({ ...form, nama: e.target.value });
+                                                    // Clear error saat user mengetik
+                                                    if (errors.nama) setErrors({ ...errors, nama: "" });
+                                                }}
+                                                className={`w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border text-[var(--text-primary)] focus:ring-1 outline-none transition-all ${errors.nama
+                                                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                                                    : "border-[var(--border-color)] focus:border-blue-500 focus:ring-blue-500"
+                                                    }`}
                                                 placeholder="Sesuai KTP"
                                             />
+                                            {errors.nama && (
+                                                <p className="text-red-500 text-sm mt-1.5 flex items-start">
+                                                    <AlertCircle className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
+                                                    {errors.nama}
+                                                </p>
+                                            )}
                                         </div>
                                         <div>
                                             <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">NIK <span className="text-red-500">*</span></label>
@@ -266,13 +288,24 @@ export default function Aspirasi() {
                                                 type="text"
                                                 required
                                                 value={form.nik}
-                                                onChange={handleNikChange}
+                                                onChange={(e) => {
+                                                    handleNikChange(e);
+                                                    // Clear error saat user mengetik
+                                                    if (errors.nik) setErrors({ ...errors, nik: "" });
+                                                }}
                                                 maxLength={16}
-                                                className={`w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border text-[var(--text-primary)] focus:ring-1 outline-none transition-all ${nikError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-[var(--border-color)] focus:border-blue-500 focus:ring-blue-500"
+                                                className={`w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border text-[var(--text-primary)] focus:ring-1 outline-none transition-all ${errors.nik
+                                                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                                                    : "border-[var(--border-color)] focus:border-blue-500 focus:ring-blue-500"
                                                     }`}
                                                 placeholder="16 digit NIK (wajib)"
                                             />
-                                            {nikError && <p className="text-red-500 text-xs mt-1 font-bold">{nikError}</p>}
+                                            {errors.nik && (
+                                                <p className="text-red-500 text-sm mt-1.5 flex items-start">
+                                                    <AlertCircle className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
+                                                    {errors.nik}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
 
@@ -339,10 +372,23 @@ export default function Aspirasi() {
                                             required
                                             rows={5}
                                             value={form.laporan}
-                                            onChange={(e) => setForm({ ...form, laporan: e.target.value })}
-                                            className="w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                                            onChange={(e) => {
+                                                setForm({ ...form, laporan: e.target.value });
+                                                // Clear error saat user mengetik
+                                                if (errors.laporan) setErrors({ ...errors, laporan: "" });
+                                            }}
+                                            className={`w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border text-[var(--text-primary)] focus:ring-1 outline-none transition-all resize-none ${errors.laporan
+                                                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                                                    : "border-[var(--border-color)] focus:border-blue-500 focus:ring-blue-500"
+                                                }`}
                                             placeholder="Jelaskan detail laporan Anda secara rinci..."
                                         />
+                                        {errors.laporan && (
+                                            <p className="text-red-500 text-sm mt-1.5 flex items-start">
+                                                <AlertCircle className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
+                                                {errors.laporan}
+                                            </p>
+                                        )}
                                     </div>
 
                                     {/* Image Upload Dropzone */}
