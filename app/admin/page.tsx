@@ -624,8 +624,8 @@ export default function AdminDashboard() {
                                                                 <Trash2 className="w-3 h-3" />
                                                             </button>
                                                         </div>
-                                                        <h4 className="font-bold text-gray-900 dark:text-white text-xs truncate">{item.title}</h4>
-                                                        <p className="text-[10px] text-gray-600 dark:text-gray-300 truncate">{item.seller}</p>
+                                                        <h4 className="font-bold text-[var(--text-primary)] text-xs truncate">{item.title}</h4>
+                                                        <p className="text-[10px] text-[var(--text-secondary)] truncate">{item.seller}</p>
                                                         <p className="text-xs font-bold text-emerald-500 mt-1">{item.price}</p>
                                                     </div>
                                                 ))}
