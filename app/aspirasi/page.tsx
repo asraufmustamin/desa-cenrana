@@ -164,10 +164,10 @@ export default function Aspirasi() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
                     {/* Main Content Area */}
-                    <div className="lg:col-span-2">
-                        <div className="glass-panel rounded-[2rem] p-8 md:p-10 relative overflow-hidden">
+                    <div className="md:col-span-2">
+                        <div className="glass-panel rounded-2xl md:rounded-[2rem] p-6 md:p-8 lg:p-10 relative overflow-hidden">
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
 
                             {activeTab === "form" ? (

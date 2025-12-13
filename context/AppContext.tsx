@@ -26,6 +26,11 @@ export interface LapakItem {
     image: string;
     status: "Active" | "Pending" | "Rejected";
     description?: string;
+    created_at?: string;
+    // Analytics fields
+    view_count?: number;
+    wa_click_count?: number;
+    last_viewed_at?: string;
 }
 
 export interface AspirasiItem {
@@ -196,6 +201,9 @@ interface AppContextType {
     addAgenda: () => Promise<void>;
     deleteAgenda: (id: number) => Promise<void>;
     updateAgenda: (id: number, updates: Partial<AgendaItem>) => Promise<void>;
+    // Analytics tracking functions
+    trackProductView: (productId: number) => Promise<void>;
+    trackWAClick: (productId: number) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -430,29 +438,36 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                 else setLapak(lapakItems.map(item => ({ ...item, status: "Active" as const })));
 
                 // Fetch Aspirasi
-                const { data: aspirasiData, error: aspirasiError } = await supabase.from('aspirasi').select('*').order('created_at', { ascending: false });
-                if (aspirasiData && !aspirasiError) {
-                    // Map back to local interface if needed, or ensure DB columns match
-                    // Assuming DB columns: ticket_code, name, nik, dusun, category, message, status, date, reply, photo
-                    const mappedAspirasi = aspirasiData.map((item: any) => ({
-                        id: item.ticket_code, // Map ticket_code to id
-                        nama: item.name,      // Map name to nama
-                        // nik: item.nik, // REMOVED: Column doesn't exist in table (privacy)
-                        dusun: item.dusun,
-                        kategori: item.category,
-                        laporan: item.message, // Map message to laporan
-                        status: item.status,
-                        date: item.date || (item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : ''),
-                        reply: item.reply,      // Ensure reply is mapped
-                        is_anonymous: item.is_anonymous || false,  // Include anonymous flag
-                        image: item.photo || "",  // Map photo to image
-                        priority: item.priority || "Medium", // Map priority with default (safe if column missing)
-                        rating: item.rating || undefined,    // Map rating (safe if column missing)
-                        feedback_text: item.feedback_text || undefined // Map feedback (safe if column missing)
-                    }));
-                    setAspirasi(mappedAspirasi);
-                } else if (aspirasiError) {
-                    console.error("Error fetching aspirasi:", aspirasiError);
+                try {
+                    const { data: aspirasiData, error: aspirasiError } = await supabase.from('aspirasi').select('*').order('created_at', { ascending: false });
+                    if (aspirasiData && !aspirasiError) {
+                        // Map back to local interface if needed, or ensure DB columns match
+                        // Assuming DB columns: ticket_code, name, nik, dusun, category, message, status, date, reply, photo
+                        const mappedAspirasi = aspirasiData.map((item: any) => ({
+                            id: item.ticket_code, // Map ticket_code to id
+                            nama: item.name,      // Map name to nama
+                            // nik: item.nik, // REMOVED: Column doesn't exist in table (privacy)
+                            dusun: item.dusun,
+                            kategori: item.category,
+                            laporan: item.message, // Map message to laporan
+                            status: item.status,
+                            date: item.date || (item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : ''),
+                            reply: item.reply,      // Ensure reply is mapped
+                            is_anonymous: item.is_anonymous || false,  // Include anonymous flag
+                            image: item.photo || "",  // Map photo to image
+                            priority: item.priority || "Medium", // Map priority with default (safe if column missing)
+                            rating: item.rating || undefined,    // Map rating (safe if column missing)
+                            feedback_text: item.feedback_text || undefined // Map feedback (safe if column missing)
+                        }))
+                            ;
+                        setAspirasi(mappedAspirasi);
+                    } else {
+                        console.log("No aspirasi data or error:", aspirasiError);
+                        setAspirasi([]); // Set empty array on error
+                    }
+                } catch (aspirasiErr) {
+                    console.error("Error fetching aspirasi:", aspirasiErr);
+                    setAspirasi([]); // Set empty array to not block loading
                 }
 
                 // Fetch Programs
@@ -808,6 +823,60 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         setLastActivity(Date.now());
     };
 
+    // Analytics Tracking Functions
+    const trackProductView = async (productId: number) => {
+        try {
+            // Increment view count atomically
+            const { error } = await supabase.rpc('increment_view_count', { product_id: productId });
+
+            // Fallback if RPC doesn't exist - use raw SQL
+            if (error) {
+                await supabase
+                    .from('lapak')
+                    .update({
+                        view_count: supabase.sql`view_count + 1`,
+                        last_viewed_at: new Date().toISOString()
+                    })
+                    .eq('id', productId);
+            }
+
+            // Update local state (optional, for real-time UI update)
+            setLapak(prev => prev.map(item =>
+                item.id === productId
+                    ? { ...item, view_count: (item.view_count || 0) + 1, last_viewed_at: new Date().toISOString() }
+                    : item
+            ));
+        } catch (error) {
+            console.error('Track view error:', error);
+            // Fail silently - don't block UI
+        }
+    };
+
+    const trackWAClick = async (productId: number) => {
+        try {
+            // Increment WA click count atomically  
+            const { error } = await supabase.rpc('increment_wa_click_count', { product_id: productId });
+
+            // Fallback if RPC doesn't exist
+            if (error) {
+                await supabase
+                    .from('lapak')
+                    .update({ wa_click_count: supabase.sql`wa_click_count + 1` })
+                    .eq('id', productId);
+            }
+
+            // Update local state
+            setLapak(prev => prev.map(item =>
+                item.id === productId
+                    ? { ...item, wa_click_count: (item.wa_click_count || 0) + 1 }
+                    : item
+            ));
+        } catch (error) {
+            console.error('Track WA click error:', error);
+            // Fail silently
+        }
+    };
+
     // Gallery Management
     const addGalleryItem = async (item: Omit<GalleryItem, "id">) => {
         const newItem = { ...item, id: Date.now() };
@@ -941,7 +1010,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             addGalleryItem,
             addProgram, deleteProgram, updateProgram,
             addHukum, deleteHukum, updateHukum,
-            addAgenda, deleteAgenda, updateAgenda
+            addAgenda, deleteAgenda, updateAgenda,
+            trackProductView, trackWAClick
         }}>
             {children}
         </AppContext.Provider>

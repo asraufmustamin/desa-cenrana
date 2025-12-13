@@ -22,6 +22,7 @@ import {
     Star,
     Search,
     AlertTriangle,
+    Trophy,
     Users
 } from "lucide-react";
 
@@ -46,6 +47,7 @@ export default function AdminDashboard() {
 
     const router = useRouter();
     const [activeTab, setActiveTab] = useState("dashboard");
+    const [lapakSubTab, setLapakSubTab] = useState<"management" | "analytics">("management"); // NEW: Sub-tabs for Lapak
     const [replyText, setReplyText] = useState("");
     const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
 
@@ -206,7 +208,7 @@ export default function AdminDashboard() {
                                         }`}
                                 >
                                     <ShoppingBag className="w-5 h-5 mr-3" />
-                                    Permintaan Produk
+                                    Kelola Lapak Warga
                                     {pendingLapak.length > 0 && (
                                         <span className="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                                             {pendingLapak.length}
@@ -259,30 +261,151 @@ export default function AdminDashboard() {
                     {/* Content Area */}
                     <div className="lg:col-span-3">
                         {activeTab === "dashboard" && (
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
-                                <div className="glass-card p-8 rounded-[2rem] border-l-4 border-cyan-500">
-                                    <h3 className="text-[var(--text-secondary)] font-bold mb-2">Total Berita</h3>
-                                    <p className="text-4xl font-bold text-[var(--text-primary)]">{news.length}</p>
+                            <div className="space-y-8 animate-fade-in">
+                                {/* Stats Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="glass-card p-8 rounded-[2rem] border-l-4 border-cyan-500">
+                                        <h3 className="text-[var(--text-secondary)] font-bold mb-2">Total Berita</h3>
+                                        <p className="text-4xl font-bold text-[var(--text-primary)]">{news.length}</p>
+                                    </div>
+                                    <div className="glass-card p-8 rounded-[2rem] border-l-4 border-blue-500">
+                                        <h3 className="text-[var(--text-secondary)] font-bold mb-2">Total Aspirasi</h3>
+                                        <p className="text-4xl font-bold text-[var(--text-primary)]">{aspirasi.length}</p>
+                                    </div>
+                                    <div className="glass-card p-8 rounded-[2rem] border-l-4 border-emerald-500">
+                                        <h3 className="text-[var(--text-secondary)] font-bold mb-2">Lapak Aktif</h3>
+                                        <p className="text-4xl font-bold text-[var(--text-primary)]">{lapak.filter(l => l.status === "Active").length}</p>
+                                    </div>
+                                    <div className="glass-card p-8 rounded-[2rem] border-l-4 border-amber-500">
+                                        <h3 className="text-[var(--text-secondary)] font-bold mb-2">Menunggu (Aspirasi)</h3>
+                                        <p className="text-4xl font-bold text-[var(--text-primary)]">{pendingAspirasi.length}</p>
+                                    </div>
+                                    <div className="glass-card p-8 rounded-[2rem] border-l-4 border-purple-500">
+                                        <h3 className="text-[var(--text-secondary)] font-bold mb-2">Menunggu (Produk)</h3>
+                                        <p className="text-4xl font-bold text-[var(--text-primary)]">{pendingLapak.length}</p>
+                                    </div>
+                                    <div className="glass-card p-8 rounded-[2rem] border-l-4 border-pink-500">
+                                        <h3 className="text-[var(--text-secondary)] font-bold mb-2">Mode CMS</h3>
+                                        <p className="text-2xl font-bold text-[var(--text-primary)]">{isEditMode ? "AKTIF ✓" : "NON-AKTIF"}</p>
+                                    </div>
                                 </div>
-                                <div className="glass-card p-8 rounded-[2rem] border-l-4 border-blue-500">
-                                    <h3 className="text-[var(--text-secondary)] font-bold mb-2">Total Aspirasi</h3>
-                                    <p className="text-4xl font-bold text-[var(--text-primary)]">{aspirasi.length}</p>
-                                </div>
-                                <div className="glass-card p-8 rounded-[2rem] border-l-4 border-emerald-500">
-                                    <h3 className="text-[var(--text-secondary)] font-bold mb-2">Lapak Aktif</h3>
-                                    <p className="text-4xl font-bold text-[var(--text-primary)]">{lapak.filter(l => l.status === "Active").length}</p>
-                                </div>
-                                <div className="glass-card p-8 rounded-[2rem] border-l-4 border-amber-500">
-                                    <h3 className="text-[var(--text-secondary)] font-bold mb-2">Menunggu (Aspirasi)</h3>
-                                    <p className="text-4xl font-bold text-[var(--text-primary)]">{pendingAspirasi.length}</p>
-                                </div>
-                                <div className="glass-card p-8 rounded-[2rem] border-l-4 border-purple-500">
-                                    <h3 className="text-[var(--text-secondary)] font-bold mb-2">Menunggu (Produk)</h3>
-                                    <p className="text-4xl font-bold text-[var(--text-primary)]">{pendingLapak.length}</p>
-                                </div>
-                                <div className="glass-card p-8 rounded-[2rem] border-l-4 border-pink-500">
-                                    <h3 className="text-[var(--text-secondary)] font-bold mb-2">Mode CMS</h3>
-                                    <p className="text-2xl font-bold text-[var(--text-primary)]">{isEditMode ? "AKTIF ✓" : "NON-AKTIF"}</p>
+
+                                {/* Lapak Warga Analytics */}
+                                <div className="glass-panel rounded-[2rem] p-8">
+                                    <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center">
+                                        <ShoppingBag className="w-6 h-6 mr-3 text-emerald-500" />
+                                        Analytics Lapak Warga
+                                    </h2>
+
+                                    {/* Analytics Stats */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                                        <div className="bg-gradient-to-br from-blue-500 to-cyan-500 p-6 rounded-2xl text-white shadow-lg">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-blue-100 text-sm font-bold mb-1">Total Views</p>
+                                                    <p className="text-4xl font-bold">
+                                                        {lapak.filter(p => p.status === 'Active').reduce((sum, p) => sum + (p.view_count || 0), 0)}
+                                                    </p>
+                                                </div>
+                                                <div className="bg-white/20 p-3 rounded-xl">
+                                                    <Eye className="w-8 h-8" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-gradient-to-br from-emerald-500 to-green-500 p-6 rounded-2xl text-white shadow-lg">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-emerald-100 text-sm font-bold mb-1">WA Clicks</p>
+                                                    <p className="text-4xl font-bold">
+                                                        {lapak.filter(p => p.status === 'Active').reduce((sum, p) => sum + (p.wa_click_count || 0), 0)}
+                                                    </p>
+                                                </div>
+                                                <div className="bg-white/20 p-3 rounded-xl">
+                                                    <MessageSquare className="w-8 h-8" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-gradient-to-br from-violet-500 to-purple-500 p-6 rounded-2xl text-white shadow-lg">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-violet-100 text-sm font-bold mb-1">Conversion Rate</p>
+                                                    <p className="text-4xl font-bold">
+                                                        {(() => {
+                                                            const activeProducts = lapak.filter(p => p.status === 'Active');
+                                                            const totalViews = activeProducts.reduce((sum, p) => sum + (p.view_count || 0), 0);
+                                                            const totalClicks = activeProducts.reduce((sum, p) => sum + (p.wa_click_count || 0), 0);
+                                                            return totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : '0.0';
+                                                        })()}%
+                                                    </p>
+                                                </div>
+                                                <div className="bg-white/20 p-3 rounded-xl">
+                                                    <Star className="w-8 h-8" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Top Products Table */}
+                                    <div className="overflow-x-auto">
+                                        <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4">Top 10 Produk Paling Dilihat</h3>
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr className="border-b border-[var(--border-color)]">
+                                                    <th className="text-left py-3 px-4 text-[var(--text-secondary)] font-bold text-sm">Produk</th>
+                                                    <th className="text-left py-3 px-4 text-[var(--text-secondary)] font-bold text-sm">Kategori</th>
+                                                    <th className="text-center py-3 px-4 text-[var(--text-secondary)] font-bold text-sm">Views</th>
+                                                    <th className="text-center py-3 px-4 text-[var(--text-secondary)] font-bold text-sm">WA Clicks</th>
+                                                    <th className="text-center py-3 px-4 text-[var(--text-secondary)] font-bold text-sm">Conv. Rate</th>
+                                                    <th className="text-left py-3 px-4 text-[var(--text-secondary)] font-bold text-sm">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {lapak
+                                                    .filter(p => p.status === 'Active')
+                                                    .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
+                                                    .slice(0, 10)
+                                                    .map((product, index) => (
+                                                        <tr key={product.id} className="border-b border-[var(--border-color)] hover:bg-[var(--bg-panel)] transition-colors">
+                                                            <td className="py-4 px-4">
+                                                                <div className="flex items-center space-x-3">
+                                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-white font-bold text-sm">
+                                                                        {index + 1}
+                                                                    </div>
+                                                                    <span className="font-bold text-[var(--text-primary)]">{product.title}</span>
+                                                                </div>
+                                                            </td>
+                                                            <td className="py-4 px-4 text-[var(--text-secondary)] text-sm">{product.category}</td>
+                                                            <td className="py-4 px-4 text-center">
+                                                                <span className="px-3 py-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg font-bold text-sm">
+                                                                    {product.view_count || 0}
+                                                                </span>
+                                                            </td>
+                                                            <td className="py-4 px-4 text-center">
+                                                                <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg font-bold text-sm">
+                                                                    {product.wa_click_count || 0}
+                                                                </span>
+                                                            </td>
+                                                            <td className="py-4 px-4 text-center">
+                                                                <span className="px-3 py-1 bg-violet-500/10 text-violet-600 dark:text-violet-400 rounded-lg font-bold text-sm">
+                                                                    {product.view_count ? ((product.wa_click_count || 0) / product.view_count * 100).toFixed(1) : '0.0'}%
+                                                                </span>
+                                                            </td>
+                                                            <td className="py-4 px-4">
+                                                                <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg text-xs font-bold">
+                                                                    {product.status}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                }
+                                            </tbody>
+                                        </table>
+                                        {lapak.filter(p => p.status === 'Active').length === 0 && (
+                                            <p className="text-center py-8 text-[var(--text-secondary)]">Belum ada produk aktif untuk ditampilkan.</p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -379,72 +502,267 @@ export default function AdminDashboard() {
                             </div>
                         )}
 
+                        {/* KELOLA LAPAK WARGA - REDESIGNED WITH TABS */}
                         {activeTab === "lapak" && (
-                            <div className="glass-panel rounded-[2rem] p-8 animate-fade-in">
-                                <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Permintaan Produk Baru</h2>
-                                {pendingLapak.length === 0 ? (
-                                    <p className="text-[var(--text-secondary)] text-center py-8">Tidak ada permintaan produk baru.</p>
-                                ) : (
-                                    <div className="space-y-4">
-                                        {pendingLapak.map((item) => (
-                                            <div key={item.id} className="bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border-color)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                                                <div className="flex items-center space-x-4 flex-1">
-                                                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-200 flex-shrink-0">
-                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                        <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <h3 className="font-bold text-[var(--text-primary)] text-lg">{item.title}</h3>
-                                                        <p className="text-sm text-[var(--text-secondary)]">{item.seller} • {item.price}</p>
-                                                        <p className="text-xs text-[var(--text-secondary)] mt-1 max-w-md">{item.description}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex space-x-3 w-full md:w-auto">
-                                                    <button
-                                                        onClick={() => approveLapak(item.id)}
-                                                        className="flex-1 md:flex-none px-4 py-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-lg font-bold transition-colors flex items-center justify-center"
-                                                    >
-                                                        <CheckCircle className="w-4 h-4 mr-2" />
-                                                        Setuju
-                                                    </button>
-                                                    <button
-                                                        onClick={() => rejectLapak(item.id)}
-                                                        className="flex-1 md:flex-none px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg font-bold transition-colors flex items-center justify-center"
-                                                    >
-                                                        <XCircle className="w-4 h-4 mr-2" />
-                                                        Tolak
-                                                    </button>
-                                                </div>
+                            <div className="glass-panel rounded-[2rem] p-6 animate-fade-in">
+                                {/* Header */}
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-3">
+                                        <ShoppingBag className="w-7 h-7 text-emerald-500" />
+                                        Kelola Lapak Warga
+                                    </h2>
+                                    <div className="flex gap-2 bg-[var(--bg-card)] p-1 rounded-xl border border-[var(--border-color)]">
+                                        <button
+                                            onClick={() => setLapakSubTab("management")}
+                                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${lapakSubTab === "management"
+                                                ? "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-lg"
+                                                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                                                }`}
+                                        >
+                                            📋 Kelola Produk
+                                        </button>
+                                        <button
+                                            onClick={() => setLapakSubTab("analytics")}
+                                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${lapakSubTab === "analytics"
+                                                ? "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-lg"
+                                                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                                                }`}
+                                        >
+                                            📊 Analitik
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* MANAGEMENT TAB */}
+                                {lapakSubTab === "management" && (
+                                    <div className="space-y-6 animate-fade-in">
+                                        {/* Pending Products - Compact */}
+                                        <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-2xl p-5 border border-amber-200 dark:border-amber-800">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h3 className="font-bold text-amber-900 dark:text-amber-100 flex items-center gap-2">
+                                                    <Clock className="w-5 h-5" />
+                                                    Menunggu Persetujuan
+                                                    {pendingLapak.length > 0 && (
+                                                        <span className="bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full">
+                                                            {pendingLapak.length}
+                                                        </span>
+                                                    )}
+                                                </h3>
                                             </div>
-                                        ))}
+
+                                            {pendingLapak.length === 0 ? (
+                                                <p className="text-amber-700 dark:text-amber-300 text-sm text-center py-4">
+                                                    ✅ Tidak ada permintaan produk baru
+                                                </p>
+                                            ) : (
+                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-h-[300px] overflow-y-auto pr-2">
+                                                    {pendingLapak.map((item, index) => (
+                                                        <div
+                                                            key={item.id}
+                                                            className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-amber-200 dark:border-amber-700 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+                                                            style={{
+                                                                animation: `fadeInUp 0.3s ease-out ${index * 0.1}s both`
+                                                            }}
+                                                        >
+                                                            <div className="flex gap-3">
+                                                                <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+                                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                    <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <h4 className="font-bold text-gray-900 dark:text-white text-sm truncate">{item.title}</h4>
+                                                                    <p className="text-xs text-gray-600 dark:text-gray-300">{item.seller} • {item.price}</p>
+                                                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{item.description}</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex gap-2 mt-3">
+                                                                <button
+                                                                    onClick={() => approveLapak(item.id)}
+                                                                    className="flex-1 px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 transition-colors flex items-center justify-center gap-1"
+                                                                >
+                                                                    <CheckCircle className="w-3 h-3" />
+                                                                    Setuju
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => rejectLapak(item.id)}
+                                                                    className="flex-1 px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-bold hover:bg-red-600 transition-colors flex items-center justify-center gap-1"
+                                                                >
+                                                                    <XCircle className="w-3 h-3" />
+                                                                    Tolak
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Active Products - Compact Grid */}
+                                        <div>
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h3 className="font-bold text-[var(--text-primary)] flex items-center gap-2">
+                                                    <CheckCircle className="w-5 h-5 text-emerald-500" />
+                                                    Produk Aktif ({lapak.filter(i => i.status === "Active").length})
+                                                </h3>
+                                            </div>
+                                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-[400px] overflow-y-auto pr-2">
+                                                {lapak.filter(item => item.status === "Active").map((item, index) => (
+                                                    <div
+                                                        key={item.id}
+                                                        className="bg-[var(--bg-card)] rounded-xl p-3 border border-[var(--border-color)] hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 group"
+                                                        style={{
+                                                            animation: `fadeInUp 0.3s ease-out ${index * 0.05}s both`
+                                                        }}
+                                                    >
+                                                        <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-200 mb-2">
+                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                            <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                                                            <button
+                                                                onClick={() => handleDeleteItem("lapak", item.id)}
+                                                                className="absolute top-1 right-1 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                                            >
+                                                                <Trash2 className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                        <h4 className="font-bold text-gray-900 dark:text-white text-xs truncate">{item.title}</h4>
+                                                        <p className="text-[10px] text-gray-600 dark:text-gray-300 truncate">{item.seller}</p>
+                                                        <p className="text-xs font-bold text-emerald-500 mt-1">{item.price}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
 
-                                {/* Active Lapak with Delete */}
-                                <h3 className="text-lg font-bold text-[var(--text-primary)] mt-12 mb-4">Produk Aktif</h3>
-                                <div className="space-y-4">
-                                    {lapak.filter(item => item.status === "Active").map((item) => (
-                                        <div key={item.id} className="bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border-color)] flex items-center justify-between">
-                                            <div className="flex items-center space-x-4 flex-1">
-                                                <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-200 flex-shrink-0">
-                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <h4 className="font-bold text-[var(--text-primary)]">{item.title}</h4>
-                                                    <p className="text-sm text-[var(--text-secondary)]">{item.seller} • {item.price}</p>
+                                {/* ANALYTICS TAB */}
+                                {lapakSubTab === "analytics" && (
+                                    <div className="space-y-6 animate-fade-in">
+                                        {/* Stats Cards - Compact */}
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl p-4 text-white shadow-lg transform hover:scale-105 transition-transform duration-300">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div>
+                                                        <p className="text-blue-100 text-xs font-bold mb-1">Total Views</p>
+                                                        <p className="text-3xl font-bold">
+                                                            {lapak.filter(p => p.status === 'Active').reduce((sum, p) => sum + (p.view_count || 0), 0)}
+                                                        </p>
+                                                    </div>
+                                                    <div className="bg-white/20 p-2 rounded-lg">
+                                                        <Eye className="w-6 h-6" />
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <button
-                                                onClick={() => handleDeleteItem("lapak", item.id)}
-                                                className="ml-4 p-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors"
-                                                title="Hapus"
-                                            >
-                                                <Trash2 className="w-5 h-5" />
-                                            </button>
+
+                                            <div className="bg-gradient-to-br from-emerald-500 to-green-500 rounded-2xl p-4 text-white shadow-lg transform hover:scale-105 transition-transform duration-300">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div>
+                                                        <p className="text-emerald-100 text-xs font-bold mb-1">WA Clicks</p>
+                                                        <p className="text-3xl font-bold">
+                                                            {lapak.filter(p => p.status === 'Active').reduce((sum, p) => sum + (p.wa_click_count || 0), 0)}
+                                                        </p>
+                                                    </div>
+                                                    <div className="bg-white/20 p-2 rounded-lg">
+                                                        <MessageSquare className="w-6 h-6" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-gradient-to-br from-violet-500 to-purple-500 rounded-2xl p-4 text-white shadow-lg transform hover:scale-105 transition-transform duration-300">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div>
+                                                        <p className="text-violet-100 text-xs font-bold mb-1">Conversion</p>
+                                                        <p className="text-3xl font-bold">
+                                                            {(() => {
+                                                                const activeProducts = lapak.filter(p => p.status === 'Active');
+                                                                const totalViews = activeProducts.reduce((sum, p) => sum + (p.view_count || 0), 0);
+                                                                const totalClicks = activeProducts.reduce((sum, p) => sum + (p.wa_click_count || 0), 0);
+                                                                return totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : '0.0';
+                                                            })()}%
+                                                        </p>
+                                                    </div>
+                                                    <div className="bg-white/20 p-2 rounded-lg">
+                                                        <Star className="w-6 h-6" />
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    ))}
-                                </div>
+
+                                        {/* Top Products Table - Compact */}
+                                        <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-color)] overflow-hidden">
+                                            <div className="px-5 py-3 bg-gradient-to-r from-blue-600 to-violet-600">
+                                                <h3 className="font-bold text-white flex items-center gap-2">
+                                                    <Trophy className="w-5 h-5" />
+                                                    Top 10 Produk Paling Dilihat
+                                                </h3>
+                                            </div>
+                                            <div className="overflow-x-auto max-h-[400px]">
+                                                <table className="w-full text-sm">
+                                                    <thead className="sticky top-0 bg-gray-100 dark:bg-gray-900 border-b border-[var(--border-color)]">
+                                                        <tr>
+                                                            <th className="text-left py-2 px-4 text-gray-600 dark:text-gray-400 font-bold text-xs">#</th>
+                                                            <th className="text-left py-2 px-4 text-gray-600 dark:text-gray-400 font-bold text-xs">Produk</th>
+                                                            <th className="text-center py-2 px-4 text-gray-600 dark:text-gray-400 font-bold text-xs">Views</th>
+                                                            <th className="text-center py-2 px-4 text-gray-600 dark:text-gray-400 font-bold text-xs">Clicks</th>
+                                                            <th className="text-center py-2 px-4 text-gray-600 dark:text-gray-400 font-bold text-xs">Conv.</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {lapak
+                                                            .filter(p => p.status === 'Active')
+                                                            .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
+                                                            .slice(0, 10)
+                                                            .map((product, index) => (
+                                                                <tr
+                                                                    key={product.id}
+                                                                    className="border-b border-[var(--border-color)] hover:bg-[var(--bg-panel)] transition-colors"
+                                                                    style={{
+                                                                        animation: `fadeInUp 0.3s ease-out ${index * 0.1}s both`
+                                                                    }}
+                                                                >
+                                                                    <td className="py-3 px-4">
+                                                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-white font-bold text-xs">
+                                                                            {index + 1}
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="py-3 px-4">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+                                                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                                <img src={product.image} alt={product.title} className="w-full h-full object-cover" />
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="font-bold text-xs" style={{ color: 'var(--text-primary, #ffffff)' }}>{product.title}</p>
+                                                                                <p className="text-[10px]" style={{ color: 'var(--text-secondary, #e5e7eb)' }}>{product.category}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="py-3 px-4 text-center">
+                                                                        <span className="px-2 py-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg font-bold text-xs">
+                                                                            {product.view_count || 0}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td className="py-3 px-4 text-center">
+                                                                        <span className="px-2 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg font-bold text-xs">
+                                                                            {product.wa_click_count || 0}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td className="py-3 px-4 text-center">
+                                                                        <span className="px-2 py-1 bg-violet-500/10 text-violet-600 dark:text-violet-400 rounded-lg font-bold text-xs">
+                                                                            {product.view_count ? ((product.wa_click_count || 0) / product.view_count * 100).toFixed(1) : '0.0'}%
+                                                                        </span>
+                                                                    </td>
+                                                                </tr>
+                                                            ))
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                                {lapak.filter(p => p.status === 'Active').length === 0 && (
+                                                    <p className="text-center py-8 text-[var(--text-secondary)] text-sm">Belum ada produk aktif.</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -710,3 +1028,17 @@ export default function AdminDashboard() {
         </div>
     );
 }
+
+{/* Global Styles for Animations */ }
+<style jsx global>{`
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+`}</style>

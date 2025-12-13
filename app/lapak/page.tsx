@@ -3,8 +3,10 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
-import { Phone, Tag, Search, ShoppingBag, Plus, X, Trophy, ChevronLeft, ChevronRight } from "lucide-react";
+import { Phone, Tag, Search, ShoppingBag, Plus, X, Trophy, ChevronLeft, ChevronRight, Upload } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
+import Cropper from 'react-easy-crop';
+import type { Area, Point } from 'react-easy-crop';
 
 export default function LapakWarga() {
     const { lapak, submitLapak, isLoading } = useAppContext();
@@ -12,17 +14,45 @@ export default function LapakWarga() {
     const [searchQuery, setSearchQuery] = useState("");
     const [showModal, setShowModal] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Product Detail Modal State
+    const [selectedProduct, setSelectedProduct] = useState<any>(null);
+    const [showDetailModal, setShowDetailModal] = useState(false);
+
+    // Image Upload & Crop State
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [tempImagePreview, setTempImagePreview] = useState<string | null>(null);
+    const [showImagePreviewModal, setShowImagePreviewModal] = useState(false);
+    const [imageRotation, setImageRotation] = useState(0);
+    const [uploadError, setUploadError] = useState("");
+
+    // Custom Unit State
+    const [customUnit, setCustomUnit] = useState("");
+
+    // Crop State (react-easy-crop)
+    const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
     // Form State
     const [form, setForm] = useState({
         title: "",
         category: "Hasil Tani",
-        price: "",
+        priceAmount: "",
+        priceUnit: "/bungkus",
         seller: "",
         phone: "",
         image: "",
         description: "",
     });
+
+    // Common units + Custom option
+    const priceUnits = [
+        "/kg", "/liter", "/bungkus", "/pcs", "/buah",
+        "/ikat", "/ekor", "/porsi", "/meter", "/jam",
+        "Custom" // This will show custom input
+    ];
 
     const categories = ["Semua", "Hasil Tani", "Produk UMKM", "Jasa Warga"];
 
@@ -39,15 +69,176 @@ export default function LapakWarga() {
         return matchesCategory && matchesSearch;
     });
 
-    // Top 5 Logic (Mocking "Best Seller" by taking first 5 for now)
-    const top5Items = activeLapak.slice(0, 5);
+    // Top 5 "Produk Terbaru" - Sort by created_at descending
+    const top5Items = activeLapak
+        .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+        .slice(0, 5);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    // Crop Helper Functions
+    const createImage = (url: string): Promise<HTMLImageElement> =>
+        new Promise((resolve, reject) => {
+            const image = new window.Image();
+            image.addEventListener('load', () => resolve(image));
+            image.addEventListener('error', (error) => reject(error));
+            image.setAttribute('crossOrigin', 'anonymous');
+            image.src = url;
+        });
+
+    const getCroppedImg = async (imageSrc: string, pixelCrop: Area, rotation = 0): Promise<string> => {
+        const image = await createImage(imageSrc);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+            throw new Error('No 2d context');
+        }
+
+        const maxSize = Math.max(image.width, image.height);
+        const safeArea = 2 * ((maxSize / 2) * Math.sqrt(2));
+
+        canvas.width = safeArea;
+        canvas.height = safeArea;
+
+        ctx.translate(safeArea / 2, safeArea / 2);
+        ctx.rotate((rotation * Math.PI) / 180);
+        ctx.translate(-safeArea / 2, -safeArea / 2);
+
+        ctx.drawImage(
+            image,
+            safeArea / 2 - image.width * 0.5,
+            safeArea / 2 - image.height * 0.5
+        );
+
+        const data = ctx.getImageData(0, 0, safeArea, safeArea);
+
+        canvas.width = pixelCrop.width;
+        canvas.height = pixelCrop.height;
+
+        ctx.putImageData(
+            data,
+            Math.round(0 - safeArea / 2 + image.width * 0.5 - pixelCrop.x),
+            Math.round(0 - safeArea / 2 + image.height * 0.5 - pixelCrop.y)
+        );
+
+        return canvas.toDataURL('image/jpeg');
+    };
+
+    const onCropComplete = (croppedArea: Area, croppedAreaPixels: Area) => {
+        setCroppedAreaPixels(croppedAreaPixels);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        submitLapak(form);
+
+        // Format phone number: 08xxx -> 62xxx
+        const formatPhone = (phone: string): string => {
+            let cleaned = phone.replace(/\D/g, '');
+            if (cleaned.startsWith('08')) {
+                cleaned = '62' + cleaned.substring(1);
+            } else if (cleaned.startsWith('8') && cleaned.length >= 10) {
+                cleaned = '62' + cleaned;
+            } else if (cleaned.startsWith('0')) {
+                cleaned = '62' + cleaned.substring(1);
+            }
+            return cleaned;
+        };
+
+        // Format price with thousand separator
+        const formatPriceDisplay = (value: string): string => {
+            if (!value) return '0';
+            return value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        };
+
+        const formattedPhone = formatPhone(form.phone);
+        // Use custom unit if selected, otherwise use dropdown value
+        const finalUnit = form.priceUnit === 'Custom' ? customUnit : form.priceUnit;
+        const finalPrice = `Rp ${formatPriceDisplay(form.priceAmount)}${finalUnit}`;
+        const productData = { ...form, price: finalPrice, phone: formattedPhone, image: imagePreview || form.image };
+
+        await submitLapak(productData);
         setShowModal(false);
-        setForm({ title: "", category: "Hasil Tani", price: "", seller: "", phone: "", image: "", description: "" });
+        setForm({ title: "", category: "Hasil Tani", priceAmount: "", priceUnit: "/bungkus", seller: "", phone: "", image: "", description: "" });
+        setImagePreview(null);
+        setCustomUnit(''); // Reset custom unit
         alert("Produk berhasil diajukan! Menunggu persetujuan Admin.");
+    };
+
+    // Image Upload Handlers
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            setUploadError("File harus berupa gambar (JPG, PNG, dll)");
+            return;
+        }
+
+        // Validate file size (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            setUploadError("Ukuran gambar maksimal 5MB");
+            return;
+        }
+
+        // Convert to Base64 and show preview modal
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const result = reader.result as string;
+            setTempImagePreview(result);
+            setImageRotation(0);
+            setCrop({ x: 0, y: 0 });
+            setZoom(1);
+            setShowImagePreviewModal(true);
+            setUploadError("");
+        };
+        reader.readAsDataURL(file);
+    };
+
+    // Confirm image after crop
+    const confirmImage = async () => {
+        if (tempImagePreview && croppedAreaPixels) {
+            try {
+                const croppedImage = await getCroppedImg(tempImagePreview, croppedAreaPixels, imageRotation);
+                setImagePreview(croppedImage);
+                setForm({ ...form, image: croppedImage });
+                setShowImagePreviewModal(false);
+                setTempImagePreview(null);
+                setImageRotation(0);
+                setCrop({ x: 0, y: 0 });
+                setZoom(1);
+                setCroppedAreaPixels(null);
+            } catch (e) {
+                console.error(e);
+                setUploadError("Gagal memotong gambar");
+            }
+        }
+    };
+
+    // Cancel image preview
+    const cancelImagePreview = () => {
+        setShowImagePreviewModal(false);
+        setTempImagePreview(null);
+        setImageRotation(0);
+        setCrop({ x: 0, y: 0 });
+        setZoom(1);
+        setCroppedAreaPixels(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
+
+    // Rotate image
+    const rotateImage = () => {
+        setImageRotation((prev) => (prev + 90) % 360);
+    };
+
+    // Remove uploaded image
+    const removeImage = () => {
+        setImagePreview(null);
+        setForm({ ...form, image: "" });
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
     };
 
     const scroll = (direction: "left" | "right") => {
@@ -93,8 +284,9 @@ export default function LapakWarga() {
                 {/* Top 5 Widget */}
                 <div className="mb-16">
                     <div className="flex items-center mb-6">
-                        <Trophy className="w-6 h-6 text-amber-500 mr-2" />
-                        <h2 className="text-2xl font-bold text-[var(--text-primary)]">Paling Laris</h2>
+                        <div className="mb-8">
+                            <h2 className="text-2xl font-bold text-[var(--text-primary)]">Produk Terbaru</h2>
+                        </div>
                         <div className="ml-auto flex space-x-2">
                             <button onClick={() => scroll("left")} className="p-2 rounded-full bg-[var(--bg-card)] hover:bg-[var(--bg-panel)] text-[var(--text-primary)] border border-[var(--border-color)] transition-colors">
                                 <ChevronLeft className="w-5 h-5" />
@@ -183,7 +375,11 @@ export default function LapakWarga() {
                                 : item.image;
 
                             return (
-                                <div key={item.id} className="glass-card rounded-3xl overflow-hidden flex flex-col group h-full">
+                                <div
+                                    key={item.id}
+                                    className="glass-card rounded-3xl overflow-hidden flex flex-col group h-full cursor-pointer"
+                                    onClick={() => { setSelectedProduct(item); setShowDetailModal(true); }}
+                                >
                                     <div className="relative aspect-square overflow-hidden bg-[var(--bg-card)]">
                                         <Image
                                             src={safeImage}
@@ -231,100 +427,211 @@ export default function LapakWarga() {
 
             {/* Submission Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="glass-panel w-full max-w-lg rounded-[2rem] p-8 relative animate-fade-in-up max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="glass-panel w-full max-w-2xl rounded-2xl sm:rounded-3xl p-5 sm:p-8 relative max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
                         <button
                             onClick={() => setShowModal(false)}
-                            className="absolute top-4 right-4 p-2 rounded-full bg-[var(--bg-card)] hover:bg-[var(--bg-panel)] text-[var(--text-primary)] transition-colors"
+                            className="absolute top-3 right-3 sm:top-6 sm:right-6 p-2 rounded-full bg-red-500 hover:bg-red-600 text-white transition-colors shadow-lg z-10"
                         >
                             <X className="w-5 h-5" />
                         </button>
 
-                        <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Promosikan Produk</h2>
+                        <h2 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] mb-4 sm:mb-6 pr-8">Promosikan Produk</h2>
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+                            {/* Nama Produk - Full width */}
                             <div>
-                                <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Nama Produk</label>
+                                <label className="block text-xs sm:text-sm font-bold text-[var(--text-secondary)] mb-1.5 sm:mb-2">Nama Produk *</label>
                                 <input
                                     type="text"
                                     required
                                     value={form.title}
                                     onChange={(e) => setForm({ ...form, title: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none"
+                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none"
                                     placeholder="Contoh: Keripik Pisang Khas Cenrana"
                                 />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                {/* Kategori */}
                                 <div>
-                                    <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Kategori</label>
+                                    <label className="block text-xs sm:text-sm font-bold text-[var(--text-secondary)] mb-1.5 sm:mb-2">Kategori *</label>
                                     <select
+                                        required
                                         value={form.category}
                                         onChange={(e) => setForm({ ...form, category: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none"
+                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:border-blue-500 outline-none cursor-pointer"
                                     >
-                                        <option className="bg-[var(--bg-panel)]" value="Hasil Tani">Hasil Tani</option>
-                                        <option className="bg-[var(--bg-panel)]" value="Produk UMKM">Produk UMKM</option>
-                                        <option className="bg-[var(--bg-panel)]" value="Jasa Warga">Jasa Warga</option>
+                                        <option value="Hasil Tani" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Hasil Tani</option>
+                                        <option value="Produk UMKM" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Produk UMKM</option>
+                                        <option value="Jasa Warga" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Jasa Warga / Lainnya</option>
+                                        <option value="Barang Bekas" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Barang Bekas</option>
                                     </select>
                                 </div>
+
+                                {/* Harga dengan Auto-Format */}
                                 <div>
-                                    <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Harga</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={form.price}
-                                        onChange={(e) => setForm({ ...form, price: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none"
-                                        placeholder="Rp 15.000"
-                                    />
+                                    <label className="block text-xs sm:text-sm font-bold text-[var(--text-secondary)] mb-1.5 sm:mb-2">Harga *</label>
+                                    <div className="flex gap-1.5 sm:gap-2">
+                                        <div className="relative flex-1">
+                                            <span className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-bold text-xs sm:text-sm pointer-events-none">Rp</span>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={form.priceAmount ? form.priceAmount.replace(/\B(?=(\d{3})+(?!\d))/g, '.') : ''}
+                                                onChange={(e) => {
+                                                    const numbers = e.target.value.replace(/\D/g, '');
+                                                    setForm({ ...form, priceAmount: numbers });
+                                                }}
+                                                className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none"
+                                                placeholder="15.000"
+                                            />
+                                        </div>
+                                        <select
+                                            value={form.priceUnit}
+                                            onChange={(e) => {
+                                                setForm({ ...form, priceUnit: e.target.value });
+                                                if (e.target.value !== 'Custom') {
+                                                    setCustomUnit('');
+                                                }
+                                            }}
+                                            className="px-2 sm:px-3 py-2.5 sm:py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] dark:text-white focus:border-blue-500 outline-none cursor-pointer text-xs sm:text-sm font-medium"
+                                        >
+                                            {priceUnits.map(unit => (
+                                                <option key={unit} value={unit} className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                                                    {unit === 'Custom' ? '✏️ Custom' : unit}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Custom Unit Input */}
+                                    {form.priceUnit === 'Custom' && (
+                                        <div className="mt-2">
+                                            <input
+                                                type="text"
+                                                required
+                                                value={customUnit}
+                                                onChange={(e) => setCustomUnit(e.target.value)}
+                                                className="w-full px-4 py-2.5 rounded-xl bg-[var(--bg-card)] border border-emerald-500 text-[var(--text-primary)] focus:border-emerald-600 outline-none"
+                                                placeholder="Contoh: /tandan, /karung, /hari, dll"
+                                            />
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">💡 Masukkan satuan custom Anda (dengan /)</p>
+                                        </div>
+                                    )}
+
+                                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-medium">
+                                        Rp {form.priceAmount ? form.priceAmount.replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '0'}
+                                        {form.priceUnit === 'Custom' ? (customUnit || '/...') : form.priceUnit}
+                                    </p>
                                 </div>
                             </div>
+
+                            {/* Nama Penjual */}
                             <div>
-                                <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Nama Penjual</label>
+                                <label className="block text-xs sm:text-sm font-bold text-[var(--text-secondary)] mb-1.5 sm:mb-2">Nama Penjual / Toko *</label>
                                 <input
                                     type="text"
                                     required
                                     value={form.seller}
                                     onChange={(e) => setForm({ ...form, seller: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none"
+                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none"
                                     placeholder="Nama Anda / Toko"
                                 />
                             </div>
+
+                            {/* Nomor WhatsApp */}
                             <div>
-                                <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Nomor WhatsApp</label>
+                                <label className="block text-xs sm:text-sm font-bold text-[var(--text-secondary)] mb-1.5 sm:mb-2">Nomor WhatsApp *</label>
                                 <input
                                     type="text"
                                     required
                                     value={form.phone}
                                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none"
-                                    placeholder="628123456789"
+                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none"
+                                    placeholder="08123456789"
                                 />
                             </div>
+
+                            {/* Upload Foto dari Galeri */}
                             <div>
-                                <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">URL Foto Produk</label>
+                                <label className="block text-xs sm:text-sm font-bold text-[var(--text-secondary)] mb-1.5 sm:mb-2">Foto Produk *</label>
                                 <input
-                                    type="url"
-                                    required
-                                    value={form.image}
-                                    onChange={(e) => setForm({ ...form, image: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none"
-                                    placeholder="https://..."
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    required={!imagePreview}
+                                    onChange={handleImageUpload}
+                                    className="hidden"
                                 />
+                                {!imagePreview ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="w-full px-4 py-6 sm:py-8 rounded-xl border-2 border-dashed border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--bg-panel)] transition-colors flex flex-col items-center justify-center gap-2"
+                                    >
+                                        <Upload className="w-7 h-7 sm:w-8 sm:h-8 text-[var(--text-secondary)]" />
+                                        <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Upload Foto dari Galeri</span>
+                                        <span className="text-[10px] sm:text-xs text-[var(--text-secondary)]">Max 5MB (JPG, PNG)</span>
+                                    </button>
+                                ) : (
+                                    <div className="space-y-2 sm:space-y-3">
+                                        {/* Image Preview - Show Cropped Result */}
+                                        <div className="relative border-2 border-emerald-500 rounded-xl overflow-hidden bg-black">
+                                            <img
+                                                src={imagePreview}
+                                                alt="Preview"
+                                                className="w-full h-40 sm:h-48 object-cover"
+                                            />
+                                            <div className="absolute top-2 right-2 bg-emerald-500 text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-xs font-bold shadow-lg">
+                                                ✓ Di-Crop
+                                            </div>
+                                        </div>
+
+                                        {/* Action Buttons */}
+                                        <div className="flex gap-1.5 sm:gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="flex-1 py-2 sm:py-2.5 bg-blue-600 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-1.5 sm:gap-2"
+                                            >
+                                                <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                                Ganti Foto
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={removeImage}
+                                                className="px-4 sm:px-5 py-2 sm:py-2.5 bg-red-500 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-red-600 transition-colors flex items-center justify-center gap-1.5 sm:gap-2"
+                                            >
+                                                <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                                Hapus
+                                            </button>
+                                        </div>
+
+                                        <p className="text-[10px] sm:text-xs text-center text-emerald-600 dark:text-emerald-400 font-medium">
+                                            ✓ Foto sudah di-crop dan siap digunakan
+                                        </p>
+                                    </div>
+                                )}
+                                {uploadError && <p className="text-xs text-red-500 mt-2">{uploadError}</p>}
                             </div>
+
+                            {/* Deskripsi */}
                             <div>
-                                <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Deskripsi Singkat</label>
+                                <label className="block text-xs sm:text-sm font-bold text-[var(--text-secondary)] mb-1.5 sm:mb-2">Deskripsi Produk *</label>
                                 <textarea
                                     rows={3}
+                                    required
                                     value={form.description}
                                     onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none"
+                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none resize-none"
                                     placeholder="Jelaskan keunggulan produk Anda..."
                                 />
                             </div>
+
                             <button
                                 type="submit"
-                                className="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold shadow-lg hover:bg-emerald-500 transition-all mt-4"
+                                className="w-full py-3 sm:py-4 bg-emerald-600 text-white rounded-xl text-sm sm:text-base font-bold shadow-lg hover:bg-emerald-500 transition-all mt-4 sm:mt-6"
                             >
                                 Ajukan Produk
                             </button>
@@ -332,6 +639,225 @@ export default function LapakWarga() {
                     </div>
                 </div>
             )}
+
+            {/* Product Detail Modal */}
+            {showDetailModal && selectedProduct && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fadeIn">
+                    <div className="bg-[var(--bg-panel)] rounded-2xl shadow-2xl w-full max-w-xl max-h-[85vh] overflow-y-auto animate-slideUp">
+                        <div className="relative">
+                            {/* Close Button */}
+                            <button
+                                onClick={() => setShowDetailModal(false)}
+                                className="absolute top-3 right-3 z-10 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+
+                            {/* Product Image */}
+                            <div className="relative w-full h-48 md:h-56 bg-gray-200 dark:bg-gray-800">
+                                <Image
+                                    src={selectedProduct.image || 'https://via.placeholder.com/600x400/cccccc/666666?text=No+Image'}
+                                    alt={selectedProduct.title}
+                                    fill
+                                    className="object-cover rounded-t-2xl"
+                                    unoptimized
+                                />
+                                <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg">
+                                    <p className="text-white text-xs font-bold flex items-center">
+                                        <Tag className="w-3 h-3 mr-1.5" />
+                                        {selectedProduct.category}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Product Details */}
+                            <div className="p-4">
+                                <h2 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] mb-2">
+                                    {selectedProduct.title}
+                                </h2>
+
+                                <p className="text-xs text-gray-600 dark:text-gray-300 mb-3">
+                                    Dijual oleh: <span className="font-bold text-[var(--text-primary)] dark:text-white">{selectedProduct.seller}</span>
+                                </p>
+
+                                {/* Price */}
+                                <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3 mb-4 border border-emerald-200 dark:border-emerald-700">
+                                    <p className="text-xs text-gray-600 dark:text-gray-300 mb-0.5">Harga</p>
+                                    <p className="text-2xl md:text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                                        {selectedProduct.price}
+                                    </p>
+                                </div>
+
+                                {/* Description */}
+                                {selectedProduct.description && (
+                                    <div className="mb-4">
+                                        <h3 className="text-sm font-bold text-[var(--text-primary)] dark:text-white mb-1.5">Deskripsi Produk</h3>
+                                        <p className="text-sm text-gray-700 dark:text-white whitespace-pre-wrap leading-relaxed">
+                                            {selectedProduct.description}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Contact Button */}
+                                <a
+                                    href={`https://wa.me/${selectedProduct.phone}?text=Halo, saya tertarik dengan produk *${selectedProduct.title}* seharga ${selectedProduct.price}. Apakah masih tersedia?`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full py-3 bg-emerald-600 text-white rounded-lg font-bold text-sm text-center flex items-center justify-center hover:bg-emerald-700 transition-all shadow-lg"
+                                >
+                                    <Phone className="w-4 h-4 mr-2" />
+                                    Hubungi via WhatsApp
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Image Crop Modal - Professional Crop Tool */}
+            {showImagePreviewModal && tempImagePreview && (
+                <div className="fixed inset-0 z-[60] bg-black">
+                    <div className="h-full flex flex-col">
+                        {/* Top Bar */}
+                        <div className="flex items-center justify-between p-4 bg-black/50 backdrop-blur-sm border-b border-white/10">
+                            <button
+                                onClick={cancelImagePreview}
+                                className="flex items-center gap-2 px-4 py-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                                <span className="text-sm font-medium">Batal</span>
+                            </button>
+
+                            <h3 className="text-white font-bold">Crop & Atur Foto</h3>
+
+                            <button
+                                onClick={confirmImage}
+                                disabled={!croppedAreaPixels}
+                                className="px-6 py-2 bg-emerald-600 text-white font-bold text-sm rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Selesai
+                            </button>
+                        </div>
+
+                        {/* Crop Area - Full Screen */}
+                        <div className="flex-1 relative">
+                            <Cropper
+                                image={tempImagePreview}
+                                crop={crop}
+                                zoom={zoom}
+                                rotation={imageRotation}
+                                aspect={undefined}
+                                onCropChange={setCrop}
+                                onZoomChange={setZoom}
+                                onCropComplete={onCropComplete}
+                                style={{
+                                    containerStyle: {
+                                        background: '#000'
+                                    },
+                                    cropAreaStyle: {
+                                        border: '2px solid #10b981',
+                                        color: 'rgba(16, 185, 129, 0.3)'
+                                    }
+                                }}
+                            />
+                        </div>
+
+                        {/* Bottom Controls */}
+                        <div className="bg-black/50 backdrop-blur-sm border-t border-white/10 p-4">
+                            <div className="max-w-2xl mx-auto space-y-4">
+                                {/* Zoom Control */}
+                                <div className="flex items-center gap-4">
+                                    <span className="text-white text-sm font-medium w-20">Zoom</span>
+                                    <button
+                                        onClick={() => setZoom(Math.max(1, zoom - 0.1))}
+                                        className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+                                        </svg>
+                                    </button>
+                                    <input
+                                        type="range"
+                                        min="1"
+                                        max="3"
+                                        step="0.1"
+                                        value={zoom}
+                                        onChange={(e) => setZoom(parseFloat(e.target.value))}
+                                        className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                        style={{
+                                            background: `linear-gradient(to right, #10b981 0%, #10b981 ${((zoom - 1) / 2) * 100}%, #374151 ${((zoom - 1) / 2) * 100}%, #374151 100%)`
+                                        }}
+                                    />
+                                    <button
+                                        onClick={() => setZoom(Math.min(3, zoom + 0.1))}
+                                        className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                        </svg>
+                                    </button>
+                                    <span className="text-white text-sm font-mono w-12 text-right">{Math.round(zoom * 100)}%</span>
+                                </div>
+
+                                {/* Toolbar */}
+                                <div className="flex items-center justify-center gap-2">
+                                    <button
+                                        onClick={rotateImage}
+                                        className="flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium text-sm transition-colors"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                        Putar 90°
+                                    </button>
+                                    <button
+                                        onClick={() => { setImageRotation(0); setCrop({ x: 0, y: 0 }); setZoom(1); }}
+                                        className="flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium text-sm transition-colors"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                        Reset
+                                    </button>
+                                </div>
+
+                                {/* Helper Text */}
+                                <p className="text-center text-gray-400 text-xs">
+                                    💡 Drag area hijau untuk crop, pinch/zoom untuk detail, putar untuk orientasi
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* CSS Animations */}
+            <style jsx global>{`
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    .animate-slideUp {
+        animation: slideUp 0.3s ease-out;
+    }
+    .animate-fadeIn {
+        animation: fadeIn 0.2s ease-out;
+    }
+`}</style>
         </div>
     );
 }

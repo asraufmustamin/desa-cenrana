@@ -90,8 +90,8 @@ export default function Navbar() {
                         </div>
                     </Link>
 
-                    {/* Desktop Navigation */}
-                    <div className="hidden md:flex items-center space-x-8">
+                    {/* Desktop Navigation - Shows on tablet landscape (768px+) */}
+                    <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
                         {navLinks.map((link) => (
                             <div
                                 key={link.name}
@@ -101,7 +101,7 @@ export default function Navbar() {
                             >
                                 <Link
                                     href={link.href}
-                                    className={`flex items-center font-bold transition-colors py-2 md:text-shadow-sm ${textColorClass} hover:text-blue-500`}
+                                    className={`flex items-center font-bold text-sm lg:text-base transition-colors py-2 md:text-shadow-sm ${textColorClass} hover:text-blue-500`}
                                 >
                                     {link.name}
                                     {link.dropdown && (
@@ -135,7 +135,7 @@ export default function Navbar() {
                     </div>
 
                     {/* Actions */}
-                    <div className="hidden md:flex items-center space-x-4">
+                    <div className="hidden md:flex items-center space-x-2 lg:space-x-4">
                         {/* Theme Toggle */}
                         <button
                             onClick={toggleTheme}
@@ -150,19 +150,21 @@ export default function Navbar() {
                         {isLoggedIn ? (
                             <Link
                                 href="/admin"
-                                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-full font-bold shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-105 transition-all flex items-center"
+                                className="px-4 lg:px-6 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-full text-sm lg:text-base font-bold shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-105 transition-all flex items-center"
                             >
-                                <User className="w-4 h-4 mr-2" />
-                                Dashboard
+                                <User className="w-4 h-4 mr-1 lg:mr-2" />
+                                <span className="hidden lg:inline">Dashboard</span>
+                                <span className="inline lg:hidden">Admin</span>
                             </Link>
                         ) : (
                             <Link
                                 href="/admin/login"
-                                className={`px-6 py-2.5 rounded-full font-bold border transition-all flex items-center backdrop-blur-md ${scrolled
+                                className={`px-4 lg:px-6 py-2.5 rounded-full text-sm lg:text-base font-bold border transition-all flex items-center backdrop-blur-md ${scrolled
                                     ? "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700"
                                     : "bg-white/10 border-white/20 text-white hover:bg-white/20"}`}
                             >
-                                Masuk Admin
+                                <span className="hidden lg:inline">Masuk Admin</span>
+                                <span className="inline lg:hidden">Admin</span>
                             </Link>
                         )}
                     </div>
@@ -185,10 +187,10 @@ export default function Navbar() {
                 </div>
             </div>
 
-            {/* Mobile Menu */}
+            {/* Mobile Menu - Only on mobile, hidden on tablet+ */}
             <div
-                className={`md:hidden absolute w-full bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 transition-all duration-300 overflow-hidden ${isOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
-                    }`}
+                className={`md:hidden absolute w-full bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 transition-all duration-300 ${isOpen ? "max-h-[calc(100vh-5rem)] opacity-100" : "max-h-0 opacity-0"
+                    } overflow-y-auto overflow-x-hidden`}
             >
                 <div className="px-4 pt-4 pb-8 space-y-2">
                     {navLinks.map((link) => (
