@@ -852,12 +852,10 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             // Increment WA click count atomically  
             const { error } = await supabase.rpc('increment_wa_click_count', { product_id: productId });
 
-            // Fallback if RPC doesn't exist
+            // Fallback if RPC doesn't exist - just log
             if (error) {
-                await supabase
-                    .from('lapak')
-                    .update({ wa_click_count: supabase.sql`wa_click_count + 1` })
-                    .eq('id', productId);
+                console.warn('WA click count increment failed:', error);
+                // Silently fail - click counts are not critical
             }
 
             // Update local state
