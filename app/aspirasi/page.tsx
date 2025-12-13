@@ -214,9 +214,10 @@ export default function Aspirasi() {
             setSearchResult(result);
             setTicketId(idToSearch); // Ensure input matches if called via history click
             setActiveTab("track");
+            setSubmitError(""); // Clear error saat sukses
         } else {
             setSearchResult(null);
-            alert("ID Tiket tidak ditemukan.");
+            setSubmitError("ID Tiket tidak ditemukan. Periksa kembali ID yang Anda masukkan.");
         }
     };
 
