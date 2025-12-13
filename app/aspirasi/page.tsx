@@ -39,6 +39,11 @@ export default function Aspirasi() {
     // State untuk loading saat submit
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // State untuk success feedback
+    const [showSuccessCard, setShowSuccessCard] = useState(false);
+    const [successTicketId, setSuccessTicketId] = useState("");
+    const [copied, setCopied] = useState(false);
+
     // Load history from local storage on mount
     useEffect(() => {
         const history = localStorage.getItem("my_aspirasi_history");
@@ -180,12 +185,21 @@ export default function Aspirasi() {
             setMyHistory(updatedHistory);
             localStorage.setItem("my_aspirasi_history", JSON.stringify(updatedHistory));
 
-            alert(`✅ Aspirasi berhasil dikirim! ID Tiket Anda: ${newTicketId}. Simpan ID ini untuk melacak status laporan Anda.`);
-            setForm({ nama: "", nik: "", dusun: "Dusun 1", kategori: "Infrastruktur", laporan: "", image: "", is_anonymous: false });
+            // Tampilkan success card instead of alert
+            setSuccessTicketId(newTicketId);
+            setShowSuccessCard(true);
+
+            // Clear form
+            setForm({ nama: "", nik: "", dusun: "Benteng", kategori: "Infrastruktur", laporan: "", image: "", is_anonymous: false });
             setImagePreview(null);
             setTicketId(newTicketId);
-            setActiveTab("track");
-            handleSearch(newTicketId);
+
+            // Auto switch ke track tab setelah 5 detik
+            setTimeout(() => {
+                setShowSuccessCard(false);
+                setActiveTab("track");
+                handleSearch(newTicketId);
+            }, 5000);
         } catch (error: any) {
             setSubmitError(error.message || "Terjadi kesalahan saat mengirim aspirasi.");
         } finally {
@@ -263,6 +277,57 @@ export default function Aspirasi() {
                                         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-start">
                                             <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 mr-3 flex-shrink-0" />
                                             <p className="text-sm text-red-800 dark:text-red-200 leading-relaxed font-medium">{submitError}</p>
+                                        </div>
+                                    )}
+
+                                    {/* Success Card - Compact & Responsive */}
+                                    {showSuccessCard && (
+                                        <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-500 dark:border-green-600 rounded-xl p-4 md:p-6">
+                                            <div className="flex items-start gap-3 md:gap-4">
+                                                {/* Icon Success - Lebih kecil */}
+                                                <div className="flex-shrink-0 w-12 h-12 md:w-14 md:h-14 bg-green-500 rounded-full flex items-center justify-center">
+                                                    <CheckCircle className="w-7 h-7 md:w-8 md:h-8 text-white" />
+                                                </div>
+
+                                                {/* Content - Compact */}
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="text-base md:text-lg font-bold text-green-800 dark:text-green-300 mb-1">
+                                                        Berhasil Dikirim!
+                                                    </h3>
+                                                    <p className="text-xs md:text-sm text-green-700 dark:text-green-400 mb-3">
+                                                        Laporan Anda telah kami terima
+                                                    </p>
+
+                                                    {/* ID Tiket - Inline & Compact */}
+                                                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mb-3 border border-green-300 dark:border-green-700">
+                                                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
+                                                            ID Tiket:
+                                                        </p>
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="text-lg md:text-xl font-black text-green-600 dark:text-green-400 tracking-wider flex-1">
+                                                                {successTicketId}
+                                                            </p>
+                                                            {/* Copy Button - No Alert! */}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    navigator.clipboard.writeText(successTicketId);
+                                                                    setCopied(true);
+                                                                    setTimeout(() => setCopied(false), 2000);
+                                                                }}
+                                                                className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-semibold transition-all flex-shrink-0"
+                                                            >
+                                                                {copied ? '✓ Copied' : '📋 Copy'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Instruksi - Compact */}
+                                                    <p className="text-xs text-green-700 dark:text-green-400">
+                                                        💡 Auto redirect ke tracking dalam 5 detik
+                                                    </p>
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
 
@@ -445,8 +510,8 @@ export default function Aspirasi() {
                                         type="submit"
                                         disabled={!!nikError || isSubmitting}
                                         className={`w-full py-4 rounded-xl font-bold shadow-lg transition-all flex items-center justify-center ${nikError || isSubmitting
-                                                ? "bg-gray-500 cursor-not-allowed opacity-50 text-white"
-                                                : "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-[1.02]"
+                                            ? "bg-gray-500 cursor-not-allowed opacity-50 text-white"
+                                            : "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-[1.02]"
                                             }`}
                                     >
                                         {isSubmitting ? (
