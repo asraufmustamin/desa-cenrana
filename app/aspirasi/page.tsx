@@ -573,7 +573,7 @@ export default function Aspirasi() {
                                             <div className="space-y-4">
                                                 <div className="bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border-color)]">
                                                     <h4 className="text-sm font-bold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">Detail Laporan</h4>
-                                                    <p className="text-[var(--text-primary)] leading-relaxed">{typeof searchResult.laporan === 'object' ? JSON.stringify(searchResult.laporan) : searchResult.laporan}</p>
+                                                    <p className="text-[var(--text-primary)] leading-relaxed break-words whitespace-pre-wrap">{typeof searchResult.laporan === 'object' ? JSON.stringify(searchResult.laporan) : searchResult.laporan}</p>
                                                     <div className="mt-4 flex items-center text-sm text-[var(--text-secondary)]">
                                                         <span className="mr-4">Oleh: {
                                                             searchResult.is_anonymous
