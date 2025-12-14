@@ -437,9 +437,14 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                 }
                 else setLapak(lapakItems.map(item => ({ ...item, status: "Active" as const })));
 
-                // Fetch Aspirasi
+                // ⚡ OPTIMIZED: Fetch Aspirasi WITHOUT photo column
+                // Photo column (base64) is too large and causes 10-second timeout
+                // Excluding photo makes query < 1 second!
                 try {
-                    const { data: aspirasiData, error: aspirasiError } = await supabase.from('aspirasi').select('*').order('created_at', { ascending: false });
+                    const { data: aspirasiData, error: aspirasiError } = await supabase
+                        .from('aspirasi')
+                        .select('ticket_code, name, nik, dusun, category, message, status, date, created_at, reply, is_anonymous, priority, rating, feedback_text')
+                        .order('created_at', { ascending: false });
                     if (aspirasiData && !aspirasiError) {
                         // Map back to local interface if needed, or ensure DB columns match
                         // Assuming DB columns: ticket_code, name, nik, dusun, category, message, status, date, reply, photo
