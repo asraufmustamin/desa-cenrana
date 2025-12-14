@@ -768,8 +768,11 @@ export default function LapakWarga() {
                                         setForm({ ...form, description: e.target.value });
                                         if (errors.description) setErrors({ ...errors, description: "" });
                                     }}
-                                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl bg-[var(--bg-card)] border text-[var(--text-primary)] outline-none resize-none ${\n                                        errors.description\n                                            ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"\n                                            : "border-[var(--border-color)] focus:border-blue-500"\n                                    }`}
-                                placeholder="Jelaskan keunggulan produk Anda..."
+                                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl bg-[var(--bg-card)] border text-[var(--text-primary)] outline-none resize-none ${errors.description
+                                        ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                                        : "border-[var(--border-color)] focus:border-blue-500"
+                                        }`}
+                                    placeholder="Jelaskan keunggulan produk Anda..."
                                 />
                                 {errors.description && (
                                     <p className="text-red-500 text-xs sm:text-sm mt-1.5 flex items-start">
