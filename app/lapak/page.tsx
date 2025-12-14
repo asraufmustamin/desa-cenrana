@@ -3,7 +3,7 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
-import { Phone, Tag, Search, ShoppingBag, Plus, X, Trophy, ChevronLeft, ChevronRight, Upload } from "lucide-react";
+import { Phone, Tag, Search, ShoppingBag, Plus, X, Trophy, ChevronLeft, ChevronRight, Upload, AlertCircle } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 import Cropper from 'react-easy-crop';
 import type { Area, Point } from 'react-easy-crop';
@@ -523,10 +523,23 @@ export default function LapakWarga() {
                                     type="text"
                                     required
                                     value={form.title}
-                                    onChange={(e) => setForm({ ...form, title: e.target.value })}
-                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none"
+                                    onChange={(e) => {
+                                        setForm({ ...form, title: e.target.value });
+                                        // Clear error saat user mengetik
+                                        if (errors.title) setErrors({ ...errors, title: "" });
+                                    }}
+                                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl bg-[var(--bg-card)] border text-[var(--text-primary)] outline-none ${errors.title
+                                        ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                                        : "border-[var(--border-color)] focus:border-blue-500"
+                                        }`}
                                     placeholder="Contoh: Keripik Pisang Khas Cenrana"
                                 />
+                                {errors.title && (
+                                    <p className="text-red-500 text-xs sm:text-sm mt-1.5 flex items-start">
+                                        <AlertCircle className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
+                                        {errors.title}
+                                    </p>
+                                )}
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -559,8 +572,13 @@ export default function LapakWarga() {
                                                 onChange={(e) => {
                                                     const numbers = e.target.value.replace(/\D/g, '');
                                                     setForm({ ...form, priceAmount: numbers });
+                                                    // Clear error saat user mengetik
+                                                    if (errors.priceAmount) setErrors({ ...errors, priceAmount: "" });
                                                 }}
-                                                className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none"
+                                                className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl bg-[var(--bg-card)] border text-[var(--text-primary)] outline-none ${errors.priceAmount
+                                                    ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                                                    : "border-[var(--border-color)] focus:border-blue-500"
+                                                    }`}
                                                 placeholder="15.000"
                                             />
                                         </div>
@@ -582,6 +600,14 @@ export default function LapakWarga() {
                                         </select>
                                     </div>
 
+                                    {/* Error message untuk price */}
+                                    {errors.priceAmount && (
+                                        <p className="text-red-500 text-xs sm:text-sm mt-1.5 flex items-start">
+                                            <AlertCircle className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
+                                            {errors.priceAmount}
+                                        </p>
+                                    )}
+
                                     {/* Custom Unit Input */}
                                     {form.priceUnit === 'Custom' && (
                                         <div className="mt-2">
@@ -589,11 +615,25 @@ export default function LapakWarga() {
                                                 type="text"
                                                 required
                                                 value={customUnit}
-                                                onChange={(e) => setCustomUnit(e.target.value)}
-                                                className="w-full px-4 py-2.5 rounded-xl bg-[var(--bg-card)] border border-emerald-500 text-[var(--text-primary)] focus:border-emerald-600 outline-none"
+                                                onChange={(e) => {
+                                                    setCustomUnit(e.target.value);
+                                                    // Clear error saat user mengetik
+                                                    if (errors.customUnit) setErrors({ ...errors, customUnit: "" });
+                                                }}
+                                                className={`w-full px-4 py-2.5 rounded-xl bg-[var(--bg-card)] border text-[var(--text-primary)] outline-none ${errors.customUnit
+                                                    ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                                                    : "border-emerald-500 focus:border-emerald-600"
+                                                    }`}
                                                 placeholder="Contoh: /tandan, /karung, /hari, dll"
                                             />
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">💡 Masukkan satuan custom Anda (dengan /)</p>
+                                            {errors.customUnit ? (
+                                                <p className="text-red-500 text-xs mt-1 flex items-start">
+                                                    <AlertCircle className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
+                                                    {errors.customUnit}
+                                                </p>
+                                            ) : (
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">💡 Masukkan satuan custom Anda (dengan /)</p>
+                                            )}
                                         </div>
                                     )}
 
@@ -611,10 +651,22 @@ export default function LapakWarga() {
                                     type="text"
                                     required
                                     value={form.seller}
-                                    onChange={(e) => setForm({ ...form, seller: e.target.value })}
-                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none"
+                                    onChange={(e) => {
+                                        setForm({ ...form, seller: e.target.value });
+                                        if (errors.seller) setErrors({ ...errors, seller: "" });
+                                    }}
+                                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl bg-[var(--bg-card)] border text-[var(--text-primary)] outline-none ${errors.seller
+                                        ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                                        : "border-[var(--border-color)] focus:border-blue-500"
+                                        }`}
                                     placeholder="Nama Anda / Toko"
                                 />
+                                {errors.seller && (
+                                    <p className="text-red-500 text-xs sm:text-sm mt-1.5 flex items-start">
+                                        <AlertCircle className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
+                                        {errors.seller}
+                                    </p>
+                                )}
                             </div>
 
                             {/* Nomor WhatsApp */}
@@ -624,10 +676,22 @@ export default function LapakWarga() {
                                     type="text"
                                     required
                                     value={form.phone}
-                                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none"
+                                    onChange={(e) => {
+                                        setForm({ ...form, phone: e.target.value });
+                                        if (errors.phone) setErrors({ ...errors, phone: "" });
+                                    }}
+                                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl bg-[var(--bg-card)] border text-[var(--text-primary)] outline-none ${errors.phone
+                                        ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                                        : "border-[var(--border-color)] focus:border-blue-500"
+                                        }`}
                                     placeholder="08123456789"
                                 />
+                                {errors.phone && (
+                                    <p className="text-red-500 text-xs sm:text-sm mt-1.5 flex items-start">
+                                        <AlertCircle className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
+                                        {errors.phone}
+                                    </p>
+                                )}
                             </div>
 
                             {/* Upload Foto dari Galeri */}
@@ -700,10 +764,19 @@ export default function LapakWarga() {
                                     rows={3}
                                     required
                                     value={form.description}
-                                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 outline-none resize-none"
-                                    placeholder="Jelaskan keunggulan produk Anda..."
+                                    onChange={(e) => {
+                                        setForm({ ...form, description: e.target.value });
+                                        if (errors.description) setErrors({ ...errors, description: "" });
+                                    }}
+                                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl bg-[var(--bg-card)] border text-[var(--text-primary)] outline-none resize-none ${\n                                        errors.description\n                                            ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"\n                                            : "border-[var(--border-color)] focus:border-blue-500"\n                                    }`}
+                                placeholder="Jelaskan keunggulan produk Anda..."
                                 />
+                                {errors.description && (
+                                    <p className="text-red-500 text-xs sm:text-sm mt-1.5 flex items-start">
+                                        <AlertCircle className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
+                                        {errors.description}
+                                    </p>
+                                )}
                             </div>
 
                             <button
