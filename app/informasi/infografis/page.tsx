@@ -60,7 +60,17 @@ export default function InfografisPage() {
                                             <Cell key={`cell-${index}`} fill={entry.fill} />
                                         ))}
                                     </Pie>
-                                    <Tooltip contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', borderRadius: '8px', border: 'none', color: '#fff' }} />
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                                            borderRadius: '12px',
+                                            border: '1px solid rgba(0,0,0,0.1)',
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                            padding: '12px'
+                                        }}
+                                        labelStyle={{ color: '#1f2937', fontWeight: 'bold', fontSize: '14px' }}
+                                        itemStyle={{ color: '#374151', fontSize: '13px' }}
+                                    />
                                     <Legend />
                                 </PieChart>
                             </ResponsiveContainer>
@@ -81,7 +91,18 @@ export default function InfografisPage() {
                                     <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
                                     <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={12} />
                                     <YAxis stroke="var(--text-secondary)" fontSize={12} />
-                                    <Tooltip cursor={{ fill: 'rgba(255,255,255,0.1)' }} contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', borderRadius: '8px', border: 'none', color: '#fff' }} />
+                                    <Tooltip
+                                        cursor={{ fill: 'rgba(255,255,255,0.1)' }}
+                                        contentStyle={{
+                                            backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                                            borderRadius: '12px',
+                                            border: '1px solid rgba(0,0,0,0.1)',
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                            padding: '12px'
+                                        }}
+                                        labelStyle={{ color: '#1f2937', fontWeight: 'bold', fontSize: '14px' }}
+                                        itemStyle={{ color: '#374151', fontSize: '13px' }}
+                                    />
                                     <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                                         {infografis.education.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -118,7 +139,17 @@ export default function InfografisPage() {
                                             <Cell key={`cell-${index}`} fill={entry.fill} />
                                         ))}
                                     </Pie>
-                                    <Tooltip contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', borderRadius: '8px', border: 'none', color: '#fff' }} />
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                                            borderRadius: '12px',
+                                            border: '1px solid rgba(0,0,0,0.1)',
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                            padding: '12px'
+                                        }}
+                                        labelStyle={{ color: '#1f2937', fontWeight: 'bold', fontSize: '14px' }}
+                                        itemStyle={{ color: '#374151', fontSize: '13px' }}
+                                    />
                                     <Legend />
                                 </PieChart>
                             </ResponsiveContainer>

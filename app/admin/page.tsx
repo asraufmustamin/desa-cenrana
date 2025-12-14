@@ -286,30 +286,30 @@ export default function AdminDashboard() {
                         {activeTab === "dashboard" && (
                             <div className="space-y-8 animate-fade-in">
                                 {/* Stats Grid */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div className="glass-card p-8 rounded-[2rem] border-l-4 border-cyan-500">
-                                        <h3 className="text-[var(--text-secondary)] font-bold mb-2">Total Berita</h3>
-                                        <p className="text-4xl font-bold text-[var(--text-primary)]">{news.length}</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                                    <div className="glass-card p-6 md:p-8 rounded-2xl md:rounded-[2rem] border-l-4 border-cyan-500">
+                                        <h3 className="text-[var(--text-secondary)] font-bold text-xs md:text-sm mb-2">Total Berita</h3>
+                                        <p className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]">{news.length}</p>
                                     </div>
-                                    <div className="glass-card p-8 rounded-[2rem] border-l-4 border-blue-500">
-                                        <h3 className="text-[var(--text-secondary)] font-bold mb-2">Total Aspirasi</h3>
-                                        <p className="text-4xl font-bold text-[var(--text-primary)]">{aspirasi.length}</p>
+                                    <div className="glass-card p-6 md:p-8 rounded-2xl md:rounded-[2rem] border-l-4 border-blue-500">
+                                        <h3 className="text-[var(--text-secondary)] font-bold text-xs md:text-sm mb-2">Total Aspirasi</h3>
+                                        <p className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]">{aspirasi.length}</p>
                                     </div>
-                                    <div className="glass-card p-8 rounded-[2rem] border-l-4 border-emerald-500">
-                                        <h3 className="text-[var(--text-secondary)] font-bold mb-2">Lapak Aktif</h3>
-                                        <p className="text-4xl font-bold text-[var(--text-primary)]">{lapak.filter(l => l.status === "Active").length}</p>
+                                    <div className="glass-card p-6 md:p-8 rounded-2xl md:rounded-[2rem] border-l-4 border-emerald-500">
+                                        <h3 className="text-[var(--text-secondary)] font-bold text-xs md:text-sm mb-2">Lapak Aktif</h3>
+                                        <p className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]">{lapak.filter(l => l.status === "Active").length}</p>
                                     </div>
-                                    <div className="glass-card p-8 rounded-[2rem] border-l-4 border-amber-500">
-                                        <h3 className="text-[var(--text-secondary)] font-bold mb-2">Menunggu (Aspirasi)</h3>
-                                        <p className="text-4xl font-bold text-[var(--text-primary)]">{pendingAspirasi.length}</p>
+                                    <div className="glass-card p-6 md:p-8 rounded-2xl md:rounded-[2rem] border-l-4 border-amber-500">
+                                        <h3 className="text-[var(--text-secondary)] font-bold text-xs md:text-sm mb-2">Menunggu (Aspirasi)</h3>
+                                        <p className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]">{pendingAspirasi.length}</p>
                                     </div>
-                                    <div className="glass-card p-8 rounded-[2rem] border-l-4 border-purple-500">
-                                        <h3 className="text-[var(--text-secondary)] font-bold mb-2">Menunggu (Produk)</h3>
-                                        <p className="text-4xl font-bold text-[var(--text-primary)]">{pendingLapak.length}</p>
+                                    <div className="glass-card p-6 md:p-8 rounded-2xl md:rounded-[2rem] border-l-4 border-purple-500">
+                                        <h3 className="text-[var(--text-secondary)] font-bold text-xs md:text-sm mb-2">Menunggu (Produk)</h3>
+                                        <p className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]">{pendingLapak.length}</p>
                                     </div>
-                                    <div className="glass-card p-8 rounded-[2rem] border-l-4 border-pink-500">
-                                        <h3 className="text-[var(--text-secondary)] font-bold mb-2">Mode CMS</h3>
-                                        <p className="text-2xl font-bold text-[var(--text-primary)]">{isEditMode ? "AKTIF ✓" : "NON-AKTIF"}</p>
+                                    <div className="glass-card p-6 md:p-8 rounded-2xl md:rounded-[2rem] border-l-4 border-pink-500">
+                                        <h3 className="text-[var(--text-secondary)] font-bold text-xs md:text-sm mb-2">Mode CMS</h3>
+                                        <p className="text-xl md:text-2xl font-bold text-[var(--text-primary)]">{isEditMode ? "AKTIF ✓" : "NON-AKTIF"}</p>
                                     </div>
                                 </div>
 

@@ -70,7 +70,7 @@ export default function HukumPage() {
                                         <Editable value={item.tahun} onSave={(val) => updateHukum(item.id, { tahun: val })} />
                                     </span>
                                 </div>
-                                <h3 className="text-lg font-bold text-[var(--text-primary)] leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                     <Editable
                                         value={item.judul}
                                         onSave={(val) => updateHukum(item.id, { judul: val })}
