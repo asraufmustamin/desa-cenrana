@@ -446,11 +446,12 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                 }
                 else setLapak(lapakItems.map(item => ({ ...item, status: "Active" as const })));
 
-                // ⚡ Fetch Aspirasi with ALL columns (including nik, date, photo)
+                // ⚡ Fetch Aspirasi WITHOUT photo untuk performance
+                // Photo = base64 besar -> lambat! Photo diambil saat detail view saja
                 try {
                     const { data: aspirasiData, error: aspirasiError } = await supabase
                         .from('aspirasi')
-                        .select('ticket_code, name, nik, dusun, category, message, status, date, created_at, reply, is_anonymous, priority, rating, feedback_text, photo')
+                        .select('ticket_code, name, nik, dusun, category, message, status, date, created_at, reply, is_anonymous, priority, rating, feedback_text')
                         .order('created_at', { ascending: false })
                         .limit(100); // ⚡ LIMIT 100 for faster loading!
                     if (aspirasiData && !aspirasiError) {
@@ -731,20 +732,19 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         // Optimistic update
         setAspirasi(prev => [newItem, ...prev]);
 
-        // Step 3: Map to DB columns including is_anonymous and priority fields
-        // NOTE: NIK is NOT stored in aspirasi table for privacy!
-        // NIK is only validated (hashed) in nik_validation table
+        // Step 3: Map to DB columns - Include ALL required fields
         const dbPayload = {
             ticket_code: ticketId,
             name: item.nama,
-            // nik: item.nik, // REMOVED: Column doesn't exist (privacy protection)
+            nik: item.nik, // ✅ FIXED: Include NIK (validated above)
             dusun: item.dusun,
             category: item.kategori,
             message: item.laporan,
             status: 'Pending',
-            is_anonymous: item.is_anonymous || false, // Include anonymous flag
-            priority: item.priority || 'Medium', // Include priority with default
-            photo: item.image || null, // Include photo URL
+            date: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }), // ✅ FIXED: Include formatted date
+            is_anonymous: item.is_anonymous || false,
+            priority: item.priority || 'Medium',
+            photo: item.image || null,
             reply: null
         };
 
