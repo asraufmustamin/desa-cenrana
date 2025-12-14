@@ -544,7 +544,7 @@ export default function LapakWarga() {
 
                         <h2 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] mb-4 sm:mb-6 pr-8">Promosikan Produk</h2>
 
-                        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+                        <form onSubmit={handleSubmit} noValidate className="space-y-3 sm:space-y-4">
                             {/* Nama Produk - Full width */}
                             <div>
                                 <label className="block text-xs sm:text-sm font-bold text-[var(--text-secondary)] mb-1.5 sm:mb-2">Nama Produk *</label>
