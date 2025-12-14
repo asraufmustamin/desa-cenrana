@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { Phone, Tag, Search, ShoppingBag, Plus, X, Trophy, ChevronLeft, ChevronRight, Upload, AlertCircle, CheckCircle, Clock } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
@@ -843,6 +843,29 @@ export default function LapakWarga() {
                                     </p>
                                 )}
                             </div>
+
+                            {/* Cooldown Banner - Anti Spam */}
+                            {isOnCooldown && remainingTime > 0 && (
+                                <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 dark:border-yellow-600 rounded-xl p-3 sm:p-4 mb-4 animate-pulse-slow">
+                                    <div className="flex items-start gap-2 sm:gap-3">
+                                        <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 animate-spin" />
+                                        <div className="flex-1">
+                                            <h3 className="font-bold text-yellow-800 dark:text-yellow-300 mb-1 text-xs sm:text-sm">
+                                                ⏱️ Mohon Tunggu
+                                            </h3>
+                                            <p className="text-xs text-yellow-700 dark:text-yellow-400 mb-2">
+                                                Anda bisa submit produk lagi dalam <strong>{remainingTime} detik</strong>
+                                            </p>
+                                            <div className="bg-yellow-200 dark:bg-yellow-800 rounded-full h-2 overflow-hidden">
+                                                <div
+                                                    className="bg-yellow-600 dark:bg-yellow-500 h-full transition-all duration-1000"
+                                                    style={{ width: `${(remainingTime / 60) * 100}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Success Card - Compact */}
                             {showSuccessCard && (
