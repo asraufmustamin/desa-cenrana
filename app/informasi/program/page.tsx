@@ -83,7 +83,7 @@ export default function ProgramPage() {
                                         className="hover:text-blue-500 transition-colors"
                                     />
                                 </h3>
-                                <div className="text-sm text-[var(--text-secondary)] leading-relaxed min-h-[60px]">
+                                <div className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed min-h-[60px]">
                                     <Editable
                                         type="textarea"
                                         value={program.description}

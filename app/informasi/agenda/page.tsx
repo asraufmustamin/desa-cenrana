@@ -79,7 +79,7 @@ export default function AgendaPage() {
                                         />
                                     </h3>
 
-                                    <div className="space-y-2 text-sm text-[var(--text-secondary)]">
+                                    <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                                         <div className="flex items-center">
                                             <Clock className="w-4 h-4 mr-2 text-blue-500" />
                                             <Editable
@@ -97,7 +97,7 @@ export default function AgendaPage() {
                                     </div>
 
                                     <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                                        <p className="text-sm text-[var(--text-secondary)] line-clamp-3">
+                                        <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
                                             <Editable
                                                 type="textarea"
                                                 value={item.description}

@@ -48,13 +48,13 @@ export default function PetaPage() {
                                 </div>
                                 <div>
                                     <h2 className="text-xl font-bold text-[var(--text-primary)]">Wilayah Desa</h2>
-                                    <p className="text-xs font-medium text-[var(--text-secondary)]">Data Geografis</p>
+                                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Data Geografis</p>
                                 </div>
                             </div>
 
                             <div className="bg-slate-50 dark:bg-black/20 p-5 rounded-2xl border border-slate-100 dark:border-white/5 mb-6">
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs font-bold uppercase tracking-widest text-[var(--text-secondary)] flex items-center">
+                                    <span className="text-xs font-bold uppercase tracking-widest text-gray-600 dark:text-gray-400 flex items-center">
                                         <Maximize className="w-4 h-4 mr-2 text-blue-500" /> Luas Wilayah
                                     </span>
                                 </div>
@@ -62,7 +62,7 @@ export default function PetaPage() {
                                     <span className="text-4xl font-black text-[var(--text-primary)] mr-2 tracking-tight">
                                         <Editable section="peta" field="luasWilayah" />
                                     </span>
-                                    <span className="text-lg font-bold text-[var(--text-secondary)]">km²</span>
+                                    <span className="text-lg font-bold text-gray-700 dark:text-gray-300">km²</span>
                                 </div>
                             </div>
 
@@ -73,20 +73,20 @@ export default function PetaPage() {
                                 </h3>
                                 <div className="space-y-3">
                                     <div>
-                                        <p className="text-[10px] text-[var(--text-secondary)] mb-0.5 uppercase tracking-wider">Alamat Kantor</p>
+                                        <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-0.5 uppercase tracking-wider">Alamat Kantor</p>
                                         <p className="text-sm font-semibold text-[var(--text-primary)] leading-tight">
                                             <Editable section="peta" field="alamatKantor" />
                                         </p>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
-                                            <p className="text-[10px] text-[var(--text-secondary)] mb-0.5 uppercase tracking-wider">Koordinat</p>
+                                            <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-0.5 uppercase tracking-wider">Koordinat</p>
                                             <p className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300">
                                                 <Editable section="peta" field="koordinat" />
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-[10px] text-[var(--text-secondary)] mb-0.5 uppercase tracking-wider">Jarak Kab.</p>
+                                            <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-0.5 uppercase tracking-wider">Jarak Kab.</p>
                                             <p className="text-sm font-semibold text-[var(--text-primary)]">
                                                 <Editable section="peta" field="jarakKabupaten" />
                                             </p>
@@ -98,7 +98,7 @@ export default function PetaPage() {
 
                         {/* Card 2: Batas Wilayah */}
                         <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-lg rounded-3xl p-6">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-[var(--text-secondary)] mb-4 flex items-center">
+                            <h3 className="text-sm font-bold uppercase tracking-widest text-gray-600 dark:text-gray-400 mb-4 flex items-center">
                                 <Compass className="w-4 h-4 mr-2 text-emerald-500" />
                                 Batas Wilayah
                             </h3>
