@@ -41,6 +41,7 @@ export default function AdminDashboard() {
         verifyAspirasi,
         replyAspirasi,
         deleteAspirasi,
+        fetchPhotoById, // 🔥 For lazy loading photo
         isEditMode,
         toggleEditMode
     } = useAppContext();
@@ -63,6 +64,12 @@ export default function AdminDashboard() {
         category: "Pengumuman",
         image: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&q=80&w=800"
     });
+
+    // 🔥 Photo Modal States
+    const [showPhotoModal, setShowPhotoModal] = useState(false);
+    const [modalPhoto, setModalPhoto] = useState("");
+    const [modalTicketCode, setModalTicketCode] = useState("");
+    const [isLoadingPhoto, setIsLoadingPhoto] = useState(false);
 
     useEffect(() => {
         if (!isLoggedIn) {
@@ -128,6 +135,22 @@ export default function AdminDashboard() {
             if (type === "news") deleteNews(id as number);
             else if (type === "lapak") deleteLapak(id as number);
             else if (type === "aspirasi") deleteAspirasi(id as string);
+        }
+    };
+
+    // 🔥 Lazy Load Photo Function
+    const handleViewPhoto = async (ticketCode: string) => {
+        setModalTicketCode(ticketCode);
+        setShowPhotoModal(true);
+        setIsLoadingPhoto(true);
+        setModalPhoto("");
+        try {
+            const photoData = await fetchPhotoById(ticketCode);
+            setModalPhoto(photoData);
+        } catch (error) {
+            console.error('Error loading photo:', error);
+        } finally {
+            setIsLoadingPhoto(false);
         }
     };
 
@@ -910,17 +933,14 @@ export default function AdminDashboard() {
 
                                                 <p className="text-[var(--text-primary)] mb-4 leading-relaxed">{item.laporan}</p>
 
-                                                {/* Display uploaded image if exists */}
-                                                {item.image && (
-                                                    <div className="mb-4 rounded-xl overflow-hidden border border-[var(--border-color)] bg-[var(--bg-panel)]">
-                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                        <img
-                                                            src={item.image}
-                                                            alt="Foto Laporan"
-                                                            className="w-full max-h-96 object-contain"
-                                                        />
-                                                    </div>
-                                                )}
+                                                {/* 🔥 Photo Button - Lazy Load */}
+                                                <button
+                                                    onClick={() => handleViewPhoto(item.id)}
+                                                    className="mb-4 px-4 py-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg font-bold text-sm transition-colors flex items-center gap-2"
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                    Lihat Detail & Foto
+                                                </button>
 
 
                                                 {/* Action Buttons */}
@@ -1025,6 +1045,55 @@ export default function AdminDashboard() {
                     </div>
                 </div>
             </div>
+
+            {/* 🔥 Photo Modal - Lazy Load */}
+            {showPhotoModal && (
+                <div
+                    className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                    onClick={() => setShowPhotoModal(false)}
+                >
+                    <div
+                        className="bg-[var(--bg-card)] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-xl font-bold text-[var(--text-primary)]">
+                                    Detail Aspirasi - {modalTicketCode}
+                                </h3>
+                                <button
+                                    onClick={() => setShowPhotoModal(false)}
+                                    className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                >
+                                    <XCircle className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            {/* Photo Display */}
+                            <div className="rounded-xl overflow-hidden border border-[var(--border-color)] bg-[var(--bg-panel)]">
+                                {isLoadingPhoto ? (
+                                    <div className="flex flex-col items-center justify-center p-12">
+                                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+                                        <p className="text-[var(--text-secondary)]">Memuat foto...</p>
+                                    </div>
+                                ) : modalPhoto ? (
+                                    /* eslint-disable-next-line @next/next/no-img-element */
+                                    <img
+                                        src={modalPhoto}
+                                        alt="Foto Aspirasi"
+                                        className="w-full max-h-[600px] object-contain"
+                                    />
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center p-12">
+                                        <AlertTriangle className="w-16 h-16 text-amber-500 mb-4" />
+                                        <p className="text-[var(--text-secondary)]">Tidak ada foto atau gagal memuat</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

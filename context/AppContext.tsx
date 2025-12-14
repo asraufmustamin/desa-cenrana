@@ -187,6 +187,7 @@ interface AppContextType {
     getAspirasiByTicket: (ticketId: string) => AspirasiItem | undefined;
     deleteAspirasi: (id: string) => Promise<void>;
     submitRating: (ticketId: string, rating: number, feedback?: string) => Promise<void>;
+    fetchPhotoById: (ticketCode: string) => Promise<string>;
     submitLapak: (item: Omit<LapakItem, "id" | "status">) => Promise<void>;
     approveLapak: (id: number) => Promise<void>;
     rejectLapak: (id: number) => Promise<void>;
@@ -446,12 +447,13 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                 }
                 else setLapak(lapakItems.map(item => ({ ...item, status: "Active" as const })));
 
-                // Fetch Aspirasi dengan semua data termasuk photo
-                // Note: Mungkin agak lambat karena photo base64, tapi perlu untuk display
+                // ⚡ OPTIMIZED: Fetch aspirasi WITHOUT photo untuk fast initial load
+                // Photo akan di-load on-demand saat admin buka detail (lazy load)
+                // Ini mencegah timeout dan membuat list loading < 2 detik
                 try {
                     const { data: aspirasiData, error: aspirasiError } = await supabase
                         .from('aspirasi')
-                        .select('ticket_code, name, nik, dusun, category, message, status, date, created_at, reply, is_anonymous, priority, rating, feedback_text, photo')
+                        .select('ticket_code, name, nik, dusun, category, message, status, date, created_at, reply, is_anonymous, priority, rating, feedback_text')
                         .order('created_at', { ascending: false })
                         .limit(50); // Reduce to 50 for better performance // ⚡ LIMIT 100 for faster loading!
                     if (aspirasiData && !aspirasiError) {
@@ -792,6 +794,28 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         setLastActivity(Date.now());
     };
 
+    // 🔥 LAZY LOAD: Fetch photo on-demand untuk specific aspirasi
+    // Dipanggil saat admin buka detail modal
+    const fetchPhotoById = async (ticketCode: string): Promise<string> => {
+        try {
+            const { data, error } = await supabase
+                .from('aspirasi')
+                .select('photo')
+                .eq('ticket_code', ticketCode)
+                .single();
+
+            if (error || !data) {
+                console.error('Error fetching photo:', error);
+                return '';
+            }
+
+            return data.photo || '';
+        } catch (err) {
+            console.error('Exception fetching photo:', err);
+            return '';
+        }
+    };
+
     // Lapak Management
     const submitLapak = async (item: Omit<LapakItem, "id" | "status">) => {
         const newItem = { ...item, id: Date.now(), status: "Pending" as const };
@@ -1009,7 +1033,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             isLoggedIn, theme,
             login, logout, toggleTheme,
             addNews, deleteNews, updateNews,
-            checkNikAvailability, addAspirasi, verifyAspirasi, replyAspirasi, getAspirasiByTicket, deleteAspirasi, submitRating,
+            checkNikAvailability, addAspirasi, verifyAspirasi, replyAspirasi, getAspirasiByTicket, deleteAspirasi, submitRating, fetchPhotoById,
             submitLapak, approveLapak, rejectLapak, deleteLapak,
             addGalleryItem,
             addProgram, deleteProgram, updateProgram,
