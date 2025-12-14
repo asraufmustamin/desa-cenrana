@@ -446,13 +446,11 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                 }
                 else setLapak(lapakItems.map(item => ({ ...item, status: "Active" as const })));
 
-                // ⚡ OPTIMIZED: Fetch Aspirasi dengan columns yang EXIST di database
-                // Removed: nik (not exist), date (not exist - use created_at instead)
-                // Photo excluded for performance
+                // ⚡ Fetch Aspirasi with LIMIT (nik & date columns don't exist in DB)
                 try {
                     const { data: aspirasiData, error: aspirasiError } = await supabase
                         .from('aspirasi')
-                        .select('ticket_code, name, dusun, category, message, status, created_at, reply, is_anonymous, priority, rating, feedback_text')
+                        .select('ticket_code, name, dusun, category, message, status, created_at, reply, is_anonymous, priority, rating, feedback_text, photo')
                         .order('created_at', { ascending: false })
                         .limit(100); // ⚡ LIMIT 100 for faster loading!
                     if (aspirasiData && !aspirasiError) {
@@ -466,7 +464,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                             date: item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
                             reply: item.reply,
                             is_anonymous: item.is_anonymous || false,
-                            image: "", // Photo excluded for performance
+                            image: item.photo || "", // Photo from database
                             priority: item.priority || "Medium",
                             rating: item.rating || undefined,
                             feedback_text: item.feedback_text || undefined
