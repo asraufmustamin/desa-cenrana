@@ -895,13 +895,20 @@ export default function LapakWarga() {
 
                             <button
                                 type="submit"
-                                disabled={isSubmitting}
-                                className={`w-full py-3 sm:py-4 text-white rounded-xl text-sm sm:text-base font-bold shadow-lg transition-all mt-4 sm:mt-6 flex items-center justify-center gap-2 ${isSubmitting
-                                    ? "bg-gray-400 cursor-not-allowed"
-                                    : "bg-emerald-600 hover:bg-emerald-500"
+                                disabled={isSubmitting || isOnCooldown}
+                                className={`w-full py-3 sm:py-4 text-white rounded-xl text-sm sm:text-base font-bold shadow-lg transition-all mt-4 sm:mt-6 flex items-center justify-center gap-2 ${isOnCooldown
+                                        ? "bg-yellow-500 cursor-not-allowed"
+                                        : isSubmitting
+                                            ? "bg-gray-400 cursor-not-allowed"
+                                            : "bg-emerald-600 hover:bg-emerald-500"
                                     }`}
                             >
-                                {isSubmitting ? (
+                                {isOnCooldown ? (
+                                    <>
+                                        <Clock className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
+                                        Tunggu {remainingTime}s
+                                    </>
+                                ) : isSubmitting ? (
                                     <>
                                         <Clock className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                                         Mengirim...
