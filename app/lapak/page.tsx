@@ -47,6 +47,16 @@ export default function LapakWarga() {
         description: "",
     });
 
+    // State untuk inline errors di setiap field
+    const [errors, setErrors] = useState({
+        title: "",
+        priceAmount: "",
+        customUnit: "",
+        seller: "",
+        phone: "",
+        description: ""
+    });
+
     // Common units + Custom option
     const priceUnits = [
         "/kg", "/liter", "/bungkus", "/pcs", "/buah",
@@ -127,69 +137,65 @@ export default function LapakWarga() {
         setCroppedAreaPixels(croppedAreaPixels);
     };
 
-    // Validation function for Lapak form
+    // Validation function untuk Lapak form dengan inline errors
     const validateLapakForm = (): boolean => {
-        // Product title required
+        const newErrors = { title: "", priceAmount: "", customUnit: "", seller: "", phone: "", description: "" };
+        let isValid = true;
+
+        // Validasi Nama Produk
         if (!form.title.trim()) {
-            alert('❌ Mohon isi nama produk');
-            return false;
+            newErrors.title = "Mohon isi nama produk";
+            isValid = false;
+        } else if (form.title.trim().length < 3) {
+            newErrors.title = "Nama produk minimal 3 karakter";
+            isValid = false;
         }
 
-        // Title minimum length
-        if (form.title.trim().length < 3) {
-            alert('❌ Nama produk minimal 3 karakter');
-            return false;
-        }
-
-        // Price required and must be valid number
+        // Validasi Harga
         if (!form.priceAmount || parseFloat(form.priceAmount) <= 0) {
-            alert('❌ Mohon isi harga yang valid (harus lebih dari 0)');
-            return false;
+            newErrors.priceAmount = "Mohon isi harga yang valid (harus lebih dari 0)";
+            isValid = false;
         }
 
-        // Custom unit validation
+        // Validasi Custom Unit
         if (form.priceUnit === 'Custom' && !customUnit.trim()) {
-            alert('❌ Mohon isi satuan harga custom');
-            return false;
+            newErrors.customUnit = "Mohon isi satuan harga custom";
+            isValid = false;
         }
 
-        // Seller name required
+        // Validasi Nama Penjual
         if (!form.seller.trim()) {
-            alert('❌ Mohon isi nama penjual');
-            return false;
+            newErrors.seller = "Mohon isi nama penjual";
+            isValid = false;
+        } else if (form.seller.trim().length < 3) {
+            newErrors.seller = "Nama penjual minimal 3 karakter";
+            isValid = false;
         }
 
-        // Seller name minimum length
-        if (form.seller.trim().length < 3) {
-            alert('❌ Nama penjual minimal 3 karakter');
-            return false;
-        }
-
-        // WhatsApp number required and minimum length
+        // Validasi WhatsApp
         if (!form.phone.trim()) {
-            alert('❌ Mohon isi nomor WhatsApp');
-            return false;
+            newErrors.phone = "Mohon isi nomor WhatsApp";
+            isValid = false;
+        } else {
+            const cleanedPhone = form.phone.replace(/\D/g, '');
+            if (cleanedPhone.length < 10) {
+                newErrors.phone = "Nomor WhatsApp minimal 10 digit";
+                isValid = false;
+            }
         }
 
-        const cleanedPhone = form.phone.replace(/\D/g, '');
-        if (cleanedPhone.length < 10) {
-            alert('❌ Nomor WhatsApp minimal 10 digit');
-            return false;
-        }
-
-        // Description required
+        // Validasi Deskripsi
         if (!form.description.trim()) {
-            alert('❌ Mohon isi deskripsi produk');
-            return false;
+            newErrors.description = "Mohon isi deskripsi produk";
+            isValid = false;
+        } else if (form.description.trim().length < 10) {
+            newErrors.description = "Deskripsi produk minimal 10 karakter";
+            isValid = false;
         }
 
-        // Description minimum length
-        if (form.description.trim().length < 10) {
-            alert('❌ Deskripsi produk minimal 10 karakter');
-            return false;
-        }
-
-        return true;
+        // Set semua errors sekaligus
+        setErrors(newErrors);
+        return isValid;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
