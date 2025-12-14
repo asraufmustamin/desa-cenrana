@@ -3,7 +3,7 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
-import { Phone, Tag, Search, ShoppingBag, Plus, X, Trophy, ChevronLeft, ChevronRight, Upload, AlertCircle } from "lucide-react";
+import { Phone, Tag, Search, ShoppingBag, Plus, X, Trophy, ChevronLeft, ChevronRight, Upload, AlertCircle, CheckCircle, Clock } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 import Cropper from 'react-easy-crop';
 import type { Area, Point } from 'react-easy-crop';
@@ -56,6 +56,14 @@ export default function LapakWarga() {
         phone: "",
         description: ""
     });
+
+    // State untuk loading saat submit
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // State untuk success feedback
+    const [showSuccessCard, setShowSuccessCard] = useState(false);
+    const [successProductId, setSuccessProductId] = useState("");
+    const [copied, setCopied] = useState(false);
 
     // Common units + Custom option
     const priceUnits = [
@@ -206,38 +214,59 @@ export default function LapakWarga() {
             return;
         }
 
-        // Format phone number: 08xxx -> 62xxx
-        const formatPhone = (phone: string): string => {
-            let cleaned = phone.replace(/\D/g, '');
-            if (cleaned.startsWith('08')) {
-                cleaned = '62' + cleaned.substring(1);
-            } else if (cleaned.startsWith('8') && cleaned.length >= 10) {
-                cleaned = '62' + cleaned;
-            } else if (cleaned.startsWith('0')) {
-                cleaned = '62' + cleaned.substring(1);
-            }
-            return cleaned;
-        };
+        // Set loading state
+        setIsSubmitting(true);
 
-        // Format price with thousand separator
-        const formatPriceDisplay = (value: string): string => {
-            if (!value) return '0';
-            return value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        };
+        try {
+            // Format phone number: 08xxx -> 62xxx
+            const formatPhone = (phone: string): string => {
+                let cleaned = phone.replace(/\D/g, '');
+                if (cleaned.startsWith('08')) {
+                    cleaned = '62' + cleaned.substring(1);
+                } else if (cleaned.startsWith('8') && cleaned.length >= 10) {
+                    cleaned = '62' + cleaned;
+                } else if (cleaned.startsWith('0')) {
+                    cleaned = '62' + cleaned.substring(1);
+                }
+                return cleaned;
+            };
 
-        const formattedPhone = formatPhone(form.phone);
-        // Use custom unit if selected, otherwise use dropdown value
-        const finalUnit = form.priceUnit === 'Custom' ? customUnit : form.priceUnit;
-        const finalPrice = `Rp ${formatPriceDisplay(form.priceAmount)}${finalUnit}`;
-        const productData = { ...form, price: finalPrice, phone: formattedPhone, image: imagePreview || form.image };
+            // Format price with thousand separator
+            const formatPriceDisplay = (value: string): string => {
+                if (!value) return '0';
+                return value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            };
 
-        await submitLapak(productData);
-        alert('✅ Produk berhasil disubmit! Menunggu persetujuan admin.');
-        setShowModal(false);
-        setForm({ title: "", category: "Hasil Tani", priceAmount: "", priceUnit: "/bungkus", seller: "", phone: "", image: "", description: "" });
-        setImagePreview(null);
-        setCustomUnit(''); // Reset custom unit
-        alert("Produk berhasil diajukan! Menunggu persetujuan Admin.");
+            const formattedPhone = formatPhone(form.phone);
+            // Use custom unit if selected, otherwise use dropdown value
+            const finalUnit = form.priceUnit === 'Custom' ? customUnit : form.priceUnit;
+            const finalPrice = `Rp ${formatPriceDisplay(form.priceAmount)}${finalUnit}`;
+            const productData = { ...form, price: finalPrice, phone: formattedPhone, image: imagePreview || form.image };
+
+            await submitLapak(productData);
+
+            // Tampilkan success card
+            setSuccessProductId(form.title); // Gunakan title sebagai ID sementara
+            setShowSuccessCard(true);
+
+            // Reset form
+            setForm({ title: "", category: "Hasil Tani", priceAmount: "", priceUnit: "/bungkus", seller: "", phone: "", image: "", description: "" });
+            setImagePreview(null);
+            setCustomUnit('');
+            setErrors({ title: "", priceAmount: "", customUnit: "", seller: "", phone: "", description: "" });
+
+            // Auto close modal dan hide success card setelah 3 detik
+            setTimeout(() => {
+                setShowSuccessCard(false);
+                setShowModal(false);
+            }, 3000);
+
+        } catch (error) {
+            console.error("Error submitting product:", error);
+        } finally {
+            // Selalu set loading ke false
+            setIsSubmitting(false);
+        }
     };
 
     // Image Upload Handlers
@@ -782,11 +811,48 @@ export default function LapakWarga() {
                                 )}
                             </div>
 
+                            {/* Success Card - Compact */}
+                            {showSuccessCard && (
+                                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-500 dark:border-green-600 rounded-xl p-4">
+                                    <div className="flex items-start gap-3">
+                                        {/* Icon Success */}
+                                        <div className="flex-shrink-0 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                                            <CheckCircle className="w-7 h-7 text-white" />
+                                        </div>
+
+                                        {/* Content */}
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-base font-bold text-green-800 dark:text-green-300 mb-1">
+                                                Produk Berhasil Diajukan!
+                                            </h3>
+                                            <p className="text-xs text-green-700 dark:text-green-400 mb-2">
+                                                "{successProductId}" menunggu persetujuan admin
+                                            </p>
+                                            <p className="text-xs text-green-600 dark:text-green-500">
+                                                💡 Modal akan otomatis tertutup dalam 3 detik
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+
                             <button
                                 type="submit"
-                                className="w-full py-3 sm:py-4 bg-emerald-600 text-white rounded-xl text-sm sm:text-base font-bold shadow-lg hover:bg-emerald-500 transition-all mt-4 sm:mt-6"
+                                disabled={isSubmitting}
+                                className={`w-full py-3 sm:py-4 text-white rounded-xl text-sm sm:text-base font-bold shadow-lg transition-all mt-4 sm:mt-6 flex items-center justify-center gap-2 ${isSubmitting
+                                    ? "bg-gray-400 cursor-not-allowed"
+                                    : "bg-emerald-600 hover:bg-emerald-500"
+                                    }`}
                             >
-                                Ajukan Produk
+                                {isSubmitting ? (
+                                    <>
+                                        <Clock className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                                        Mengirim...
+                                    </>
+                                ) : (
+                                    "Ajukan Produk"
+                                )}
                             </button>
                         </form>
                     </div>
