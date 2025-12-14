@@ -446,22 +446,23 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                 }
                 else setLapak(lapakItems.map(item => ({ ...item, status: "Active" as const })));
 
-                // ⚡ Fetch Aspirasi with LIMIT (nik & date columns don't exist in DB)
+                // ⚡ Fetch Aspirasi with ALL columns (including nik, date, photo)
                 try {
                     const { data: aspirasiData, error: aspirasiError } = await supabase
                         .from('aspirasi')
-                        .select('ticket_code, name, dusun, category, message, status, created_at, reply, is_anonymous, priority, rating, feedback_text, photo')
+                        .select('ticket_code, name, nik, dusun, category, message, status, date, created_at, reply, is_anonymous, priority, rating, feedback_text, photo')
                         .order('created_at', { ascending: false })
                         .limit(100); // ⚡ LIMIT 100 for faster loading!
                     if (aspirasiData && !aspirasiError) {
                         const mappedAspirasi = aspirasiData.map((item: any) => ({
                             id: item.ticket_code,
                             nama: item.name,
+                            nik: item.nik || "", // NIK from database
                             dusun: item.dusun,
                             kategori: item.category,
                             laporan: item.message,
                             status: item.status,
-                            date: item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+                            date: item.date || (item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : ''),
                             reply: item.reply,
                             is_anonymous: item.is_anonymous || false,
                             image: item.photo || "", // Photo from database
