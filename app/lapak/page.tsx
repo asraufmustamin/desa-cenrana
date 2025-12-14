@@ -7,6 +7,7 @@ import { Phone, Tag, Search, ShoppingBag, Plus, X, Trophy, ChevronLeft, ChevronR
 import { useAppContext } from "@/context/AppContext";
 import Cropper from 'react-easy-crop';
 import type { Area, Point } from 'react-easy-crop';
+import { canSubmit, recordSubmit, getRemainingTime } from "@/lib/rateLimit";
 
 export default function LapakWarga() {
     const { lapak, submitLapak, isLoading } = useAppContext();
@@ -65,12 +66,32 @@ export default function LapakWarga() {
     const [successProductId, setSuccessProductId] = useState("");
     const [copied, setCopied] = useState(false);
 
+    // State untuk rate limiting (anti-spam)
+    const [isOnCooldown, setIsOnCooldown] = useState(false);
+    const [remainingTime, setRemainingTime] = useState(0);
+
     // Common units + Custom option
     const priceUnits = [
         "/kg", "/liter", "/bungkus", "/pcs", "/buah",
         "/ikat", "/ekor", "/porsi", "/meter", "/jam",
         "Custom" // This will show custom input
     ];
+
+    // Countdown timer untuk cooldown
+    useEffect(() => {
+        if (isOnCooldown && remainingTime > 0) {
+            const timer = setInterval(() => {
+                const remaining = getRemainingTime('lapak');
+                if (remaining <= 0) {
+                    setIsOnCooldown(false);
+                    setRemainingTime(0);
+                } else {
+                    setRemainingTime(remaining);
+                }
+            }, 1000); // Update every second
+            return () => clearInterval(timer);
+        }
+    }, [isOnCooldown, remainingTime]);
 
     const categories = ["Semua", "Hasil Tani", "Produk UMKM", "Jasa Warga"];
 
@@ -209,6 +230,15 @@ export default function LapakWarga() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // ✅ CHECK: Rate limiting (anti-spam)
+        if (!canSubmit('lapak')) {
+            const remaining = getRemainingTime('lapak');
+            setIsOnCooldown(true);
+            setRemainingTime(remaining);
+            // Tampilkan error via success card state atau bisa bikin error state tersendiri
+            return;
+        }
+
         // ✅ Validate form before submission
         if (!validateLapakForm()) {
             return;
@@ -244,6 +274,9 @@ export default function LapakWarga() {
             const productData = { ...form, price: finalPrice, phone: formattedPhone, image: imagePreview || form.image };
 
             await submitLapak(productData);
+
+            // ✅ RECORD: Submit timestamp untuk rate limiting
+            recordSubmit('lapak');
 
             // Tampilkan success card
             setSuccessProductId(form.title); // Gunakan title sebagai ID sementara
