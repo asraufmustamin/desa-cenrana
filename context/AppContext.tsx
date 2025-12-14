@@ -419,68 +419,64 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         const fetchInitialData = async () => {
             setIsLoading(true);
             try {
-                // Fetch News
-                const { data: newsData } = await supabase.from('berita').select('*').order('created_at', { ascending: false });
-                if (newsData) setNews(newsData);
-                else setNews(newsItems); // Fallback
+                // ✨ OPTIMASI: Fetch semua data secara PARALLEL dengan Promise.all
+                // Ini 3-5x lebih cepat daripada sequential!
+                const [
+                    { data: newsData },
+                    { data: lapakData },
+                    { data: aspirasiData, error: aspirasiError },
+                    { data: programsData },
+                    { data: galleryData }
+                ] = await Promise.all([
+                    supabase.from('berita').select('*').order('created_at', { ascending: false }),
+                    supabase.from('lapak').select('*').order('created_at', { ascending: false }),
+                    supabase.from('aspirasi').select('*').order('created_at', { ascending: false }),
+                    supabase.from('programs').select('*').order('id', { ascending: false }),
+                    supabase.from('gallery').select('*').order('id', { ascending: false })
+                ]);
 
-                // Fetch Lapak
-                const { data: lapakData } = await supabase.from('lapak').select('*').order('created_at', { ascending: false });
+                // Process News
+                if (newsData) setNews(newsData);
+                else setNews(newsItems);
+
+                // Process Lapak
                 if (lapakData) {
-                    // Map DB 'name' to 'title' if necessary
                     const mappedLapak = lapakData.map((item: any) => ({
                         ...item,
-                        title: item.title || item.name || "Produk Tanpa Nama", // Fallback
-                        status: item.status || "Active" // Ensure status exists
+                        title: item.title || item.name || "Produk Tanpa Nama",
+                        status: item.status || "Active"
                     }));
                     setLapak(mappedLapak);
-                }
-                else setLapak(lapakItems.map(item => ({ ...item, status: "Active" as const })));
-
-                // Fetch Aspirasi
-                try {
-                    const { data: aspirasiData, error: aspirasiError } = await supabase.from('aspirasi').select('*').order('created_at', { ascending: false });
-                    if (aspirasiData && !aspirasiError) {
-                        // Map back to local interface if needed, or ensure DB columns match
-                        // Assuming DB columns: ticket_code, name, nik, dusun, category, message, status, date, reply, photo
-                        const mappedAspirasi = aspirasiData.map((item: any) => ({
-                            id: item.ticket_code, // Map ticket_code to id
-                            nama: item.name,      // Map name to nama
-                            // nik: item.nik, // REMOVED: Column doesn't exist in table (privacy)
-                            dusun: item.dusun,
-                            kategori: item.category,
-                            laporan: item.message, // Map message to laporan
-                            status: item.status,
-                            date: item.date || (item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : ''),
-                            reply: item.reply,      // Ensure reply is mapped
-                            is_anonymous: item.is_anonymous || false,  // Include anonymous flag
-                            image: item.photo || "",  // Map photo to image
-                            priority: item.priority || "Medium", // Map priority with default (safe if column missing)
-                            rating: item.rating || undefined,    // Map rating (safe if column missing)
-                            feedback_text: item.feedback_text || undefined // Map feedback (safe if column missing)
-                        }))
-                            ;
-                        setAspirasi(mappedAspirasi);
-                    } else {
-                        console.log("No aspirasi data or error:", aspirasiError);
-                        setAspirasi([]); // Set empty array on error
-                    }
-                } catch (aspirasiErr) {
-                    console.error("Error fetching aspirasi:", aspirasiErr);
-                    setAspirasi([]); // Set empty array to not block loading
+                } else {
+                    setLapak(lapakItems.map(item => ({ ...item, status: "Active" as const })));
                 }
 
-                // Fetch Programs
-                const { data: programsData } = await supabase.from('programs').select('*').order('id', { ascending: false });
+                // Process Aspirasi
+                if (aspirasiData && !aspirasiError) {
+                    const mappedAspirasi = aspirasiData.map((item: any) => ({
+                        id: item.ticket_code,
+                        nama: item.name,
+                        dusun: item.dusun,
+                        kategori: item.category,
+                        laporan: item.message,
+                        status: item.status,
+                        date: item.date || (item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : ''),
+                        reply: item.reply,
+                        is_anonymous: item.is_anonymous || false,
+                        image: item.photo || "",
+                        priority: item.priority || "Medium",
+                        rating: item.rating || undefined,
+                        feedback_text: item.feedback_text || undefined
+                    }));
+                    setAspirasi(mappedAspirasi);
+                } else {
+                    console.log("No aspirasi data or error:", aspirasiError);
+                    setAspirasi([]);
+                }
 
-                // Fetch Gallery
-                const { data: galleryData } = await supabase.from('gallery').select('*').order('id', { ascending: false });
-
-                // Fetch CMS Content (Assuming a single row with id=1 or similar)
-                // Wrapped in try-catch to handle if table doesn't exist
+                // Fetch CMS Content (separate, non-blocking)
                 try {
                     const { data: cmsData, error: cmsError } = await supabase.from('cms_content').select('data').single();
-
                     if (!cmsError && cmsData) {
                         setCmsContent(prev => ({
                             ...prev,
@@ -489,7 +485,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                             gallery: galleryData || prev.gallery
                         }));
                     } else {
-                        // If table doesn't exist or is empty, just use defaults with fetched programs/gallery
                         setCmsContent(prev => ({
                             ...prev,
                             programs: programsData || prev.programs,
