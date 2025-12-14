@@ -446,35 +446,32 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                 }
                 else setLapak(lapakItems.map(item => ({ ...item, status: "Active" as const })));
 
-                // ⚡ OPTIMIZED: Fetch Aspirasi WITHOUT photo + LIMIT for performance
-                // Photo column excluded + Limited to 100 most recent records
-                // This makes query 5-10x faster on Supabase Free tier!
+                // ⚡ OPTIMIZED: Fetch Aspirasi dengan columns yang EXIST di database
+                // Removed: nik (not exist), date (not exist - use created_at instead)
+                // Photo excluded for performance
                 try {
                     const { data: aspirasiData, error: aspirasiError } = await supabase
                         .from('aspirasi')
-                        .select('ticket_code, name, nik, dusun, category, message, status, date, created_at, reply, is_anonymous, priority, rating, feedback_text')
+                        .select('ticket_code, name, dusun, category, message, status, created_at, reply, is_anonymous, priority, rating, feedback_text')
                         .order('created_at', { ascending: false })
                         .limit(100); // ⚡ LIMIT 100 for faster loading!
                     if (aspirasiData && !aspirasiError) {
-                        // Map back to local interface if needed, or ensure DB columns match
-                        // Assuming DB columns: ticket_code, name, nik, dusun, category, message, status, date, reply, photo
                         const mappedAspirasi = aspirasiData.map((item: any) => ({
-                            id: item.ticket_code, // Map ticket_code to id
-                            nama: item.name,      // Map name to nama
-                            // nik: item.nik, // REMOVED: Column doesn't exist in table (privacy)
+                            id: item.ticket_code,
+                            nama: item.name,
                             dusun: item.dusun,
                             kategori: item.category,
-                            laporan: item.message, // Map message to laporan
+                            laporan: item.message,
                             status: item.status,
-                            date: item.date || (item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : ''),
-                            reply: item.reply,      // Ensure reply is mapped
-                            is_anonymous: item.is_anonymous || false,  // Include anonymous flag
-                            image: item.photo || "",  // Map photo to image
-                            priority: item.priority || "Medium", // Map priority with default (safe if column missing)
-                            rating: item.rating || undefined,    // Map rating (safe if column missing)
-                            feedback_text: item.feedback_text || undefined // Map feedback (safe if column missing)
-                        }))
-                            ;
+                            date: item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+                            reply: item.reply,
+                            is_anonymous: item.is_anonymous || false,
+                            image: "", // Photo excluded for performance
+                            priority: item.priority || "Medium",
+                            rating: item.rating || undefined,
+                            feedback_text: item.feedback_text || undefined
+                        }));
+                        ;
                         setAspirasi(mappedAspirasi);
                     } else {
                         console.log("No aspirasi data or error:", aspirasiError);
