@@ -82,7 +82,7 @@ export default function HukumPage() {
                             <div className="flex-shrink-0 w-full md:w-auto mt-4 md:mt-0">
                                 <a
                                     href={item.downloadUrl}
-                                    className="flex items-center justify-center px-4 py-2 rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-[var(--text-primary)] font-semibold text-sm transition-colors"
+                                    className="flex items-center justify-center px-4 py-2 rounded-lg border border-slate-300 dark:border-gray-600 bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-semibold text-sm transition-colors"
                                 >
                                     <Download className="w-4 h-4 mr-2" />
                                     Download PDF

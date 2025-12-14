@@ -76,14 +76,14 @@ export default function ProgramPage() {
 
                             {/* Content */}
                             <div className="space-y-3">
-                                <h3 className="text-xl font-bold text-[var(--text-primary)] leading-tight">
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
                                     <Editable
                                         value={program.title}
                                         onSave={(val) => updateProgram(program.id, { title: val })}
                                         className="hover:text-blue-500 transition-colors"
                                     />
                                 </h3>
-                                <div className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed min-h-[60px]">
+                                <div className="text-sm font-medium text-gray-700 dark:text-gray-200 leading-relaxed min-h-[60px]">
                                     <Editable
                                         type="textarea"
                                         value={program.description}

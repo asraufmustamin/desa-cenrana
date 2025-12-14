@@ -41,7 +41,7 @@ export default function InfografisPage() {
                             <div className="p-3 bg-blue-500/20 rounded-xl text-blue-500">
                                 <Users className="w-6 h-6" />
                             </div>
-                            <h2 className="text-xl font-bold text-[var(--text-primary)]">Jenis Kelamin</h2>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Jenis Kelamin</h2>
                         </div>
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
@@ -83,7 +83,7 @@ export default function InfografisPage() {
                             <div className="p-3 bg-emerald-500/20 rounded-xl text-emerald-500">
                                 <GraduationCap className="w-6 h-6" />
                             </div>
-                            <h2 className="text-xl font-bold text-[var(--text-primary)]">Tingkat Pendidikan</h2>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Tingkat Pendidikan</h2>
                         </div>
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
@@ -119,7 +119,7 @@ export default function InfografisPage() {
                             <div className="p-3 bg-purple-500/20 rounded-xl text-purple-500">
                                 <Briefcase className="w-6 h-6" />
                             </div>
-                            <h2 className="text-xl font-bold text-[var(--text-primary)]">Mata Pencaharian</h2>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Mata Pencaharian</h2>
                         </div>
                         <div className="h-[400px] w-full">
                             <ResponsiveContainer width="100%" height="100%">

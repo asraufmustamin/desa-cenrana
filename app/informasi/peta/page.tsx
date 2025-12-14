@@ -47,7 +47,7 @@ export default function PetaPage() {
                                     <MapPin className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-bold text-[var(--text-primary)]">Wilayah Desa</h2>
+                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Wilayah Desa</h2>
                                     <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Data Geografis</p>
                                 </div>
                             </div>
@@ -59,7 +59,7 @@ export default function PetaPage() {
                                     </span>
                                 </div>
                                 <div className="flex items-baseline">
-                                    <span className="text-4xl font-black text-[var(--text-primary)] mr-2 tracking-tight">
+                                    <span className="text-4xl font-black text-gray-900 dark:text-white mr-2 tracking-tight">
                                         <Editable section="peta" field="luasWilayah" />
                                     </span>
                                     <span className="text-lg font-bold text-gray-700 dark:text-gray-300">km²</span>
@@ -74,7 +74,7 @@ export default function PetaPage() {
                                 <div className="space-y-3">
                                     <div>
                                         <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-0.5 uppercase tracking-wider">Alamat Kantor</p>
-                                        <p className="text-sm font-semibold text-[var(--text-primary)] leading-tight">
+                                        <p className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">
                                             <Editable section="peta" field="alamatKantor" />
                                         </p>
                                     </div>
@@ -87,7 +87,7 @@ export default function PetaPage() {
                                         </div>
                                         <div>
                                             <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-0.5 uppercase tracking-wider">Jarak Kab.</p>
-                                            <p className="text-sm font-semibold text-[var(--text-primary)]">
+                                            <p className="text-sm font-semibold text-gray-900 dark:text-white">
                                                 <Editable section="peta" field="jarakKabupaten" />
                                             </p>
                                         </div>
@@ -111,7 +111,7 @@ export default function PetaPage() {
                                 ].map((item) => (
                                     <div key={item.label} className="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 hover:border-blue-500/30 transition-colors group">
                                         <span className={`text-[10px] font-bold ${item.color} w-16`}>{item.label}</span>
-                                        <span className="text-sm font-semibold text-[var(--text-primary)] text-right flex-1 group-hover:text-blue-500 transition-colors">
+                                        <span className="text-sm font-semibold text-gray-900 dark:text-white text-right flex-1 group-hover:text-blue-500 transition-colors">
                                             <Editable section="peta" field={item.field} />
                                         </span>
                                     </div>

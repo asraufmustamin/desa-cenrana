@@ -72,14 +72,14 @@ export default function AgendaPage() {
 
                                 {/* Content */}
                                 <div className="p-6 space-y-4">
-                                    <h3 className="text-xl font-bold text-[var(--text-primary)] leading-tight min-h-[56px]">
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-tight min-h-[56px]">
                                         <Editable
                                             value={item.title}
                                             onSave={(val) => updateAgenda(item.id, { title: val })}
                                         />
                                     </h3>
 
-                                    <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                                    <div className="space-y-2 text-sm font-medium text-gray-700 dark:text-gray-200">
                                         <div className="flex items-center">
                                             <Clock className="w-4 h-4 mr-2 text-blue-500" />
                                             <Editable
@@ -97,7 +97,7 @@ export default function AgendaPage() {
                                     </div>
 
                                     <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                                        <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
+                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-200 line-clamp-3">
                                             <Editable
                                                 type="textarea"
                                                 value={item.description}
