@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { Send, Search, AlertCircle, CheckCircle, Clock, MessageSquare, History, Upload, X, Image as ImageIcon, Trash2, Shield } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 import Image from "next/image";
+import { canSubmit, recordSubmit, getRemainingTime } from "@/lib/rateLimit";
 
 export default function Aspirasi() {
     const { addAspirasi, getAspirasiByTicket, aspirasi, deleteAspirasi, isEditMode, checkNikAvailability } = useAppContext();
@@ -44,6 +45,10 @@ export default function Aspirasi() {
     const [successTicketId, setSuccessTicketId] = useState("");
     const [copied, setCopied] = useState(false);
 
+    // State untuk rate limiting (anti-spam)
+    const [isOnCooldown, setIsOnCooldown] = useState(false);
+    const [remainingTime, setRemainingTime] = useState(0);
+
     // Load history from local storage on mount
     useEffect(() => {
         const history = localStorage.getItem("my_aspirasi_history");
@@ -51,6 +56,22 @@ export default function Aspirasi() {
             setMyHistory(JSON.parse(history));
         }
     }, []);
+
+    // Countdown timer untuk cooldown
+    useEffect(() => {
+        if (isOnCooldown && remainingTime > 0) {
+            const timer = setInterval(() => {
+                const remaining = getRemainingTime('aspirasi');
+                if (remaining <= 0) {
+                    setIsOnCooldown(false);
+                    setRemainingTime(0);
+                } else {
+                    setRemainingTime(remaining);
+                }
+            }, 1000); // Update every second
+            return () => clearInterval(timer);
+        }
+    }, [isOnCooldown, remainingTime]);
 
     const handleNikChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -128,6 +149,15 @@ export default function Aspirasi() {
         e.preventDefault();
         setSubmitError("");
 
+        // ✅ CHECK: Rate limiting (anti-spam)
+        if (!canSubmit('aspirasi')) {
+            const remaining = getRemainingTime('aspirasi');
+            setIsOnCooldown(true);
+            setRemainingTime(remaining);
+            setSubmitError(`⏱️ Mohon tunggu ${remaining} detik sebelum mengirim lagi untuk mencegah spam.`);
+            return;
+        }
+
         // ✅ Validate form before submission
         if (!validateForm()) {
             return;
@@ -179,6 +209,9 @@ export default function Aspirasi() {
 
             // All validations passed - proceed with submission
             const newTicketId = await addAspirasi(form);
+
+            // ✅ RECORD: Submit timestamp untuk rate limiting
+            recordSubmit('aspirasi');
 
             // Update local history
             const updatedHistory = [newTicketId, ...myHistory];
@@ -278,6 +311,29 @@ export default function Aspirasi() {
                                         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-start">
                                             <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 mr-3 flex-shrink-0" />
                                             <p className="text-sm text-red-800 dark:text-red-200 leading-relaxed font-medium">{submitError}</p>
+                                        </div>
+                                    )}
+
+                                    {/* Cooldown Banner - Anti Spam */}
+                                    {isOnCooldown && remainingTime > 0 && (
+                                        <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 dark:border-yellow-600 rounded-xl p-4 mb-4 animate-pulse-slow">
+                                            <div className="flex items-start gap-3">
+                                                <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 animate-spin" />
+                                                <div className="flex-1">
+                                                    <h3 className="font-bold text-yellow-800 dark:text-yellow-300 mb-1 text-sm">
+                                                        ⏱️ Mohon Tunggu
+                                                    </h3>
+                                                    <p className="text-xs text-yellow-700 dark:text-yellow-400 mb-2">
+                                                        Anda bisa mengirim laporan lagi dalam <strong>{remainingTime} detik</strong>
+                                                    </p>
+                                                    <div className="bg-yellow-200 dark:bg-yellow-800 rounded-full h-2 overflow-hidden">
+                                                        <div
+                                                            className="bg-yellow-600 dark:bg-yellow-500 h-full transition-all duration-1000"
+                                                            style={{ width: `${(remainingTime / 60) * 100}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
 
@@ -509,13 +565,20 @@ export default function Aspirasi() {
 
                                     <button
                                         type="submit"
-                                        disabled={!!nikError || isSubmitting}
-                                        className={`w-full py-4 rounded-xl font-bold shadow-lg transition-all flex items-center justify-center ${nikError || isSubmitting
-                                            ? "bg-gray-500 cursor-not-allowed opacity-50 text-white"
-                                            : "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-[1.02]"
+                                        disabled={!!nikError || isSubmitting || isOnCooldown}
+                                        className={`w-full py-4 rounded-xl font-bold shadow-lg transition-all flex items-center justify-center ${isOnCooldown
+                                                ? "bg-yellow-500 cursor-not-allowed opacity-75 text-white"
+                                                : nikError || isSubmitting
+                                                    ? "bg-gray-500 cursor-not-allowed opacity-50 text-white"
+                                                    : "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-[1.02]"
                                             }`}
                                     >
-                                        {isSubmitting ? (
+                                        {isOnCooldown ? (
+                                            <>
+                                                <Clock className="w-5 h-5 mr-2 animate-pulse" />
+                                                Tunggu {remainingTime}s
+                                            </>
+                                        ) : isSubmitting ? (
                                             <>
                                                 <Clock className="w-5 h-5 mr-2 animate-spin" />
                                                 Mengirim...
