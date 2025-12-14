@@ -933,14 +933,17 @@ export default function AdminDashboard() {
 
                                                 <p className="text-[var(--text-primary)] mb-4 leading-relaxed">{item.laporan}</p>
 
-                                                {/* 🔥 Photo Button - Lazy Load */}
-                                                <button
-                                                    onClick={() => handleViewPhoto(item.id)}
-                                                    className="mb-4 px-4 py-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg font-bold text-sm transition-colors flex items-center gap-2"
-                                                >
-                                                    <Eye className="w-4 h-4" />
-                                                    Lihat Detail & Foto
-                                                </button>
+
+                                                {/* 🔥 Photo Button - Conditional (only if has photo) */}
+                                                {item.hasPhoto && (
+                                                    <button
+                                                        onClick={() => handleViewPhoto(item.id)}
+                                                        className="mb-4 px-4 py-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg font-bold text-sm transition-colors flex items-center gap-2"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                        📷 Lihat Foto
+                                                    </button>
+                                                )}
 
 
                                                 {/* Action Buttons */}

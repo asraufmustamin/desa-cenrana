@@ -44,10 +44,11 @@ export interface AspirasiItem {
     date: string;
     reply?: string;
     is_anonymous?: boolean;
-    image?: string;
+    image: string;
     priority?: "Low" | "Medium" | "High" | "Emergency";
     rating?: number; // 1-5 stars
     feedback_text?: string;
+    hasPhoto?: boolean; // ✅ Flag untuk conditional button
 }
 
 export interface Official {
@@ -449,14 +450,25 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
                 // ⚡ OPTIMIZED: Fetch aspirasi WITHOUT photo untuk fast initial load
                 // Photo akan di-load on-demand saat admin buka detail (lazy load)
+                // Tapi kita fetch metadata (has_photo) untuk conditional button
                 // Ini mencegah timeout dan membuat list loading < 2 detik
                 try {
                     const { data: aspirasiData, error: aspirasiError } = await supabase
                         .from('aspirasi')
-                        .select('ticket_code, name, nik, dusun, category, message, status, date, created_at, reply, is_anonymous, priority, rating, feedback_text')
+                        .select('ticket_code, name, nik, dusun, category, message, status,date, created_at, reply, is_anonymous, priority, rating, feedback_text')
                         .order('created_at', { ascending: false })
-                        .limit(50); // Reduce to 50 for better performance // ⚡ LIMIT 100 for faster loading!
+                        .limit(50);
                     if (aspirasiData && !aspirasiError) {
+                        // Fetch photo metadata separately (just check if exists)
+                        const ticketCodes = aspirasiData.map((item: any) => item.ticket_code);
+                        const { data: photoMeta } = await supabase
+                            .from('aspirasi')
+                            .select('ticket_code')
+                            .in('ticket_code', ticketCodes)
+                            .not('photo', 'is', null);
+
+                        const hasPhotoSet = new Set(photoMeta?.map(p => p.ticket_code) || []);
+
                         const mappedAspirasi = aspirasiData.map((item: any) => ({
                             id: item.ticket_code,
                             nama: item.name,
@@ -468,7 +480,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                             date: item.date || (item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : ''),
                             reply: item.reply,
                             is_anonymous: item.is_anonymous || false,
-                            image: item.photo || "", // ✅ Photo from database
+                            image: "", // Don't load photo in list  
+                            hasPhoto: hasPhotoSet.has(item.ticket_code), // ✅ Flag dari metadata query
                             priority: item.priority || "Medium",
                             rating: item.rating || undefined,
                             feedback_text: item.feedback_text || undefined
