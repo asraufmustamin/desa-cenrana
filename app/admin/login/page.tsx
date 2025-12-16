@@ -37,14 +37,14 @@ export default function AdminLogin() {
 
             {/* Compact Glass Card with Gradient Glow */}
             <div className="w-full max-w-[360px] relative z-10">
-                <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-violet-500 to-purple-500 rounded-3xl opacity-40 blur-lg animate-pulse"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-emerald-500 to-green-500 rounded-3xl opacity-40 blur-lg animate-pulse"></div>
                 <div className="relative bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl p-8">
 
                     {/* Header */}
                     <div className="text-center mb-6">
                         {/* Logo Maros */}
                         <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center relative">
-                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-violet-500 rounded-2xl opacity-20"></div>
+                            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500 to-emerald-500 rounded-2xl opacity-20"></div>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                                 src="/logo-maros.png"
@@ -90,7 +90,7 @@ export default function AdminLogin() {
 
                         <button
                             type="submit"
-                            className="w-full py-3.5 bg-gradient-to-r from-blue-500 via-violet-500 to-purple-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-2"
+                            className="w-full py-3.5 bg-gradient-to-r from-cyan-500 via-emerald-500 to-green-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-2"
                         >
                             Masuk Portal <ArrowRight className="w-4 h-4" />
                         </button>

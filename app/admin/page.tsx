@@ -166,17 +166,17 @@ export default function AdminDashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-violet-500 to-purple-500 rounded-2xl opacity-30 blur-sm"></div>
-                    <div className="relative bg-gradient-to-r from-slate-900/95 to-violet-900/95 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/10">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-emerald-500 to-green-500 rounded-2xl opacity-30 blur-sm"></div>
+                    <div className="relative bg-gradient-to-r from-slate-900/95 to-emerald-900/95 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/10">
                         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                             <div className="text-center md:text-left">
                                 <div className="inline-block px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white/80 text-xs font-bold mb-3">
                                     Administrator Panel
                                 </div>
                                 <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                                    Selamat Datang, <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Admin</span>
+                                    Selamat Datang, <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">Admin</span>
                                 </h1>
-                                <p className="text-blue-200/80 text-sm max-w-md">
+                                <p className="text-emerald-200/80 text-sm max-w-md">
                                     Kelola konten website, aspirasi warga, dan lapak UMKM dari satu tempat.
                                 </p>
                             </div>
@@ -215,7 +215,7 @@ export default function AdminDashboard() {
                         transition={{ delay: 0.2 }}
                     >
                         <div className="relative rounded-xl overflow-hidden sticky top-28">
-                            <div className="absolute -inset-0.5 bg-gradient-to-b from-blue-500/30 to-violet-500/30 rounded-xl blur-sm opacity-50"></div>
+                            <div className="absolute -inset-0.5 bg-gradient-to-b from-cyan-500/30 to-emerald-500/30 rounded-xl blur-sm opacity-50"></div>
                             <div className="relative p-3 rounded-xl bg-[var(--bg-card)]/90 backdrop-blur-xl border border-[var(--border-color)]">
                                 <nav className="space-y-1">
                                     <motion.button
@@ -223,7 +223,7 @@ export default function AdminDashboard() {
                                         whileHover={{ x: 3 }}
                                         whileTap={{ scale: 0.98 }}
                                         className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "dashboard"
-                                            ? "bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/30"
+                                            ? "bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-lg shadow-cyan-500/30"
                                             : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
                                     >
                                         <LayoutDashboard className="w-4 h-4 mr-2" />
@@ -234,7 +234,7 @@ export default function AdminDashboard() {
                                         whileHover={{ x: 3 }}
                                         whileTap={{ scale: 0.98 }}
                                         className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "news"
-                                            ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30"
+                                            ? "bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-500/30"
                                             : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
                                     >
                                         <Newspaper className="w-4 h-4 mr-2" />
@@ -261,7 +261,7 @@ export default function AdminDashboard() {
                                         whileHover={{ x: 3 }}
                                         whileTap={{ scale: 0.98 }}
                                         className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "aspirasi"
-                                            ? "bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg shadow-violet-500/30"
+                                            ? "bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-lg shadow-green-500/30"
                                             : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
                                     >
                                         <MessageSquare className="w-4 h-4 mr-2" />
