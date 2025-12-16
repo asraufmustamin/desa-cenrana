@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "@/context/AppContext";
+import { motion } from "framer-motion";
 import {
     LayoutDashboard,
     ShoppingBag,
@@ -158,131 +159,165 @@ export default function AdminDashboard() {
         <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] pt-24 pb-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
 
-                {/* Hero Banner for Admin */}
-                <div className="relative rounded-[2.5rem] overflow-hidden mb-12 shadow-2xl animate-fade-in">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-900 to-violet-900"></div>
-                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-                    <div className="relative z-10 p-10 md:p-16 flex flex-col md:flex-row items-center justify-between">
-                        <div className="mb-8 md:mb-0 text-center md:text-left">
-                            <div className="inline-block px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-white/80 text-sm font-bold mb-4">
-                                Administrator Panel
-                            </div>
-                            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                                Selamat Datang, Admin
-                            </h1>
-                            <p className="text-blue-200 text-lg max-w-xl">
-                                Kelola konten website, aspirasi warga, dan lapak UMKM dari satu tempat yang terintegrasi.
-                            </p>
-                        </div>
-
-                        {/* CMS Toggle Switch */}
-                        <div className="bg-white/10 backdrop-blur-md p-6 rounded-3xl border border-white/20 flex flex-col items-center">
-                            <span className="text-white font-bold mb-4 text-sm uppercase tracking-wider">Mode Edit Website (CMS)</span>
-                            <button
-                                onClick={toggleEditMode}
-                                className={`relative w-20 h-10 rounded-full transition-colors duration-300 focus:outline-none ${isEditMode ? "bg-emerald-500" : "bg-slate-700"
-                                    }`}
-                            >
-                                <div
-                                    className={`absolute top-1 left-1 w-8 h-8 bg-white rounded-full shadow-lg transform transition-transform duration-300 flex items-center justify-center ${isEditMode ? "translate-x-10" : "translate-x-0"
-                                        }`}
-                                >
-                                    {isEditMode ? <Edit3 className="w-4 h-4 text-emerald-600" /> : <Eye className="w-4 h-4 text-slate-600" />}
+                {/* Hero Banner for Admin - Compact */}
+                <motion.div
+                    className="relative rounded-2xl overflow-hidden mb-8"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-violet-500 to-purple-500 rounded-2xl opacity-30 blur-sm"></div>
+                    <div className="relative bg-gradient-to-r from-slate-900/95 to-violet-900/95 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/10">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="text-center md:text-left">
+                                <div className="inline-block px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white/80 text-xs font-bold mb-3">
+                                    Administrator Panel
                                 </div>
-                            </button>
-                            <p className="text-white/60 text-xs mt-3 font-medium">
-                                {isEditMode ? "Mode Edit AKTIF" : "Mode Edit NON-AKTIF"}
-                            </p>
+                                <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                                    Selamat Datang, <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Admin</span>
+                                </h1>
+                                <p className="text-blue-200/80 text-sm max-w-md">
+                                    Kelola konten website, aspirasi warga, dan lapak UMKM dari satu tempat.
+                                </p>
+                            </div>
+
+                            {/* CMS Toggle Switch - Compact */}
+                            <motion.div
+                                className="bg-white/5 backdrop-blur-md p-4 rounded-xl border border-white/10 flex flex-col items-center"
+                                whileHover={{ scale: 1.02 }}
+                            >
+                                <span className="text-white/80 font-bold mb-2 text-xs uppercase tracking-wider">Mode CMS</span>
+                                <button
+                                    onClick={toggleEditMode}
+                                    className={`relative w-14 h-7 rounded-full transition-all duration-300 focus:outline-none ${isEditMode ? "bg-gradient-to-r from-emerald-500 to-green-500 shadow-lg shadow-emerald-500/30" : "bg-slate-700"}`}
+                                >
+                                    <div
+                                        className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow-lg transform transition-transform duration-300 flex items-center justify-center ${isEditMode ? "translate-x-7" : "translate-x-0"}`}
+                                    >
+                                        {isEditMode ? <Edit3 className="w-3 h-3 text-emerald-600" /> : <Eye className="w-3 h-3 text-slate-600" />}
+                                    </div>
+                                </button>
+                                <p className={`text-[10px] mt-2 font-bold ${isEditMode ? "text-emerald-400" : "text-white/50"}`}>
+                                    {isEditMode ? "AKTIF" : "NON-AKTIF"}
+                                </p>
+                            </motion.div>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Main Dashboard Layout */}
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                    {/* Sidebar */}
-                    <div className="lg:col-span-1">
-                        <div className="glass-panel rounded-[2rem] p-6 sticky top-28">
-                            <nav className="space-y-2">
-                                <button
-                                    onClick={() => setActiveTab("dashboard")}
-                                    className={`w-full flex items-center px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "dashboard"
-                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                        : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"
-                                        }`}
-                                >
-                                    <LayoutDashboard className="w-5 h-5 mr-3" />
-                                    Dashboard
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab("news")}
-                                    className={`w-full flex items-center px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "news"
-                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                        : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"
-                                        }`}
-                                >
-                                    <Newspaper className="w-5 h-5 mr-3" />
-                                    Kelola Berita
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab("lapak")}
-                                    className={`w-full flex items-center px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "lapak"
-                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                        : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"
-                                        }`}
-                                >
-                                    <ShoppingBag className="w-5 h-5 mr-3" />
-                                    Kelola Lapak Warga
-                                    {pendingLapak.length > 0 && (
-                                        <span className="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                                            {pendingLapak.length}
-                                        </span>
-                                    )}
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab("aspirasi")}
-                                    className={`w-full flex items-center px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "aspirasi"
-                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                                        : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"
-                                        }`}
-                                >
-                                    <MessageSquare className="w-5 h-5 mr-3" />
-                                    Aspirasi Warga
-                                    {pendingAspirasi.length > 0 && (
-                                        <span className="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                                            {pendingAspirasi.length}
-                                        </span>
-                                    )}
-                                </button>
-                                <button
-                                    onClick={() => router.push('/admin/penduduk')}
-                                    className="w-full flex items-center px-4 py-3 rounded-xl font-bold text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)] transition-all"
-                                >
-                                    <Users className="w-5 h-5 mr-3" />
-                                    Data Penduduk
-                                </button>
-                                <button
-                                    onClick={() => router.push('/admin/emergency-disclosure')}
-                                    className="w-full flex items-center px-4 py-3 rounded-xl font-bold text-red-500 hover:bg-red-500/10 border border-red-500/30 transition-all"
-                                >
-                                    <AlertTriangle className="w-5 h-5 mr-3" />
-                                    <span className="flex-1 text-left">Emergency Disclosure</span>
-                                    <Shield className="w-4 h-4" />
-                                </button>
-                                <div className="pt-6 mt-6 border-t border-[var(--border-color)]">
-                                    <button
-                                        onClick={logout}
-                                        className="w-full flex items-center px-4 py-3 rounded-xl font-bold text-red-500 hover:bg-red-500/10 transition-all"
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                    {/* Sidebar - Compact */}
+                    <motion.div
+                        className="lg:col-span-1"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                    >
+                        <div className="relative rounded-xl overflow-hidden sticky top-28">
+                            <div className="absolute -inset-0.5 bg-gradient-to-b from-blue-500/30 to-violet-500/30 rounded-xl blur-sm opacity-50"></div>
+                            <div className="relative p-3 rounded-xl bg-[var(--bg-card)]/90 backdrop-blur-xl border border-[var(--border-color)]">
+                                <nav className="space-y-1">
+                                    <motion.button
+                                        onClick={() => setActiveTab("dashboard")}
+                                        whileHover={{ x: 3 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "dashboard"
+                                            ? "bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-lg shadow-blue-500/30"
+                                            : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
                                     >
-                                        <LogOut className="w-5 h-5 mr-3" />
-                                        Logout
-                                    </button>
-                                </div>
-                            </nav>
+                                        <LayoutDashboard className="w-4 h-4 mr-2" />
+                                        Dashboard
+                                    </motion.button>
+                                    <motion.button
+                                        onClick={() => setActiveTab("news")}
+                                        whileHover={{ x: 3 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "news"
+                                            ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30"
+                                            : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
+                                    >
+                                        <Newspaper className="w-4 h-4 mr-2" />
+                                        Berita
+                                    </motion.button>
+                                    <motion.button
+                                        onClick={() => setActiveTab("lapak")}
+                                        whileHover={{ x: 3 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "lapak"
+                                            ? "bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-emerald-500/30"
+                                            : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
+                                    >
+                                        <ShoppingBag className="w-4 h-4 mr-2" />
+                                        Lapak
+                                        {pendingLapak.length > 0 && (
+                                            <span className="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                                                {pendingLapak.length}
+                                            </span>
+                                        )}
+                                    </motion.button>
+                                    <motion.button
+                                        onClick={() => setActiveTab("aspirasi")}
+                                        whileHover={{ x: 3 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "aspirasi"
+                                            ? "bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg shadow-violet-500/30"
+                                            : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
+                                    >
+                                        <MessageSquare className="w-4 h-4 mr-2" />
+                                        Aspirasi
+                                        {pendingAspirasi.length > 0 && (
+                                            <span className="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                                                {pendingAspirasi.length}
+                                            </span>
+                                        )}
+                                    </motion.button>
+
+                                    <div className="pt-2 mt-2 border-t border-[var(--border-color)] space-y-1">
+                                        <motion.button
+                                            onClick={() => router.push('/admin/penduduk')}
+                                            whileHover={{ x: 3 }}
+                                            className="w-full flex items-center px-3 py-2 rounded-lg text-xs font-bold text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)] transition-all"
+                                        >
+                                            <Users className="w-4 h-4 mr-2" />
+                                            Data Penduduk
+                                        </motion.button>
+                                        <motion.button
+                                            onClick={() => router.push('/admin/settings')}
+                                            whileHover={{ x: 3 }}
+                                            className="w-full flex items-center px-3 py-2 rounded-lg text-xs font-bold text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/30 transition-all"
+                                        >
+                                            <CheckCircle className="w-4 h-4 mr-2" />
+                                            Status Kehadiran
+                                        </motion.button>
+                                        <motion.button
+                                            onClick={() => router.push('/admin/emergency-disclosure')}
+                                            whileHover={{ x: 3 }}
+                                            className="w-full flex items-center px-3 py-2 rounded-lg text-xs font-bold text-amber-400 hover:bg-amber-500/10 border border-amber-500/30 transition-all"
+                                        >
+                                            <AlertTriangle className="w-4 h-4 mr-2" />
+                                            Emergency
+                                            <Shield className="w-3 h-3 ml-auto" />
+                                        </motion.button>
+                                    </div>
+
+                                    <div className="pt-2 mt-2 border-t border-[var(--border-color)]">
+                                        <motion.button
+                                            onClick={logout}
+                                            whileHover={{ x: 3 }}
+                                            className="w-full flex items-center px-3 py-2 rounded-lg text-xs font-bold text-red-400 hover:bg-red-500/10 transition-all"
+                                        >
+                                            <LogOut className="w-4 h-4 mr-2" />
+                                            Logout
+                                        </motion.button>
+                                    </div>
+                                </nav>
+                            </div>
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* Content Area */}
-                    <div className="lg:col-span-3">
+                    <div className="lg:col-span-4">
                         {activeTab === "dashboard" && (
                             <div className="space-y-8 animate-fade-in">
                                 {/* Stats Grid */}
