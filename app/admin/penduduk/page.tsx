@@ -161,7 +161,7 @@ export default function PendudukPage() {
                     </div>
                     <button
                         onClick={() => setShowModal(true)}
-                        className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg"
+                        className="flex items-center px-6 py-3 bg-gradient-to-r from-cyan-500 to-emerald-500 text-white rounded-xl font-bold hover:from-cyan-600 hover:to-emerald-600 transition-colors shadow-lg"
                     >
                         <Plus className="w-5 h-5 mr-2" />
                         Tambah Penduduk
@@ -173,7 +173,7 @@ export default function PendudukPage() {
                     <button
                         onClick={() => setActiveTab('list')}
                         className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'list'
-                            ? 'bg-blue-600 text-white shadow-lg'
+                            ? 'bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-lg'
                             : 'bg-[var(--bg-panel)] text-[var(--text-secondary)] hover:bg-[var(--bg-card)]'
                             }`}
                     >
@@ -183,7 +183,7 @@ export default function PendudukPage() {
                     <button
                         onClick={() => setActiveTab('import')}
                         className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'import'
-                            ? 'bg-blue-600 text-white shadow-lg'
+                            ? 'bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-lg'
                             : 'bg-[var(--bg-panel)] text-[var(--text-secondary)] hover:bg-[var(--bg-card)]'
                             }`}
                     >
@@ -322,7 +322,7 @@ export default function PendudukPage() {
                             </div>
                             <button
                                 type="submit"
-                                className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 transition-all mt-4"
+                                className="w-full py-4 bg-gradient-to-r from-cyan-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg hover:from-cyan-600 hover:to-emerald-600 transition-all mt-4"
                             >
                                 Simpan Data
                             </button>

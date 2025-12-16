@@ -428,7 +428,7 @@ export default function AdminDashboard() {
                                                         <tr key={product.id} className="border-b border-[var(--border-color)] hover:bg-[var(--bg-panel)] transition-colors">
                                                             <td className="py-4 px-4">
                                                                 <div className="flex items-center space-x-3">
-                                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-white font-bold text-sm">
+                                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center text-white font-bold text-sm">
                                                                         {index + 1}
                                                                     </div>
                                                                     <span className="font-bold text-[var(--text-primary)]">{product.title}</span>
@@ -523,7 +523,7 @@ export default function AdminDashboard() {
                                         </div>
                                         <button
                                             onClick={handleAddNews}
-                                            className="w-full py-3 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
+                                            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
                                         >
                                             <Plus className="w-5 h-5 inline mr-2" />
                                             Tambah Berita
@@ -573,7 +573,7 @@ export default function AdminDashboard() {
                                         <button
                                             onClick={() => setLapakSubTab("management")}
                                             className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${lapakSubTab === "management"
-                                                ? "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-lg"
+                                                ? "bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-lg"
                                                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                                                 }`}
                                         >
@@ -582,7 +582,7 @@ export default function AdminDashboard() {
                                         <button
                                             onClick={() => setLapakSubTab("analytics")}
                                             className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${lapakSubTab === "analytics"
-                                                ? "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-lg"
+                                                ? "bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-lg"
                                                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                                                 }`}
                                         >
@@ -747,7 +747,7 @@ export default function AdminDashboard() {
 
                                         {/* Top Products Table - Compact */}
                                         <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-color)] overflow-hidden">
-                                            <div className="px-5 py-3 bg-gradient-to-r from-blue-600 to-violet-600">
+                                            <div className="px-5 py-3 bg-gradient-to-r from-cyan-500 to-emerald-500">
                                                 <h3 className="font-bold text-white flex items-center gap-2">
                                                     <Trophy className="w-5 h-5" />
                                                     Top 10 Produk Paling Dilihat
@@ -778,7 +778,7 @@ export default function AdminDashboard() {
                                                                     }}
                                                                 >
                                                                     <td className="py-3 px-4">
-                                                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-white font-bold text-xs">
+                                                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center text-white font-bold text-xs">
                                                                             {index + 1}
                                                                         </div>
                                                                     </td>
