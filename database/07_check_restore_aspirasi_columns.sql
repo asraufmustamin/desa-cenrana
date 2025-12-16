@@ -66,3 +66,4 @@ LIMIT 5;
 -- EXPECTED OUTPUT:
 -- All columns including nik, date, photo should exist
 -- ================================================
+gagal 

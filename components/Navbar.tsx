@@ -26,11 +26,15 @@ export default function Navbar() {
         { name: "Beranda", href: "/" },
         {
             name: "Profil",
-            href: "#",
+            href: "/profil",
             dropdown: [
-                { name: "Sejarah", href: "/profil?tab=sejarah" },
-                { name: "Visi Misi", href: "/profil?tab=visi" },
-                { name: "SOTK", href: "/profil?tab=sotk" },
+                { name: "Sambutan Kades", href: "/profil#sambutan" },
+                { name: "Sejarah", href: "/profil#sejarah" },
+                { name: "Visi Misi", href: "/profil#visi-misi" },
+                { name: "Struktur Organisasi", href: "/profil#struktur" },
+                { name: "Lembaga Kemasyarakatan", href: "/profil#lembaga" },
+                { name: "Sarana & Prasarana", href: "/profil#sarana" },
+                { name: "Potensi Desa", href: "/profil#potensi" },
             ],
         },
         {
@@ -59,16 +63,13 @@ export default function Navbar() {
         { name: "Lapak Warga", href: "/lapak" },
     ];
 
-    // Explicit colors for reliability
-    // Scrolled: White/Dark background, Dark/White text
-    // Transparent: Transparent background, White text (Hero)
+    // Futuristic Smart Village 2030 Navbar
     const navBgClass = scrolled
-        ? "bg-white/90 dark:bg-slate-950/90 backdrop-blur-md shadow-md border-b border-slate-200 dark:border-slate-800"
+        ? "nav-futuristic border-b border-white/5"
         : "bg-transparent";
 
-    const textColorClass = scrolled
-        ? "text-slate-800 dark:text-slate-100"
-        : "text-white dark:text-white"; // Always white on hero
+    // Theme-aware text color for nav links
+    const textColorClass = mounted && theme === 'light' ? "text-slate-700" : "text-white";
 
     return (
         <nav className={`fixed w-full z-50 transition-all duration-300 ${navBgClass}`}>
@@ -81,10 +82,11 @@ export default function Navbar() {
                             <img src="/logo-maros.png" alt="Logo Maros" className="w-full h-full object-contain drop-shadow-md" />
                         </div>
                         <div className="flex flex-col">
-                            <span className={`font-bold text-lg tracking-tight leading-none transition-colors md:text-shadow-sm ${textColorClass} group-hover:text-emerald-500`}>
-                                Desa Cenrana
+                            <span className="font-bold text-lg tracking-tight leading-none transition-colors">
+                                <span style={{ color: mounted && theme === 'light' ? '#059669' : '#00D4FF' }}>Desa</span>{" "}
+                                <span style={{ color: mounted && theme === 'light' ? '#10B981' : '#00D4FF' }}>Cenrana</span>
                             </span>
-                            <span className={`text-xs font-bold tracking-wider ${scrolled ? "text-slate-500 dark:text-slate-400" : "text-white/80"}`}>
+                            <span className="text-xs font-medium tracking-wider text-gray-400">
                                 Kabupaten Maros
                             </span>
                         </div>
@@ -136,15 +138,22 @@ export default function Navbar() {
 
                     {/* Actions */}
                     <div className="hidden md:flex items-center space-x-2 lg:space-x-4">
-                        {/* Theme Toggle */}
+                        {/* Theme Toggle - Animated */}
                         <button
                             onClick={toggleTheme}
-                            className={`p-2.5 rounded-full border transition-all ${scrolled
-                                ? "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200"
-                                : "bg-white/10 border-white/20 text-white hover:bg-white/20"}`}
+                            className="relative w-12 h-12 flex items-center justify-center rounded-full border transition-all duration-500 overflow-hidden group
+                                bg-gradient-to-br from-slate-100 to-slate-200 border-slate-300 hover:border-neon-blue/50
+                                dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 dark:hover:border-neon-blue/50"
                             aria-label="Toggle Theme"
                         >
-                            {mounted ? (theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />) : <div className="w-5 h-5" />}
+                            {/* Sun Icon */}
+                            <Sun className={`absolute w-5 h-5 text-amber-500 transition-all duration-500 
+                                ${mounted && theme === "dark" ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-50"}`} />
+                            {/* Moon Icon */}
+                            <Moon className={`absolute w-5 h-5 text-slate-700 dark:text-neon-blue transition-all duration-500 
+                                ${mounted && theme === "light" ? "opacity-100 rotate-0 scale-100" : mounted && theme === "dark" ? "opacity-0 rotate-90 scale-50" : "opacity-0"}`} />
+                            {/* Glow Effect */}
+                            <div className="absolute inset-0 rounded-full bg-neon-blue/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </button>
 
                         {isLoggedIn ? (
@@ -159,9 +168,7 @@ export default function Navbar() {
                         ) : (
                             <Link
                                 href="/admin/login"
-                                className={`px-4 lg:px-6 py-2.5 rounded-full text-sm lg:text-base font-bold border transition-all flex items-center backdrop-blur-md ${scrolled
-                                    ? "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700"
-                                    : "bg-white/10 border-white/20 text-white hover:bg-white/20"}`}
+                                className={`px-4 lg:px-6 py-2.5 rounded-full text-sm lg:text-base font-bold border transition-all flex items-center bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-sm dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:hover:bg-slate-700`}
                             >
                                 <span className="hidden lg:inline">Masuk Admin</span>
                                 <span className="inline lg:hidden">Admin</span>
@@ -170,16 +177,23 @@ export default function Navbar() {
                     </div>
 
                     {/* Mobile Menu Button */}
-                    <div className="md:hidden flex items-center space-x-4">
+                    <div className="md:hidden flex items-center space-x-3">
+                        {/* Mobile Theme Toggle - Animated */}
                         <button
                             onClick={toggleTheme}
-                            className={`p-2 rounded-lg ${scrolled ? "text-slate-800 dark:text-white" : "text-white"}`}
+                            className="relative w-10 h-10 flex items-center justify-center rounded-full border transition-all duration-500 overflow-hidden
+                                bg-gradient-to-br from-slate-100 to-slate-200 border-slate-300
+                                dark:from-slate-800 dark:to-slate-900 dark:border-slate-700"
+                            aria-label="Toggle Theme"
                         >
-                            {mounted ? (theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />) : <div className="w-5 h-5" />}
+                            <Sun className={`absolute w-5 h-5 text-amber-500 transition-all duration-500 
+                                ${mounted && theme === "dark" ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-50"}`} />
+                            <Moon className={`absolute w-5 h-5 text-slate-700 transition-all duration-500 
+                                ${mounted && theme === "light" ? "opacity-100 rotate-0 scale-100" : mounted && theme === "dark" ? "opacity-0 rotate-90 scale-50" : "opacity-0"}`} />
                         </button>
                         <button
                             onClick={() => setIsOpen(!isOpen)}
-                            className={`p-2 rounded-lg hover:bg-white/10 transition-colors ${scrolled ? "text-slate-800 dark:text-white" : "text-white"}`}
+                            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-800 dark:text-white"
                         >
                             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                         </button>

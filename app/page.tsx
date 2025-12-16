@@ -1,38 +1,39 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
+import { motion, Variants } from "framer-motion";
 import {
   ArrowRight, ChevronLeft, ChevronRight, Landmark, MessageSquareText,
   Store, Laptop, HeartPulse, Home as HomeIcon, Lightbulb, Map,
-  Users, MapPin, FileText, Phone, Building2, Wallet, Sprout
+  Users, MapPin, FileText, Phone, Building2, Wallet, Sprout, Search, Zap
 } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 import Editable from "@/components/Editable";
 import EditModeIndicator from "@/components/EditModeIndicator";
 
-// Hero Slideshow Images
-const HERO_IMAGES = [
-  "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=2000",
-  "https://images.unsplash.com/photo-1472214103451-9374bd1c7dd1?auto=format&fit=crop&q=80&w=2000",
-  "https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?auto=format&fit=crop&q=80&w=2000",
-  "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&q=80&w=2000"
-];
+// Animation Variants with proper typing
+const fadeInUp: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0 }
+};
+
+const staggerContainer: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+};
+
+const scaleIn: Variants = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: { opacity: 1, scale: 1 }
+};
 
 export default function Home() {
-  const { cmsContent, updateContent, news } = useAppContext();
+  const { cmsContent, updateContent, news, kepalaDesaStatus } = useAppContext();
   const { home, sotk_new, programs } = cmsContent;
-  const [currentSlide, setCurrentSlide] = useState(0);
   const sotkScrollRef = useRef<HTMLDivElement>(null);
-
-  // Hero Slideshow Effect
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % HERO_IMAGES.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   // SOTK Scroll Handlers
   const scrollSotk = (direction: 'left' | 'right') => {
@@ -81,317 +82,690 @@ export default function Home() {
 
   // Stats Configuration
   const statItems = [
-    { labelField: "statsLabel1", valField: "statsVal1", icon: Users, placeholderLabel: "Penduduk", placeholderVal: "3500" },
-    { labelField: "statsLabel2", valField: "statsVal2", icon: MapPin, placeholderLabel: "Luas Wilayah", placeholderVal: "12" },
-    { labelField: "statsLabel3", valField: "statsVal3", icon: FileText, placeholderLabel: "Layanan Digital", placeholderVal: "98" },
-    { labelField: "statsLabel4", valField: "statsVal4", icon: HomeIcon, placeholderLabel: "Kepala Keluarga", placeholderVal: "850" },
-    { labelField: "statsLabel5", valField: "statsVal5", icon: Building2, placeholderLabel: "UMKM Aktif", placeholderVal: "45" },
-    { labelField: "statsLabel6", valField: "statsVal6", icon: Wallet, placeholderLabel: "Total Dana Desa", placeholderVal: "1.2M" },
-    { labelField: "statsLabel7", valField: "statsVal7", icon: Sprout, placeholderLabel: "Kelompok Tani", placeholderVal: "8" },
-    { labelField: "statsLabel8", valField: "statsVal8", icon: HeartPulse, placeholderLabel: "Fasilitas Kesehatan", placeholderVal: "5" },
+    { labelField: "statsLabel1", valField: "statsVal1", icon: Users, placeholderLabel: "Penduduk", placeholderVal: "3,500", color: "neon-blue" },
+    { labelField: "statsLabel2", valField: "statsVal2", icon: MapPin, placeholderLabel: "Luas Wilayah", placeholderVal: "12 km²", color: "neon-emerald" },
+    { labelField: "statsLabel3", valField: "statsVal3", icon: FileText, placeholderLabel: "Layanan Digital", placeholderVal: "98%", color: "neon-purple" },
+    { labelField: "statsLabel4", valField: "statsVal4", icon: HomeIcon, placeholderLabel: "Kepala Keluarga", placeholderVal: "850", color: "neon-orange" },
   ];
 
-  // Common Card Style using CSS Variables (glass-card)
-  // This ensures reliable theme switching via globals.css
-  const cardStyle = "glass-card rounded-2xl p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]";
+  // Services Data
+  const services = [
+    { title: "Layanan Aspirasi", desc: "Sampaikan kritik & saran", icon: MessageSquareText, color: "blue", link: "/aspirasi" },
+    { title: "Transparansi", desc: "Laporan keuangan desa", icon: FileText, color: "purple", link: "/informasi/transparansi" },
+  ];
+
+  // Get theme for inline styling (bypassing Tailwind dark: variants)
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted ? resolvedTheme === "dark" : true; // Default to dark during SSR
+  const bgColor = isDark ? "#0A0F1A" : "#FFFFFF";
+  const textColor = isDark ? "#FFFFFF" : "#1E293B";
 
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <div
+      className="min-h-screen overflow-x-hidden transition-colors duration-300"
+      style={{ backgroundColor: bgColor, color: textColor }}
+    >
       <EditModeIndicator />
 
-      {/* 1. HERO SECTION */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        {/* Background Slideshow */}
-        {HERO_IMAGES.map((img, index) => (
-          <div
-            key={index}
-            className={`absolute inset-0 z-0 transition-opacity duration-1000 ease-in-out ${index === currentSlide ? "opacity-100" : "opacity-0"
-              }`}
-          >
-            <Image
-              src={img}
-              alt={`Slide ${index + 1}`}
-              fill
-              className="object-cover"
-              priority={index === 0}
-            />
-          </div>
-        ))}
+      {/* 1. HERO SECTION - Futuristic */}
+      <section
+        className="relative min-h-screen flex items-center justify-center overflow-hidden"
+        style={{
+          background: isDark
+            ? 'linear-gradient(to bottom, #0A0F1A, #111827)'
+            : 'linear-gradient(to bottom, #F8FAFC, #FFFFFF)'
+        }}
+      >
+        {/* Animated Background Orbs */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-neon-blue/20 rounded-full blur-[120px] animate-float"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-neon-purple/20 rounded-full blur-[100px] animate-float" style={{ animationDelay: '-2s' }}></div>
+          <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-neon-emerald/15 rounded-full blur-[80px] animate-float" style={{ animationDelay: '-4s' }}></div>
+        </div>
 
-        {/* Dark Overlay */}
-        <div className="absolute inset-0 bg-black/60 z-10"></div>
+        {/* Grid Pattern Overlay */}
+        <div className="absolute inset-0 opacity-[0.015]" style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+          backgroundSize: '60px 60px'
+        }}></div>
 
         {/* Content */}
-        <div className="relative z-20 text-center px-4 max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-1000">
-          <div className="inline-block mb-6 px-6 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-sm font-bold tracking-widest uppercase shadow-lg">
-            Selamat Datang di Website Resmi
-          </div>
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-8 tracking-tight drop-shadow-lg">
-            <Editable section="home" field="heroTitle" />
-          </h1>
-          <div className="text-lg md:text-2xl text-slate-200 mb-12 max-w-3xl mx-auto font-light leading-relaxed drop-shadow-md">
-            <Editable section="home" field="heroSubtitle" type="textarea" />
-          </div>
+        <motion.div
+          className="relative z-10 text-center px-4 max-w-4xl mx-auto"
+          initial="hidden"
+          animate="visible"
+          variants={staggerContainer}
+        >
+          {/* Status Kehadiran Kepala Desa Badge */}
+          {(() => {
+            const statusConfig = {
+              'di_kantor': {
+                label: 'Kepala Desa di Kantor',
+                color: '#10B981', // Green
+                bgColor: 'rgba(16, 185, 129, 0.1)',
+                borderColor: 'rgba(16, 185, 129, 0.5)',
+                icon: '🟢'
+              },
+              'rapat': {
+                label: 'Kepala Desa Sedang Rapat',
+                color: '#F59E0B', // Yellow/Amber
+                bgColor: 'rgba(245, 158, 11, 0.1)',
+                borderColor: 'rgba(245, 158, 11, 0.5)',
+                icon: '🟡'
+              },
+              'tidak_hadir': {
+                label: 'Kepala Desa Tidak di Kantor',
+                color: '#EF4444', // Red
+                bgColor: 'rgba(239, 68, 68, 0.1)',
+                borderColor: 'rgba(239, 68, 68, 0.5)',
+                icon: '🔴'
+              }
+            };
+            const config = statusConfig[kepalaDesaStatus] || statusConfig['di_kantor'];
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link
-              href="/profil"
-              className="px-8 py-4 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-full font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-lg shadow-orange-500/40 hover:scale-105 hover:shadow-orange-500/60"
+            return (
+              <motion.div
+                variants={fadeInUp}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide mb-6 cursor-default transition-all duration-300 hover:scale-105"
+                style={{
+                  backgroundColor: config.bgColor,
+                  border: `2px solid ${config.borderColor}`,
+                  color: config.color,
+                  boxShadow: `0 0 20px ${config.bgColor}`
+                }}
+                title={`Status: ${config.label}`}
+              >
+                <span className="text-sm animate-pulse">{config.icon}</span>
+                <span>Status Kehadiran</span>
+                <span className="hidden sm:inline">• {config.label}</span>
+              </motion.div>
+            );
+          })()}
+
+          {/* Main Headline - Extra Bold Sans-Serif */}
+          <motion.h1
+            variants={fadeInUp}
+            className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 tracking-tight leading-tight"
+            style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
+          >
+            Selamat Datang di{" "}
+            <span
+              className="text-transparent bg-clip-text whitespace-nowrap"
+              style={{
+                backgroundImage: isDark
+                  ? 'linear-gradient(to right, #0EA5E9, #10B981)' // Blue -> Emerald (Dark)
+                  : 'linear-gradient(to right, #059669, #10B981)' // Green futuristic (Light)
+              }}
             >
-              <Landmark className="w-5 h-5" />
-              Profil Desa
+              Desa Cenrana
+            </span>
+          </motion.h1>
+
+          {/* Subtitle - Dark text in light mode */}
+          <motion.p
+            variants={fadeInUp}
+            className="text-base md:text-lg mb-8 max-w-xl mx-auto leading-relaxed"
+            style={{ color: isDark ? '#D1D5DB' : '#4B5563' }}
+          >
+            Portal digital pemerintahan desa modern, transparan, dan inovatif.
+            Melayani masyarakat dengan teknologi terkini.
+          </motion.p>
+
+          {/* CTA Buttons - Reformed & Colorful */}
+          <motion.div variants={fadeInUp} className="flex flex-wrap justify-center gap-4 mb-10">
+            {/* Left: Layanan Informasi */}
+            <Link
+              href="/informasi"
+              className="group px-6 py-3 rounded-xl font-semibold text-white transition-all hover:scale-105 hover:shadow-lg flex items-center gap-2 relative overflow-hidden"
+              style={{ background: 'linear-gradient(135deg, #8B5CF6 0%, #D946EF 100%)', boxShadow: '0 4px 14px 0 rgba(139, 92, 246, 0.5)' }}
+            >
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+              <FileText className="w-5 h-5 relative z-10" />
+              <span className="relative z-10">Layanan Informasi</span>
             </Link>
+
+            {/* Center: Buat Aspirasi (Primary) */}
             <Link
               href="/aspirasi"
-              className="px-8 py-4 bg-blue-600/80 hover:bg-blue-600 backdrop-blur-md text-white rounded-full font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-lg shadow-blue-900/20 hover:scale-105"
+              className="group px-8 py-3.5 rounded-xl font-bold text-white transition-all hover:scale-105 hover:shadow-lg flex items-center gap-2 relative overflow-hidden ring-4 ring-white/10 dark:ring-black/10"
+              style={{ background: 'linear-gradient(135deg, #0EA5E9 0%, #10B981 100%)', boxShadow: '0 0 20px rgba(14, 165, 233, 0.5)' }}
             >
-              <MessageSquareText className="w-5 h-5" />
-              Layanan Aspirasi
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+              <MessageSquareText className="w-5 h-5 relative z-10" />
+              <span className="relative z-10">Buat Aspirasi</span>
             </Link>
+
+            {/* Right: Lapak Warga */}
             <Link
               href="/lapak"
-              className="px-8 py-4 bg-emerald-600/80 hover:bg-emerald-600 backdrop-blur-md text-white rounded-full font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-lg shadow-emerald-900/20 hover:scale-105"
+              className="group px-6 py-3 rounded-xl font-semibold text-white transition-all hover:scale-105 hover:shadow-lg flex items-center gap-2 relative overflow-hidden"
+              style={{ background: 'linear-gradient(135deg, #F97316 0%, #F59E0B 100%)', boxShadow: '0 4px 14px 0 rgba(249, 115, 22, 0.5)' }}
             >
-              <Store className="w-5 h-5" />
-              Lapak Warga
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+              <Store className="w-5 h-5 relative z-10" />
+              <span className="relative z-10">Lapak Warga</span>
             </Link>
-          </div>
-        </div>
-      </section>
+          </motion.div>
 
-      {/* 2. UNIFIED STATS DASHBOARD */}
-      <section className="relative z-30 -mt-20 px-4 mb-20 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
-        <div className="max-w-7xl mx-auto">
-          <div className={`${cardStyle} shadow-xl`}>
-            {/* Grid Layout: Compact Crystal Glass (4 cols) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {statItems.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="relative flex flex-col items-center justify-center p-6 rounded-[2rem] border border-white/30 bg-white/80 dark:bg-black/40 backdrop-blur-2xl shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-emerald-500/20 group"
-                >
-                  {/* Icon - Compact & Clean */}
-                  <item.icon className="w-8 h-8 mb-3 text-emerald-600 dark:text-emerald-400 drop-shadow-sm transition-transform group-hover:scale-110" />
-
-                  {/* Number - Big & Sharp */}
-                  <h3 className="text-4xl font-black text-slate-900 dark:text-white mb-1 tracking-tight drop-shadow-sm">
-                    <Editable section="home" field={item.valField} placeholder={item.placeholderVal} />
-                  </h3>
-
-                  {/* Label - Small & Precise */}
-                  <p className="text-xs font-bold tracking-widest uppercase text-slate-700 dark:text-slate-300 mb-2">
-                    <Editable section="home" field={item.labelField} placeholder={item.placeholderLabel} />
-                  </p>
-
-                  {/* Subtle Glow on Hover (Dark Mode) */}
-                  <div className="absolute inset-0 rounded-[2rem] bg-emerald-400/0 group-hover:bg-emerald-400/5 transition-colors duration-300 pointer-events-none"></div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. LAYANAN UNGGULAN */}
-      <section className="py-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-4">Layanan Unggulan</h2>
-            <p className="text-[var(--text-secondary)] max-w-2xl mx-auto">
-              Akses berbagai layanan publik dan informasi desa dengan mudah dan cepat.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { title: "Lapak Warga", desc: "Marketplace produk lokal UMKM.", icon: <Store className="w-6 h-6" />, color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-500/10", link: "/lapak" },
-              { title: "Transparansi", desc: "Laporan APBDes & Dana Desa.", icon: <FileText className="w-6 h-6" />, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-500/10", link: "/informasi/transparansi" },
-              { title: "Peta Desa", desc: "Peta digital wilayah desa.", icon: <Map className="w-6 h-6" />, color: "text-emerald-500", bg: "bg-emerald-100 dark:bg-emerald-500/10", link: "/informasi/peta" },
-              { title: "Pengaduan", desc: "Saluran aspirasi masyarakat.", icon: <Phone className="w-6 h-6" />, color: "text-purple-500", bg: "bg-purple-100 dark:bg-purple-500/10", link: "/aspirasi" }
-            ].map((item, idx) => (
-              <Link href={item.link} key={idx} className="group h-full">
-                <div className={`h-full ${cardStyle} flex flex-col`}>
-                  <div className={`w-14 h-14 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
-                    {item.icon}
+          {/* Announcement Ticker / Papan Pengumuman Berjalan */}
+          <motion.div variants={fadeInUp} className="max-w-3xl mx-auto">
+            <div
+              className="relative overflow-hidden rounded-xl backdrop-blur-sm py-3 px-4"
+              style={{
+                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F8FAFC',
+                border: isDark ? '1px solid rgba(255,255,255,0.1)' : '2px solid #CBD5E1',
+                boxShadow: isDark ? 'none' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <span className="shrink-0 px-2.5 py-1 bg-neon-blue/10 text-neon-blue text-xs font-bold rounded-md uppercase tracking-wider border border-neon-blue/20">
+                  Info
+                </span>
+                <div className="overflow-hidden flex-1 mask-linear-fade">
+                  <div
+                    className="animate-marquee whitespace-nowrap flex items-center"
+                    style={{ animationDuration: '45s' }}
+                  >
+                    {/* Dynamic Pengumuman from CMS */}
+                    {cmsContent.pengumuman?.filter(p => p.active).map((item) => (
+                      <span key={item.id} className="text-sm mx-12 font-medium" style={{ color: isDark ? '#D1D5DB' : '#475569' }}>
+                        📢 {item.text}
+                      </span>
+                    ))}
+                    {/* Upcoming Agenda Items */}
+                    {cmsContent.agenda?.slice(0, 2).map((item) => (
+                      <span key={`agenda-${item.id}`} className="text-sm mx-12 font-medium" style={{ color: isDark ? '#D1D5DB' : '#475569' }}>
+                        📅 {item.title} - {item.date}
+                      </span>
+                    ))}
+                    {/* Duplicate for seamless loop */}
+                    {cmsContent.pengumuman?.filter(p => p.active).map((item) => (
+                      <span key={`dup-${item.id}`} className="text-sm mx-12 font-medium" style={{ color: isDark ? '#D1D5DB' : '#475569' }}>
+                        📢 {item.text}
+                      </span>
+                    ))}
                   </div>
-                  <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">{item.title}</h3>
-                  <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4 flex-grow">
-                    {item.desc}
-                  </p>
-                  <div className="flex items-center text-sm font-bold text-blue-600 dark:text-blue-400 group-hover:translate-x-2 transition-transform mt-auto">
-                    Akses Layanan <ChevronRight className="w-4 h-4 ml-1" />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Scroll Indicator */}
+        <motion.div
+          className="absolute bottom-10 left-1/2 -translate-x-1/2"
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          <div className="w-6 h-10 rounded-full border-2 border-white/20 flex items-start justify-center p-2">
+            <div className="w-1.5 h-2.5 bg-neon-blue rounded-full"></div>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* 2. STATS SECTION - Glowing Numbers */}
+      <section
+        className="relative py-20 px-4 border-y border-gray-200 dark:border-white/5"
+        style={{ backgroundColor: isDark ? '#111827' : '#F9FAFB' }}
+      >
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            className="grid grid-cols-2 lg:grid-cols-4 gap-8"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+          >
+            {statItems.map((item, idx) => (
+              <motion.div
+                key={idx}
+                variants={scaleIn}
+                className="text-center group cursor-default"
+              >
+                <div className={`inline-flex items-center justify-center w-16 h-16 mb-6 rounded-2xl icon-glow group-hover:scale-110 transition-transform duration-300`}>
+                  <item.icon className={`w-8 h-8 text-${item.color}`} />
+                </div>
+                <h3
+                  className="text-4xl md:text-5xl font-black mb-2 tracking-tight"
+                  style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
+                >
+                  <Editable section="home" field={item.valField} placeholder={item.placeholderVal} />
+                </h3>
+                <p
+                  className="text-sm uppercase tracking-widest font-medium"
+                  style={{ color: isDark ? '#9CA3AF' : '#6B7280' }}
+                >
+                  <Editable section="home" field={item.labelField} placeholder={item.placeholderLabel} />
+                </p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* 3. SERVICES - Equal Grid */}
+      <section
+        className="py-16 px-4"
+        style={{ backgroundColor: isDark ? '#0A0F1A' : '#FFFFFF' }}
+      >
+        <div className="max-w-5xl mx-auto">
+          {/* Section Header */}
+          <motion.div
+            className="text-center mb-12"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+          >
+            <h2
+              className="text-3xl md:text-4xl font-bold mb-3"
+              style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
+            >
+              Layanan <span
+                className="animate-shimmer bg-clip-text text-transparent bg-[length:200%_100%]"
+                style={{
+                  backgroundImage: isDark
+                    ? 'linear-gradient(90deg, #0EA5E9, #06B6D4, #0EA5E9)'
+                    : 'linear-gradient(90deg, #059669, #10B981, #059669)'
+                }}
+              >Digital</span>
+            </h2>
+            <p
+              className="max-w-lg mx-auto text-sm"
+              style={{ color: isDark ? '#9CA3AF' : '#6B7280' }}
+            >
+              Akses berbagai layanan publik digital dengan mudah dan cepat.
+            </p>
+          </motion.div>
+
+          {/* Equal 2x2 Grid */}
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 gap-5"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+            variants={staggerContainer}
+          >
+            {/* Aspirasi */}
+            <motion.div variants={scaleIn}>
+              <Link href="/aspirasi" className="block h-full group">
+                <div className="glow-card h-full p-6 neon-border-blue">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-neon-blue/20 to-neon-blue/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <MessageSquareText className="w-6 h-6 text-neon-blue" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3
+                        className="text-lg font-bold mb-1"
+                        style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
+                      >Layanan Aspirasi</h3>
+                      <p
+                        className="text-sm mb-3 line-clamp-2"
+                        style={{ color: isDark ? '#9CA3AF' : '#6B7280' }}
+                      >Sampaikan kritik, saran, atau pengaduan langsung ke pemerintah desa.</p>
+                      <div className="inline-flex items-center text-neon-blue text-sm font-medium group-hover:translate-x-1 transition-transform">
+                        Buat Laporan <ChevronRight className="w-4 h-4 ml-1" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </Link>
-            ))}
-          </div>
+            </motion.div>
+
+            {/* Lapak Warga */}
+            <motion.div variants={scaleIn}>
+              <Link href="/lapak" className="block h-full group">
+                <div className="glow-card h-full p-6 neon-border-orange">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-neon-orange/20 to-neon-orange/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <Store className="w-6 h-6 text-neon-orange" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3
+                        className="text-lg font-bold mb-1"
+                        style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
+                      >Lapak Warga</h3>
+                      <p
+                        className="text-sm mb-3 line-clamp-2"
+                        style={{ color: isDark ? '#9CA3AF' : '#6B7280' }}
+                      >Marketplace produk UMKM lokal Desa Cenrana.</p>
+                      <div className="inline-flex items-center text-neon-orange text-sm font-medium group-hover:translate-x-1 transition-transform">
+                        Belanja <ChevronRight className="w-4 h-4 ml-1" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+
+            {/* Peta Digital */}
+            <motion.div variants={scaleIn}>
+              <Link href="/informasi/peta" className="block h-full group">
+                <div className="glow-card h-full p-6 neon-border-emerald">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-neon-emerald/20 to-neon-emerald/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <Map className="w-6 h-6 text-neon-emerald" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3
+                        className="text-lg font-bold mb-1"
+                        style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
+                      >Peta Digital</h3>
+                      <p
+                        className="text-sm mb-3 line-clamp-2"
+                        style={{ color: isDark ? '#9CA3AF' : '#6B7280' }}
+                      >Jelajahi wilayah dan potensi Desa Cenrana.</p>
+                      <div className="inline-flex items-center text-neon-emerald text-sm font-medium group-hover:translate-x-1 transition-transform">
+                        Lihat Peta <ChevronRight className="w-4 h-4 ml-1" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+
+            {/* Transparansi */}
+            <motion.div variants={scaleIn}>
+              <Link href="/informasi/transparansi" className="block h-full group">
+                <div className="glow-card h-full p-6 neon-border-purple">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-neon-purple/20 to-neon-purple/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <FileText className="w-6 h-6 text-neon-purple" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3
+                        className="text-lg font-bold mb-1"
+                        style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
+                      >Transparansi</h3>
+                      <p
+                        className="text-sm mb-3 line-clamp-2"
+                        style={{ color: isDark ? '#9CA3AF' : '#6B7280' }}
+                      >Laporan keuangan dan realisasi APBDes.</p>
+                      <div className="inline-flex items-center text-neon-purple text-sm font-medium group-hover:translate-x-1 transition-transform">
+                        Lihat Laporan <ChevronRight className="w-4 h-4 ml-1" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          </motion.div>
+
+          {/* View All Link */}
+          <motion.div
+            className="text-center mt-8"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+          >
+            <Link href="/layanan" className="inline-flex items-center text-neon-blue font-medium hover:underline">
+              Lihat Semua Layanan <ArrowRight className="w-4 h-4 ml-2" />
+            </Link>
+          </motion.div>
         </div>
       </section>
 
       {/* 4. PROGRAM UNGGULAN */}
-      <section className="py-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-12">
-            <div className="mb-6 md:mb-0 text-center md:text-left w-full md:w-auto">
-              <h2 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-4">Program Unggulan</h2>
-              <p className="text-[var(--text-secondary)]">Inisiatif strategis Desa Cenrana.</p>
+      <section
+        className="py-16 px-4 border-t border-gray-200 dark:border-white/5"
+        style={{ backgroundColor: isDark ? '#0A0F1A' : '#FFFFFF' }}
+      >
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+          >
+            <div>
+              <h2
+                className="text-3xl md:text-4xl font-bold mb-2"
+                style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
+              >
+                Program <span
+                  className="animate-shimmer bg-clip-text text-transparent bg-[length:200%_100%]"
+                  style={{
+                    backgroundImage: isDark
+                      ? 'linear-gradient(90deg, #0EA5E9, #06B6D4, #0EA5E9)'
+                      : 'linear-gradient(90deg, #059669, #10B981, #059669)'
+                  }}
+                >Unggulan</span>
+              </h2>
+              <p
+                className="text-sm"
+                style={{ color: isDark ? '#9CA3AF' : '#6B7280' }}
+              >Inisiatif strategis Desa Cenrana</p>
             </div>
-            <Link href="/informasi/program" className="hidden md:flex items-center px-6 py-3 rounded-full bg-white/10 border border-slate-200 dark:border-white/10 text-[var(--text-primary)] font-bold hover:bg-slate-100 dark:hover:bg-white/20 transition-all">
-              Lihat Semua <ArrowRight className="ml-2 w-4 h-4" />
+            <Link href="/informasi/program" className="inline-flex items-center text-neon-blue font-medium hover:underline text-sm">
+              Lihat Semua <ArrowRight className="w-4 h-4 ml-1" />
             </Link>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 gap-5"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+            variants={staggerContainer}
+          >
             {programs?.slice(0, 4).map((program, index) => {
               const IconComponent = {
                 "Road": Map, "Laptop": Laptop, "HeartPulse": HeartPulse, "Home": HomeIcon
               }[program.icon] || Lightbulb;
 
+              const statusColors = {
+                "Selesai": { bg: "from-neon-emerald/20 to-neon-emerald/5", text: "text-neon-emerald", badge: "bg-neon-emerald/10 text-neon-emerald" },
+                "Berjalan": { bg: "from-neon-blue/20 to-neon-blue/5", text: "text-neon-blue", badge: "bg-neon-blue/10 text-neon-blue" },
+                "Rencana": { bg: "from-neon-orange/20 to-neon-orange/5", text: "text-neon-orange", badge: "bg-neon-orange/10 text-neon-orange" },
+              }[program.status] || { bg: "from-neon-purple/20 to-neon-purple/5", text: "text-neon-purple", badge: "bg-neon-purple/10 text-neon-purple" };
+
               return (
-                <div key={program.id} className={`${cardStyle} group h-full flex flex-col`}>
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors ${program.status === "Selesai" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400" :
-                    program.status === "Berjalan" ? "bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400" :
-                      "bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"
-                    }`}>
-                    <IconComponent className="w-6 h-6" />
+                <motion.div key={program.id} variants={scaleIn}>
+                  <div className="glow-card p-6 h-full">
+                    <div className="flex items-start gap-4">
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${statusColors.bg} flex items-center justify-center shrink-0`}>
+                        <IconComponent className={`w-6 h-6 ${statusColors.text}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3
+                          className="text-lg font-bold mb-1 line-clamp-1"
+                          style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
+                        >{program.title}</h3>
+                        <p
+                          className="text-sm line-clamp-2 mb-3"
+                          style={{ color: isDark ? '#9CA3AF' : '#6B7280' }}
+                        >{program.description}</p>
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusColors.badge}`}>
+                          {program.status}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2 line-clamp-1">{program.title}</h3>
-                  <p className="text-[var(--text-secondary)] text-sm line-clamp-2 mb-4 flex-grow">{program.description}</p>
-                  <div className="flex items-center justify-between mt-auto">
-                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${program.status === "Selesai" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400" :
-                      program.status === "Berjalan" ? "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400" :
-                        "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
-                      }`}>
-                      {program.status}
-                    </span>
-                  </div>
-                </div>
+                </motion.div>
               );
             })}
-          </div>
-
-          <div className="mt-8 text-center md:hidden">
-            <Link href="/informasi/program" className="inline-flex items-center px-6 py-3 rounded-full bg-white/10 border border-slate-200 dark:border-white/10 text-[var(--text-primary)] font-bold hover:bg-slate-100 dark:hover:bg-white/20 transition-all">
-              Lihat Semua <ArrowRight className="ml-2 w-4 h-4" />
-            </Link>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* 5. PERANGKAT DESA (SOTK) */}
-      <section className="py-16 px-4">
+      <section
+        className="py-16 px-4 border-t border-gray-200 dark:border-white/5"
+        style={{ backgroundColor: isDark ? '#0A0F1A' : '#FFFFFF' }}
+      >
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-end mb-12">
-            <div className="text-center md:text-left w-full">
-              <h2 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-4">Perangkat Desa</h2>
-              <p className="text-[var(--text-secondary)]">Jajaran pemerintahan Desa Cenrana.</p>
-            </div>
-            {/* Manual Controls */}
-            <div className="hidden md:flex gap-2">
-              <button
-                onClick={() => scrollSotk('left')}
-                className="p-3 rounded-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors shadow-sm"
-              >
-                <ChevronLeft className="w-5 h-5 text-slate-600 dark:text-white" />
-              </button>
-              <button
-                onClick={() => scrollSotk('right')}
-                className="p-3 rounded-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors shadow-sm"
-              >
-                <ChevronRight className="w-5 h-5 text-slate-600 dark:text-white" />
-              </button>
-            </div>
-          </div>
-
-          <div className="relative group/slider">
-            {/* Fixed SOTK Carousel Container with Ref */}
-            <div
-              ref={sotkScrollRef}
-              className="flex flex-row overflow-x-auto snap-x snap-mandatory gap-6 pb-8 scrollbar-hide px-4 scroll-smooth"
+          <motion.div
+            className="flex flex-col items-center text-center mb-12"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+          >
+            <h2
+              className="text-3xl md:text-4xl font-bold mb-2"
+              style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
             >
-              {displayOfficials.map((official) => (
-                <div key={official.id} className="snap-center flex flex-col items-center group min-w-[220px] flex-shrink-0">
-                  <div className="relative w-40 h-40 mb-6 rounded-full overflow-hidden border-4 border-slate-200 dark:border-white/10 group-hover:border-blue-500 transition-colors shadow-lg">
+              Perangkat <span
+                className="animate-shimmer bg-clip-text text-transparent bg-[length:200%_100%]"
+                style={{
+                  backgroundImage: isDark
+                    ? 'linear-gradient(90deg, #0EA5E9, #06B6D4, #0EA5E9)'
+                    : 'linear-gradient(90deg, #059669, #10B981, #059669)'
+                }}
+              >Desa</span>
+            </h2>
+            <p
+              className="text-sm mb-6"
+              style={{ color: isDark ? '#9CA3AF' : '#6B7280' }}
+            >Jajaran pemerintahan Desa Cenrana</p>
+            <div className="flex gap-3">
+              <button onClick={() => scrollSotk('left')} className="p-3 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-white/10 hover:border-neon-blue/30 transition-all">
+                <ChevronLeft className="w-5 h-5 text-gray-700 dark:text-white" />
+              </button>
+              <button onClick={() => scrollSotk('right')} className="p-3 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-white/10 hover:border-neon-blue/30 transition-all">
+                <ChevronRight className="w-5 h-5 text-gray-700 dark:text-white" />
+              </button>
+            </div>
+          </motion.div>
+
+          <div ref={sotkScrollRef} className="flex gap-6 overflow-x-auto pb-6 hide-scrollbar scroll-smooth">
+            {displayOfficials.map((official, idx) => (
+              <motion.div
+                key={official.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="flex-shrink-0 w-[240px] group"
+              >
+                <div className="glow-card p-6 text-center">
+                  <div className="relative w-28 h-28 mx-auto mb-6 rounded-full overflow-hidden border-2 border-white/10 group-hover:border-neon-blue/50 transition-colors">
                     <Editable
                       type="image"
                       value={official.image}
                       onSave={(val) => updateOfficial(official, "image", val)}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full object-cover"
                     />
                   </div>
-                  <div className="text-center w-full">
-                    <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1">
-                      <Editable
-                        value={official.name}
-                        onSave={(val) => updateOfficial(official, "name", val)}
-                      />
-                    </h3>
-                    <div className="inline-block px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-bold">
-                      <Editable
-                        value={official.role}
-                        onSave={(val) => updateOfficial(official, "role", val)}
-                      />
-                    </div>
+                  <h3
+                    className="text-lg font-bold mb-1"
+                    style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
+                  >
+                    <Editable value={official.name} onSave={(val) => updateOfficial(official, "name", val)} />
+                  </h3>
+                  <div className="inline-block px-3 py-1 rounded-full bg-neon-blue/10 text-neon-blue text-xs font-medium">
+                    <Editable value={official.role} onSave={(val) => updateOfficial(official, "role", val)} />
                   </div>
                 </div>
-              ))}
-            </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* 6. BERITA TERKINI */}
-      <section className="py-16 px-4">
+      <section
+        className="py-16 px-4 border-t border-gray-200 dark:border-white/5"
+        style={{ backgroundColor: isDark ? '#0A0F1A' : '#FFFFFF' }}
+      >
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-end mb-12">
+          <motion.div
+            className="flex justify-between items-end mb-12"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+          >
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-4">Kabar Desa</h2>
-              <p className="text-[var(--text-secondary)]">Berita terkini seputar Desa Cenrana.</p>
+              <h2
+                className="text-3xl md:text-4xl font-bold mb-2"
+                style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
+              >
+                Kabar <span
+                  className="animate-shimmer bg-clip-text text-transparent bg-[length:200%_100%]"
+                  style={{
+                    backgroundImage: isDark
+                      ? 'linear-gradient(90deg, #0EA5E9, #06B6D4, #0EA5E9)'
+                      : 'linear-gradient(90deg, #059669, #10B981, #059669)'
+                  }}
+                >Terkini</span>
+              </h2>
+              <p
+                className="text-sm"
+                style={{ color: isDark ? '#9CA3AF' : '#6B7280' }}
+              >Berita dan informasi seputar Desa Cenrana</p>
             </div>
-            <Link href="/informasi/berita" className="hidden md:flex items-center text-blue-600 dark:text-blue-400 font-bold hover:underline transition-all">
-              Lihat Semua <ArrowRight className="w-5 h-5 ml-2" />
+            <Link href="/informasi/berita" className="hidden md:flex items-center text-neon-blue font-medium hover:underline">
+              Lihat Semua <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+            variants={staggerContainer}
+          >
             {news && news.length > 0 ? (
-              news.slice(0, 4).map((item) => (
-                <div key={item.id} className={`${cardStyle} overflow-hidden group h-full flex flex-col`}>
-                  <div className="relative h-48 overflow-hidden flex-shrink-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
-                    />
-                    <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-white">
-                      {item.category}
+              news.slice(0, 4).map((item, idx) => (
+                <motion.div key={item.id} variants={scaleIn}>
+                  <div className="glow-card overflow-hidden group h-full flex flex-col">
+                    <div className="relative h-48 overflow-hidden">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      />
+                      <div className="absolute top-3 left-3 px-3 py-1 rounded-lg bg-black/60 backdrop-blur-md text-[10px] font-bold text-white">
+                        {item.category}
+                      </div>
+                    </div>
+                    <div className="p-6 flex flex-col flex-grow">
+                      <div className="text-gray-500 text-[10px] mb-2 uppercase tracking-wider font-medium">
+                        {item.date}
+                      </div>
+                      <h3
+                        className="text-lg font-bold mb-3 line-clamp-2 group-hover:text-neon-blue transition-colors"
+                        style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
+                      >
+                        {item.title}
+                      </h3>
+                      <p
+                        className="text-xs leading-relaxed line-clamp-2 mb-4 flex-grow"
+                        style={{ color: isDark ? '#9CA3AF' : '#6B7280' }}
+                      >
+                        {item.excerpt}
+                      </p>
+                      <Link href="/informasi/berita" className="inline-flex items-center text-neon-blue text-xs font-medium hover:translate-x-1 transition-transform mt-auto">
+                        Baca <ChevronRight className="w-3 h-3 ml-1" />
+                      </Link>
                     </div>
                   </div>
-                  <div className="p-6 flex flex-col flex-grow">
-                    <div className="text-slate-500 dark:text-slate-400 text-[10px] mb-2 font-bold uppercase tracking-wider">
-                      {item.date}
-                    </div>
-                    <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      {item.title}
-                    </h3>
-                    <p className="text-[var(--text-secondary)] text-xs leading-relaxed line-clamp-2 mb-4 flex-grow">
-                      {item.excerpt}
-                    </p>
-                    <Link href={`/informasi/berita`} className="inline-flex items-center text-blue-600 dark:text-blue-400 font-bold text-xs hover:translate-x-2 transition-transform mt-auto">
-                      Baca Selengkapnya <ChevronRight className="w-3 h-3 ml-1" />
-                    </Link>
-                  </div>
-                </div>
+                </motion.div>
               ))
             ) : (
-              <div className="col-span-4 text-center py-12 text-slate-500 dark:text-slate-400">
+              <div
+                className="col-span-4 text-center py-12"
+                style={{ color: isDark ? '#9CA3AF' : '#6B7280' }}
+              >
                 Belum ada berita terkini.
               </div>
             )}
-          </div>
+          </motion.div>
         </div>
       </section>
+
+      {/* Footer Spacer */}
+      <div className="h-20"></div>
     </div>
   );
 }

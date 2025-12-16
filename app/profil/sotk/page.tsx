@@ -4,10 +4,10 @@ import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
-import { ArrowLeft, History, Target, Users } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
-import Editable from "@/components/Editable";
 import EditModeIndicator from "@/components/EditModeIndicator";
+import OrgChart from "@/components/OrgChart";
+import { Users, ArrowLeft, Building2 } from "lucide-react";
 
 // Animation variants
 const fadeInUp = {
@@ -15,9 +15,7 @@ const fadeInUp = {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
 };
 
-export default function SejarahDetail() {
-    const { cmsContent } = useAppContext();
-    const { profil } = cmsContent;
+export default function SOTKPage() {
     const { resolvedTheme } = useTheme();
     const [mounted, setMounted] = React.useState(false);
 
@@ -37,7 +35,7 @@ export default function SejarahDetail() {
         >
             <EditModeIndicator />
 
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-7xl mx-auto">
                 {/* Back Button */}
                 <motion.div
                     initial="hidden"
@@ -60,72 +58,62 @@ export default function SejarahDetail() {
 
                 {/* Header */}
                 <motion.div
-                    className="mb-12"
+                    className="text-center mb-12"
                     initial="hidden"
                     animate="visible"
                     variants={fadeInUp}
                 >
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
                         style={{
-                            backgroundColor: isDark ? 'rgba(14, 165, 233, 0.1)' : 'rgba(14, 165, 233, 0.1)',
-                            border: `1px solid ${isDark ? 'rgba(14, 165, 233, 0.3)' : 'rgba(14, 165, 233, 0.4)'}`,
-                            color: isDark ? '#0EA5E9' : '#0284C7'
+                            backgroundColor: isDark ? 'rgba(139, 92, 246, 0.1)' : 'rgba(139, 92, 246, 0.1)',
+                            border: `1px solid ${isDark ? 'rgba(139, 92, 246, 0.3)' : 'rgba(139, 92, 246, 0.4)'}`,
+                            color: isDark ? '#A78BFA' : '#7C3AED'
                         }}
                     >
-                        <History className="w-4 h-4" />
-                        <span className="text-sm font-semibold uppercase tracking-wider">Sejarah Desa</span>
+                        <Building2 className="w-4 h-4" />
+                        <span className="text-sm font-semibold">Profil Desa</span>
                     </div>
+
                     <h1
-                        className="text-4xl md:text-5xl font-extrabold mb-4 leading-tight"
+                        className="text-4xl md:text-5xl font-extrabold mb-4"
                         style={{ color: textColor }}
                     >
-                        <Editable section="profil" field="historyTitle" />
+                        Struktur{" "}
+                        <span
+                            className="text-transparent bg-clip-text"
+                            style={{
+                                backgroundImage: isDark
+                                    ? 'linear-gradient(to right, #A78BFA, #0EA5E9)'
+                                    : 'linear-gradient(to right, #7C3AED, #059669)'
+                            }}
+                        >
+                            Organisasi
+                        </span>
                     </h1>
+                    <p
+                        className="text-lg max-w-2xl mx-auto"
+                        style={{ color: subtextColor }}
+                    >
+                        Bagan Struktur Organisasi Tata Kerja (SOTK) Pemerintah Desa Cenrana
+                    </p>
                 </motion.div>
 
-                {/* Banner Image */}
+                {/* Org Chart Container */}
                 <motion.div
-                    className="relative rounded-3xl overflow-hidden shadow-2xl mb-12 aspect-video group"
                     initial="hidden"
                     animate="visible"
                     variants={fadeInUp}
+                    className="rounded-3xl border overflow-hidden"
                     style={{
-                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0'}`,
-                        boxShadow: `0 8px 40px ${isDark ? 'rgba(14, 165, 233, 0.15)' : 'rgba(14, 165, 233, 0.1)'}`,
-                    }}
-                >
-                    <Editable
-                        type="image"
-                        section="profil"
-                        field="historyBanner"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                </motion.div>
-
-                {/* Full Content */}
-                <motion.article
-                    className="rounded-3xl p-8 md:p-12"
-                    initial="hidden"
-                    animate="visible"
-                    variants={fadeInUp}
-                    style={{
-                        backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#FFFFFF',
-                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0'}`,
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : '#FFFFFF',
+                        borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
                         boxShadow: `0 4px 30px ${isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.08)'}`,
                     }}
                 >
-                    <div
-                        className="text-lg leading-relaxed space-y-6 whitespace-pre-line"
-                        style={{ color: subtextColor }}
-                    >
-                        <Editable
-                            section="profil"
-                            field="historyFullText"
-                            type="textarea"
-                            className="whitespace-pre-line"
-                        />
+                    <div className="p-6 md:p-10">
+                        <OrgChart />
                     </div>
-                </motion.article>
+                </motion.div>
 
                 {/* Navigation Links */}
                 <motion.div
@@ -135,27 +123,26 @@ export default function SejarahDetail() {
                     variants={fadeInUp}
                 >
                     <Link
-                        href="/profil/visi-misi"
-                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all hover:scale-105"
-                        style={{
-                            background: 'linear-gradient(135deg, #10B981, #0EA5E9)',
-                            boxShadow: '0 8px 20px rgba(16, 185, 129, 0.3)'
-                        }}
-                    >
-                        <Target className="w-5 h-5" />
-                        Lihat Visi & Misi
-                    </Link>
-                    <Link
-                        href="/profil/sotk"
+                        href="/profil/sejarah"
                         className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all hover:scale-105"
                         style={{
                             backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-                            color: isDark ? '#A78BFA' : '#7C3AED',
-                            border: `1px solid ${isDark ? 'rgba(139, 92, 246, 0.3)' : 'rgba(124, 58, 237, 0.3)'}`,
+                            color: isDark ? '#0EA5E9' : '#059669',
+                            border: `1px solid ${isDark ? 'rgba(14, 165, 233, 0.3)' : 'rgba(5, 150, 105, 0.3)'}`,
                         }}
                     >
-                        <Users className="w-5 h-5" />
-                        Struktur Organisasi
+                        Sejarah Desa
+                    </Link>
+                    <Link
+                        href="/profil/visi-misi"
+                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all hover:scale-105"
+                        style={{
+                            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                            color: isDark ? '#10B981' : '#059669',
+                            border: `1px solid ${isDark ? 'rgba(16, 185, 129, 0.3)' : 'rgba(5, 150, 105, 0.3)'}`,
+                        }}
+                    >
+                        Visi & Misi
                     </Link>
                 </motion.div>
             </div>

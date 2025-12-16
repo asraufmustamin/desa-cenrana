@@ -129,6 +129,11 @@ export interface CMSContent {
         missionTitle: string;
         missionList: string[];
     };
+    sambutan: {
+        fotoKades: string;
+        namaKades: string;
+        isiSambutan: string;
+    };
     transparansi: {
         title: string;
         items: { label: string; target: string; realization: string; percentage: string }[];
@@ -159,7 +164,12 @@ export interface CMSContent {
     infografis: InfografisData;
     hukum: HukumItem[];
     agenda: AgendaItem[];
+    pengumuman: { id: number; text: string; active: boolean }[];
 }
+
+// Kepala Desa Presence Status Type
+export type KepalaDesaStatus = 'di_kantor' | 'rapat' | 'tidak_hadir';
+
 
 type Theme = "dark" | "light";
 
@@ -206,6 +216,9 @@ interface AppContextType {
     // Analytics tracking functions
     trackProductView: (productId: number) => Promise<void>;
     trackWAClick: (productId: number) => Promise<void>;
+    // Kepala Desa Status
+    kepalaDesaStatus: KepalaDesaStatus;
+    setKepalaDesaStatus: (status: KepalaDesaStatus) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -273,6 +286,11 @@ Dengan semangat pembangunan berkelanjutan, Desa Cenrana terus berupaya meningkat
             "Meningkatkan pembangunan infrastruktur dasar desa yang merata.",
             "Mengembangkan potensi ekonomi lokal berbasis pertanian dan UMKM.",
         ],
+    },
+    sambutan: {
+        fotoKades: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='260'%3E%3Crect fill='%23e5e7eb' width='200' height='260'/%3E%3Cpath fill='%239ca3af' d='M100 110a35 35 0 1 0 0-70 35 35 0 0 0 0 70zm0 12c-40 0-72 24-72 54v6h144v-6c0-30-32-54-72-54z'/%3E%3C/svg%3E",
+        namaKades: "H. Abdullah",
+        isiSambutan: "Assalamu'alaikum Warahmatullahi Wabarakatuh.\n\nPuji syukur kita panjatkan kepada Allah SWT atas segala limpahan rahmat dan karunia-Nya. Selamat datang di Website Resmi Desa Cenrana.\n\nSebagai Kepala Desa, saya mengajak seluruh warga untuk bersama-sama membangun desa yang lebih maju, mandiri, dan sejahtera. Website ini hadir sebagai wujud komitmen kami dalam memberikan pelayanan publik yang transparan dan mudah diakses.\n\nMari kita jaga kebersamaan dan gotong royong sebagai modal utama pembangunan desa. Semoga Allah SWT senantiasa memberikan keberkahan dalam setiap langkah kita.\n\nWassalamu'alaikum Warahmatullahi Wabarakatuh."
     },
     transparansi: {
         title: "Transparansi Anggaran 2024",
@@ -359,7 +377,13 @@ Dengan semangat pembangunan berkelanjutan, Desa Cenrana terus berupaya meningkat
         { id: 1, title: "Musyawarah Perencanaan Pembangunan (Musrenbang)", date: "2024-02-15", time: "09:00 WITA", location: "Aula Kantor Desa", description: "Pembahasan prioritas pembangunan desa tahun anggaran 2025." },
         { id: 2, title: "Posyandu Balita & Lansia", date: "2024-02-20", time: "08:00 WITA", location: "Posyandu Melati", description: "Pemeriksaan kesehatan rutin untuk balita dan lansia." },
         { id: 3, title: "Kerja Bakti Lingkungan", date: "2024-02-25", time: "07:00 WITA", location: "Dusun Benteng", description: "Membersihkan saluran irigasi dan jalan desa." }
-    ]
+    ],
+    pengumuman: [
+        { id: 1, text: "📢 Pendaftaran BLT Desa tahun 2025 dibuka mulai 15 Januari", active: true },
+        { id: 2, text: "🏥 Jadwal Posyandu bulan ini: Setiap Kamis minggu pertama", active: true },
+        { id: 3, text: "🎉 Peringatan HUT RI ke-80 akan diadakan di Lapangan Desa", active: true },
+        { id: 4, text: "📝 Pengurusan surat-menyurat buka Senin-Jumat 08:00-15:00", active: true }
+    ],
 };
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
@@ -368,8 +392,42 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     const [aspirasi, setAspirasi] = useState<AspirasiItem[]>([]);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [kepalaDesaStatus, setKepalaDesaStatusState] = useState<KepalaDesaStatus>('di_kantor');
 
-    const { theme, setTheme } = useTheme();
+    const { theme, setTheme, resolvedTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // Force Body Background Injection (Nuclear Option for persistent white background)
+    useEffect(() => {
+        if (!mounted) return;
+
+        const isDark = resolvedTheme === "dark";
+        // Apply to Document Element (html) and Body
+        const targetColor = isDark ? "#0A0F1A" : "#FFFFFF"; // Dark Base vs White
+
+        document.documentElement.style.backgroundColor = targetColor;
+        document.body.style.backgroundColor = targetColor;
+        document.documentElement.style.colorScheme = isDark ? "dark" : "light";
+
+        // CRITICAL: Add/remove 'dark' class to <html> for Tailwind dark: variants
+        if (isDark) {
+            document.documentElement.classList.add("dark");
+            document.documentElement.classList.remove("light");
+        } else {
+            document.documentElement.classList.remove("dark");
+            document.documentElement.classList.add("light");
+        }
+    }, [mounted, resolvedTheme]);
+
+    // ... (keep existing code)
+
+    const toggleTheme = () => {
+        setTheme(resolvedTheme === "dark" ? "light" : "dark");
+    };
 
     const [lastActivity, setLastActivity] = useState<number>(Date.now());
     const [isEditMode, setIsEditMode] = useState(false);
@@ -588,9 +646,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         setLastActivity(0);
     };
 
-    const toggleTheme = () => {
-        setTheme(theme === "dark" ? "light" : "dark");
-    };
+
 
     const toggleEditMode = () => {
         setIsEditMode(prev => !prev);
@@ -1045,6 +1101,25 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         setLastActivity(Date.now());
     };
 
+    // Set Kepala Desa Status (with optional Supabase persistence)
+    const setKepalaDesaStatus = async (status: KepalaDesaStatus) => {
+        setKepalaDesaStatusState(status);
+        // Persist to Supabase CMS table
+        try {
+            await supabase.from('cms_content').upsert({
+                key: 'settings',
+                data: { ...cmsContent, kepalaDesaStatus: status }
+            });
+        } catch (error) {
+            console.error('Error saving kepala desa status:', error);
+        }
+        setLastActivity(Date.now());
+    };
+
+    // Determine theme for wrapper (fallback to dark)
+    const currentTheme = mounted ? resolvedTheme : 'dark';
+    const isDark = currentTheme === 'dark';
+
     return (
         <AppContext.Provider value={{
             news, lapak, aspirasi, officials,
@@ -1058,9 +1133,16 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             addProgram, deleteProgram, updateProgram,
             addHukum, deleteHukum, updateHukum,
             addAgenda, deleteAgenda, updateAgenda,
-            trackProductView, trackWAClick
+            trackProductView, trackWAClick,
+            kepalaDesaStatus, setKepalaDesaStatus
         }}>
-            {children}
+            <div
+                id="theme-root"
+                className={`flex flex-col min-h-screen transition-colors duration-300 ${isDark ? "dark bg-[#0A0F1A] text-slate-100" : "bg-white text-slate-900"
+                    }`}
+            >
+                {children}
+            </div>
         </AppContext.Provider>
     );
 };

@@ -7,9 +7,9 @@ import Editable from "@/components/Editable";
 
 export default function Footer() {
     return (
-        <footer className="bg-black border-t border-white/10 pt-20 pb-10 relative overflow-hidden">
+        <footer className="bg-dark-base border-t border-white/5 pt-16 pb-8 relative overflow-hidden">
             {/* Background Glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-64 bg-blue-900/20 blur-[100px] rounded-full pointer-events-none"></div>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-48 bg-neon-blue/5 blur-[100px] rounded-full pointer-events-none"></div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">

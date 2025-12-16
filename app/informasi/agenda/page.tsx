@@ -1,122 +1,179 @@
 "use client";
 
+import React from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
 import Editable from "@/components/Editable";
-import { Calendar, Clock, MapPin, Plus, Trash2 } from "lucide-react";
+import { Calendar, Clock, MapPin, Plus, Trash2, ArrowLeft, Sparkles, CalendarDays } from "lucide-react";
 
 export default function AgendaPage() {
     const { cmsContent, isEditMode, addAgenda, deleteAgenda, updateAgenda } = useAppContext();
     const { agenda } = cmsContent;
+    const [mounted, setMounted] = React.useState(false);
 
-    // Helper to format date for display
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return {
             day: date.getDate(),
             month: date.toLocaleDateString("id-ID", { month: "short" }).toUpperCase(),
             year: date.getFullYear(),
-            full: date.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
         };
     };
 
     return (
-        <div className="min-h-screen bg-[var(--bg-primary)] pt-32 pb-10 px-4">
-            <div className="container mx-auto max-w-5xl">
+        <div className="min-h-screen pt-24 pb-16 px-4 relative overflow-hidden" style={{ backgroundColor: 'var(--bg-primary)' }}>
+            {/* Animated Background Blobs */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-10 left-10 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute top-60 right-10 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+                <div className="absolute bottom-40 left-1/4 w-72 h-72 bg-yellow-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+            </div>
+
+            <div className="max-w-5xl mx-auto relative z-10">
+                {/* Back Button */}
+                <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="mb-6"
+                >
+                    <Link href="/informasi" className="group inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 bg-[var(--bg-card)]/80 backdrop-blur-xl border border-[var(--border-color)] text-[var(--text-primary)] hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/20">
+                        <ArrowLeft className="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1" />
+                        Kembali
+                    </Link>
+                </motion.div>
 
                 {/* Header */}
-                <div className="mb-10 text-center">
-                    <h1 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-3">Agenda Kegiatan</h1>
-                    <p className="text-[var(--text-secondary)] max-w-2xl mx-auto">
-                        Jadwal kegiatan pemerintahan dan kemasyarakatan Desa Cenrana.
-                    </p>
-                </div>
-
-                {/* Admin Add Button */}
-                {isEditMode && (
-                    <div className="mb-8 flex justify-end">
-                        <button
-                            onClick={addAgenda}
-                            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-600/30 transition-all flex items-center"
+                <motion.div
+                    className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                >
+                    <div className="text-center md:text-left">
+                        <motion.div
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-3 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30"
+                            whileHover={{ scale: 1.05 }}
                         >
-                            <Plus className="w-5 h-5 mr-2" />
-                            Tambah Agenda
-                        </button>
+                            <Calendar className="w-4 h-4 text-amber-400" />
+                            <span className="text-sm font-bold text-amber-400">Agenda Kegiatan</span>
+                            <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+                        </motion.div>
+                        <h1 className="text-2xl md:text-3xl font-black mb-1 text-[var(--text-primary)]">
+                            Agenda{" "}
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-400">Kegiatan</span>
+                        </h1>
+                        <p className="text-sm text-[var(--text-secondary)]">
+                            Jadwal kegiatan pemerintahan dan kemasyarakatan desa
+                        </p>
                     </div>
-                )}
+                    {isEditMode && (
+                        <motion.button
+                            onClick={addAgenda}
+                            className="px-4 py-2 text-white rounded-xl font-bold text-sm shadow-lg flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            <Plus className="w-4 h-4" /> Tambah Agenda
+                        </motion.button>
+                    )}
+                </motion.div>
 
-                {/* Timeline Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {agenda.map((item) => {
+                {/* Stats */}
+                <motion.div
+                    className="flex gap-3 mb-6"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                >
+                    <div className="px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center gap-2">
+                        <CalendarDays className="w-3 h-3 text-amber-400" />
+                        <span className="text-xs font-bold text-amber-400">{agenda?.length || 0} Agenda</span>
+                    </div>
+                </motion.div>
+
+                {/* Agenda Grid */}
+                <motion.div
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                >
+                    {agenda.map((item, index) => {
                         const dateObj = formatDate(item.date);
                         return (
-                            <div
+                            <motion.div
                                 key={item.id}
-                                className="group relative bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden hover:border-blue-500/50 dark:hover:border-white/20 transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                                className="group relative"
+                                whileHover={{ y: -5 }}
                             >
-                                {/* Delete Button (Admin Only) */}
-                                {isEditMode && (
-                                    <button
-                                        onClick={() => deleteAgenda(item.id)}
-                                        className="absolute top-3 right-3 p-2 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-20 opacity-0 group-hover:opacity-100"
-                                        title="Hapus Agenda"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                )}
+                                <div className="rounded-2xl overflow-hidden bg-[var(--bg-card)]/90 backdrop-blur-xl border border-[var(--border-color)] shadow-lg hover:shadow-xl hover:border-amber-500/30 transition-all duration-300">
+                                    {/* Delete Button */}
+                                    {isEditMode && (
+                                        <button
+                                            onClick={() => deleteAgenda(item.id)}
+                                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg shadow-lg hover:bg-red-600 transition-colors z-20 opacity-0 group-hover:opacity-100"
+                                        >
+                                            <Trash2 className="w-3 h-3" />
+                                        </button>
+                                    )}
 
-                                {/* Date Badge (Top) */}
-                                <div className="bg-blue-600 p-4 text-center text-white">
-                                    <div className="text-3xl font-black leading-none">{dateObj.day}</div>
-                                    <div className="text-sm font-bold opacity-90">{dateObj.month} {dateObj.year}</div>
-                                </div>
-
-                                {/* Content */}
-                                <div className="p-6 space-y-4">
-                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-tight min-h-[56px]">
-                                        <Editable
-                                            value={item.title}
-                                            onSave={(val) => updateAgenda(item.id, { title: val })}
-                                        />
-                                    </h3>
-
-                                    <div className="space-y-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                                        <div className="flex items-center">
-                                            <Clock className="w-4 h-4 mr-2 text-blue-500" />
-                                            <Editable
-                                                value={item.time}
-                                                onSave={(val) => updateAgenda(item.id, { time: val })}
-                                            />
-                                        </div>
-                                        <div className="flex items-center">
-                                            <MapPin className="w-4 h-4 mr-2 text-red-500" />
-                                            <Editable
-                                                value={item.location}
-                                                onSave={(val) => updateAgenda(item.id, { location: val })}
-                                            />
-                                        </div>
+                                    {/* Date Badge */}
+                                    <div className="p-3 text-center text-white bg-gradient-to-r from-amber-500 to-orange-500">
+                                        <div className="text-2xl font-black leading-none">{dateObj.day}</div>
+                                        <div className="text-[10px] font-bold opacity-90">{dateObj.month} {dateObj.year}</div>
                                     </div>
 
-                                    <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-200 line-clamp-3">
-                                            <Editable
-                                                type="textarea"
-                                                value={item.description}
-                                                onSave={(val) => updateAgenda(item.id, { description: val })}
-                                            />
-                                        </p>
+                                    {/* Content */}
+                                    <div className="p-4 space-y-3">
+                                        <h3 className="text-base font-bold leading-tight text-[var(--text-primary)] line-clamp-2">
+                                            <Editable value={item.title} onSave={(val) => updateAgenda(item.id, { title: val })} />
+                                        </h3>
+
+                                        <div className="space-y-1.5 text-[11px] font-medium text-[var(--text-secondary)]">
+                                            <div className="flex items-center gap-2">
+                                                <Clock className="w-3 h-3 text-amber-400" />
+                                                <Editable value={item.time} onSave={(val) => updateAgenda(item.id, { time: val })} />
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <MapPin className="w-3 h-3 text-red-400" />
+                                                <Editable value={item.location} onSave={(val) => updateAgenda(item.id, { location: val })} />
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-3 border-t border-[var(--border-color)]">
+                                            <p className="text-[11px] leading-relaxed text-[var(--text-secondary)] line-clamp-2">
+                                                <Editable type="textarea" value={item.description} onSave={(val) => updateAgenda(item.id, { description: val })} />
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </motion.div>
                         );
                     })}
 
                     {agenda.length === 0 && (
-                        <div className="col-span-full text-center py-20 bg-slate-50 dark:bg-white/5 rounded-3xl border border-dashed border-slate-300 dark:border-white/10">
-                            <Calendar className="w-12 h-12 mx-auto text-slate-300 dark:text-slate-600 mb-4" />
-                            <p className="text-[var(--text-secondary)]">Belum ada agenda kegiatan.</p>
+                        <div className="col-span-full">
+                            <motion.div
+                                className="text-center py-16 rounded-2xl bg-[var(--bg-card)]/50 border border-dashed border-[var(--border-color)]"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                            >
+                                <div className="w-16 h-16 rounded-full bg-[var(--bg-panel)] flex items-center justify-center mx-auto mb-4">
+                                    <Calendar className="w-8 h-8 text-[var(--text-secondary)]/40" />
+                                </div>
+                                <h3 className="text-lg font-bold mb-1 text-[var(--text-primary)]">Belum ada agenda</h3>
+                                <p className="text-sm text-[var(--text-secondary)]">Silakan kembali lagi nanti</p>
+                            </motion.div>
                         </div>
                     )}
-                </div>
+                </motion.div>
             </div>
         </div>
     );

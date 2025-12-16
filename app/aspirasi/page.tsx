@@ -1,14 +1,28 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Send, Search, AlertCircle, CheckCircle, Clock, MessageSquare, History, Upload, X, Image as ImageIcon, Trash2, Shield } from "lucide-react";
+import { motion } from "framer-motion";
+import { useTheme } from "next-themes";
+import { Send, Search, AlertCircle, CheckCircle, Clock, MessageSquare, History, Upload, X, Image as ImageIcon, Trash2, Shield, ArrowLeft, MessageCircle, Sparkles, Ticket, Zap, FileText, MapPin, Tag, User, Hash } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 import Image from "next/image";
+import Link from "next/link";
 import { canSubmit, recordSubmit, getRemainingTime } from "@/lib/rateLimit";
+
+const fadeInUp = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+};
+
+const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+};
 
 export default function Aspirasi() {
     const { addAspirasi, getAspirasiByTicket, aspirasi, deleteAspirasi, isEditMode, checkNikAvailability } = useAppContext();
+    const { resolvedTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
     const [activeTab, setActiveTab] = useState<"form" | "track" | "admin">("form");
     const [ticketId, setTicketId] = useState("");
     const [searchResult, setSearchResult] = useState<any>(null);
@@ -28,36 +42,20 @@ export default function Aspirasi() {
 
     const [nikError, setNikError] = useState("");
     const [submitError, setSubmitError] = useState("");
-
-    // State untuk inline errors di setiap field
-    const [errors, setErrors] = useState({
-        nama: "",
-        nik: "",
-        laporan: "",
-        image: ""
-    });
-
-    // State untuk loading saat submit
+    const [errors, setErrors] = useState({ nama: "", nik: "", laporan: "", image: "" });
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // State untuk success feedback
     const [showSuccessCard, setShowSuccessCard] = useState(false);
     const [successTicketId, setSuccessTicketId] = useState("");
     const [copied, setCopied] = useState(false);
-
-    // State untuk rate limiting (anti-spam)
     const [isOnCooldown, setIsOnCooldown] = useState(false);
     const [remainingTime, setRemainingTime] = useState(0);
 
-    // Load history from local storage on mount
     useEffect(() => {
+        setMounted(true);
         const history = localStorage.getItem("my_aspirasi_history");
-        if (history) {
-            setMyHistory(JSON.parse(history));
-        }
+        if (history) setMyHistory(JSON.parse(history));
     }, []);
 
-    // Countdown timer untuk cooldown
     useEffect(() => {
         if (isOnCooldown && remainingTime > 0) {
             const timer = setInterval(() => {
@@ -68,18 +66,15 @@ export default function Aspirasi() {
                 } else {
                     setRemainingTime(remaining);
                 }
-            }, 1000); // Update every second
+            }, 1000);
             return () => clearInterval(timer);
         }
     }, [isOnCooldown, remainingTime]);
 
     const handleNikChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        // Allow only numbers
         if (!/^\d*$/.test(value)) return;
-
         setForm({ ...form, nik: value });
-
         if (value.length > 0 && value.length !== 16) {
             setNikError("NIK harus 16 digit angka.");
         } else {
@@ -103,44 +98,18 @@ export default function Aspirasi() {
     const removeImage = () => {
         setImagePreview(null);
         setForm({ ...form, image: "" });
-        if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-        }
+        if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
-    // Validation function untuk Aspirasi form dengan inline errors
     const validateForm = (): boolean => {
         const newErrors = { nama: "", nik: "", laporan: "", image: "" };
         let isValid = true;
-
-        // Validasi Nama
-        if (!form.nama.trim()) {
-            newErrors.nama = "Mohon isi nama lengkap Anda sesuai KTP";
-            isValid = false;
-        } else if (form.nama.trim().length < 3) {
-            newErrors.nama = "Nama minimal 3 karakter";
-            isValid = false;
-        }
-
-        // Validasi NIK
-        if (!form.nik) {
-            newErrors.nik = "NIK wajib diisi";
-            isValid = false;
-        } else if (form.nik.length !== 16) {
-            newErrors.nik = "NIK harus 16 digit angka";
-            isValid = false;
-        }
-
-        // Validasi Laporan
-        if (!form.laporan.trim()) {
-            newErrors.laporan = "Mohon isi detail laporan Anda";
-            isValid = false;
-        } else if (form.laporan.trim().length < 20) {
-            newErrors.laporan = "Laporan minimal 20 karakter agar admin dapat memahami dengan jelas";
-            isValid = false;
-        }
-
-        // Set semua errors sekaligus
+        if (!form.nama.trim()) { newErrors.nama = "Mohon isi nama lengkap Anda sesuai KTP"; isValid = false; }
+        else if (form.nama.trim().length < 3) { newErrors.nama = "Nama minimal 3 karakter"; isValid = false; }
+        if (!form.nik) { newErrors.nik = "NIK wajib diisi"; isValid = false; }
+        else if (form.nik.length !== 16) { newErrors.nik = "NIK harus 16 digit angka"; isValid = false; }
+        if (!form.laporan.trim()) { newErrors.laporan = "Mohon isi detail laporan Anda"; isValid = false; }
+        else if (form.laporan.trim().length < 20) { newErrors.laporan = "Laporan minimal 20 karakter"; isValid = false; }
         setErrors(newErrors);
         return isValid;
     };
@@ -148,95 +117,43 @@ export default function Aspirasi() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitError("");
-
-        // ✅ CHECK: Rate limiting (anti-spam)
         if (!canSubmit('aspirasi')) {
             const remaining = getRemainingTime('aspirasi');
             setIsOnCooldown(true);
             setRemainingTime(remaining);
-            setSubmitError(`⏱️ Mohon tunggu ${remaining} detik sebelum mengirim lagi untuk mencegah spam.`);
+            setSubmitError(`⏱️ Mohon tunggu ${remaining} detik sebelum mengirim lagi.`);
             return;
         }
-
-        // ✅ Validate form before submission
-        if (!validateForm()) {
-            return;
-        }
-
-        // NIK is required
+        if (!validateForm()) return;
         if (!form.nik || form.nik.length !== 16) {
             setErrors({ ...errors, nik: "NIK wajib diisi 16 digit" });
             return;
         }
-
-        // Set loading state
         setIsSubmitting(true);
-
         try {
-            // Validate NIK against penduduk table & fetch data for cross-validation
             const nikExists = await checkNikAvailability(form.nik);
-            if (!nikExists) {
-                setSubmitError("Validasi Gagal: NIK Anda tidak terdaftar sebagai warga.");
-                return;
-            }
-
-            // Step 2: CROSS-VALIDATE nama and dusun with penduduk database
+            if (!nikExists) { setSubmitError("Validasi Gagal: NIK Anda tidak terdaftar."); return; }
             const { data: pendudukData, error: pendudukError } = await (await import('@/lib/supabase')).supabase
-                .from('penduduk')
-                .select('nama, dusun')
-                .eq('nik', form.nik)
-                .single();
-
-            if (pendudukError || !pendudukData) {
-                setSubmitError("Gagal memvalidasi data. Silakan coba lagi.");
-                return;
-            }
-
-            // Validate NAMA match (case-insensitive, trim whitespace)
+                .from('penduduk').select('nama, dusun').eq('nik', form.nik).single();
+            if (pendudukError || !pendudukData) { setSubmitError("Gagal memvalidasi data."); return; }
             const submittedNama = form.nama.trim().toLowerCase();
             const dbNama = pendudukData.nama.trim().toLowerCase();
-
-            if (submittedNama !== dbNama) {
-                setSubmitError(`Validasi Gagal: Nama yang Anda masukkan (${form.nama}) tidak sesuai dengan data penduduk (${pendudukData.nama}). Mohon isi sesuai KTP.`);
-                return;
-            }
-
-            // Validate DUSUN match
-            if (form.dusun !== pendudukData.dusun) {
-                setSubmitError(`Validasi Gagal: Dusun yang Anda pilih (${form.dusun}) tidak sesuai dengan data penduduk (${pendudukData.dusun}). Mohon pilih dusun yang benar.`);
-                return;
-            }
-
-            // All validations passed - proceed with submission
+            if (submittedNama !== dbNama) { setSubmitError(`Nama tidak sesuai data penduduk (${pendudukData.nama}).`); return; }
+            if (form.dusun !== pendudukData.dusun) { setSubmitError(`Dusun tidak sesuai (${pendudukData.dusun}).`); return; }
             const newTicketId = await addAspirasi(form);
-
-            // ✅ RECORD: Submit timestamp untuk rate limiting
             recordSubmit('aspirasi');
-
-            // Update local history
             const updatedHistory = [newTicketId, ...myHistory];
             setMyHistory(updatedHistory);
             localStorage.setItem("my_aspirasi_history", JSON.stringify(updatedHistory));
-
-            // Tampilkan success card instead of alert
             setSuccessTicketId(newTicketId);
             setShowSuccessCard(true);
-
-            // Clear form
             setForm({ nama: "", nik: "", dusun: "Benteng", kategori: "Infrastruktur", laporan: "", image: "", is_anonymous: false });
             setImagePreview(null);
             setTicketId(newTicketId);
-
-            // Auto switch ke track tab setelah 5 detik
-            setTimeout(() => {
-                setShowSuccessCard(false);
-                setActiveTab("track");
-                handleSearch(newTicketId);
-            }, 5000);
+            setTimeout(() => { setShowSuccessCard(false); setActiveTab("track"); handleSearch(newTicketId); }, 5000);
         } catch (error: any) {
-            setSubmitError(error.message || "Terjadi kesalahan saat mengirim aspirasi.");
+            setSubmitError(error.message || "Terjadi kesalahan.");
         } finally {
-            // Selalu set loading ke false, baik sukses atau error
             setIsSubmitting(false);
         }
     };
@@ -245,540 +162,655 @@ export default function Aspirasi() {
         const result = getAspirasiByTicket(idToSearch);
         if (result) {
             setSearchResult(result);
-            setTicketId(idToSearch); // Ensure input matches if called via history click
+            setTicketId(idToSearch);
             setActiveTab("track");
-            setSubmitError(""); // Clear error saat sukses
+            setSubmitError("");
         } else {
             setSearchResult(null);
-            setSubmitError("ID Tiket tidak ditemukan. Periksa kembali ID yang Anda masukkan.");
+            setSubmitError("ID Tiket tidak ditemukan.");
+        }
+    };
+
+    const getStatusStyle = (status: string) => {
+        switch (status) {
+            case "Selesai": return { bg: 'rgba(16, 185, 129, 0.15)', color: '#10B981', border: 'rgba(16, 185, 129, 0.4)' };
+            case "Diproses": return { bg: 'rgba(14, 165, 233, 0.15)', color: '#0EA5E9', border: 'rgba(14, 165, 233, 0.4)' };
+            case "Rejected": return { bg: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', border: 'rgba(239, 68, 68, 0.4)' };
+            default: return { bg: 'rgba(245, 158, 11, 0.15)', color: '#F59E0B', border: 'rgba(245, 158, 11, 0.4)' };
         }
     };
 
     return (
-        <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto">
-                <div className="text-center mb-12">
-                    <h1 className="text-4xl md:text-5xl font-bold text-[var(--text-primary)] mb-4 text-glow">Layanan Aspirasi</h1>
-                    <p className="text-[var(--text-secondary)] text-lg">Sampaikan aspirasi, keluhan, dan saran Anda untuk kemajuan Desa Cenrana.</p>
-                </div>
+        <div className="min-h-screen pt-24 pb-20 px-4 relative overflow-hidden" style={{ backgroundColor: 'var(--bg-primary)' }}>
+            {/* Animated Background Blobs */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-10 left-10 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute top-60 right-10 w-[500px] h-[500px] bg-teal-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+                <div className="absolute bottom-20 left-1/4 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+                <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }}></div>
+            </div>
 
-                <div className="flex justify-center mb-8">
-                    <div className="glass-panel p-1 rounded-2xl inline-flex">
-                        <button
-                            onClick={() => setActiveTab("form")}
-                            className={`px-6 py-3 rounded-xl font-bold transition-all flex items-center ${activeTab === "form"
-                                ? "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-lg"
-                                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                                }`}
-                        >
-                            <Send className="w-4 h-4 mr-2" />
-                            Buat Laporan
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("track")}
-                            className={`px-6 py-3 rounded-xl font-bold transition-all flex items-center ${activeTab === "track"
-                                ? "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-lg"
-                                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                                }`}
-                        >
-                            <Search className="w-4 h-4 mr-2" />
-                            Lacak Status
-                        </button>
-                        {isEditMode && (
-                            <button
-                                onClick={() => setActiveTab("admin")}
-                                className={`px-6 py-3 rounded-xl font-bold transition-all flex items-center ${activeTab === "admin"
-                                    ? "bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-lg"
-                                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            <div className="max-w-5xl mx-auto relative z-10">
+                {/* Animated Back Button */}
+                <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="mb-8"
+                >
+                    <Link href="/" className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl font-semibold text-sm transition-all duration-300 bg-[var(--bg-card)]/80 backdrop-blur-xl border border-[var(--border-color)] text-[var(--text-primary)] hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20 hover:bg-emerald-500/10">
+                        <ArrowLeft className="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1" />
+                        Kembali
+                    </Link>
+                </motion.div>
+
+                {/* Premium Hero Header */}
+                <motion.div
+                    className="text-center mb-10"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                >
+                    <motion.div
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full mb-5 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/30"
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ type: "spring", stiffness: 400 }}
+                    >
+                        <MessageCircle className="w-4 h-4 text-emerald-400" />
+                        <span className="text-sm font-bold text-emerald-400">Layanan Aspirasi</span>
+                        <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+                    </motion.div>
+                    <h1 className="text-4xl md:text-5xl font-black mb-4 text-[var(--text-primary)]">
+                        Layanan{" "}
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">
+                            Aspirasi
+                        </span>
+                    </h1>
+                    <p className="text-lg max-w-2xl mx-auto text-[var(--text-secondary)]">
+                        Sampaikan aspirasi, keluhan, dan saran Anda untuk kemajuan Desa Cenrana
+                    </p>
+                </motion.div>
+
+                {/* Premium Tab Buttons */}
+                <motion.div
+                    className="flex justify-center mb-10"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                    <div className="p-1.5 rounded-2xl bg-[var(--bg-card)]/80 backdrop-blur-xl border border-[var(--border-color)] inline-flex shadow-lg">
+                        {[
+                            { id: "form", label: "Buat Laporan", icon: Send, gradient: "from-emerald-500 via-emerald-400 to-teal-400" },
+                            { id: "track", label: "Lacak Status", icon: Search, gradient: "from-blue-500 via-blue-400 to-cyan-400" },
+                        ].map((tab) => (
+                            <motion.button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id as any)}
+                                className={`px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 relative overflow-hidden ${activeTab === tab.id ? 'text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                                     }`}
+                                whileHover={{ scale: activeTab === tab.id ? 1 : 1.02 }}
+                                whileTap={{ scale: 0.98 }}
                             >
-                                <Shield className="w-4 h-4 mr-2" />
-                                Admin Panel
-                            </button>
+                                {activeTab === tab.id && (
+                                    <motion.div
+                                        layoutId="activeTab"
+                                        className={`absolute inset-0 bg-gradient-to-r ${tab.gradient} rounded-xl`}
+                                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                    />
+                                )}
+                                <tab.icon className="w-4 h-4 relative z-10" />
+                                <span className="relative z-10">{tab.label}</span>
+                            </motion.button>
+                        ))}
+                        {isEditMode && (
+                            <motion.button
+                                onClick={() => setActiveTab("admin")}
+                                className={`px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 relative overflow-hidden ${activeTab === "admin" ? 'text-white' : 'text-[var(--text-secondary)]'
+                                    }`}
+                                whileHover={{ scale: activeTab === "admin" ? 1 : 1.02 }}
+                            >
+                                {activeTab === "admin" && (
+                                    <motion.div
+                                        layoutId="activeTab"
+                                        className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl"
+                                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                    />
+                                )}
+                                <Shield className="w-4 h-4 relative z-10" />
+                                <span className="relative z-10">Admin</span>
+                            </motion.button>
                         )}
                     </div>
-                </div>
+                </motion.div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Main Content Area */}
-                    <div className="md:col-span-2">
-                        <div className="glass-panel rounded-2xl md:rounded-[2rem] p-6 md:p-8 lg:p-10 relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+                    <motion.div
+                        className="lg:col-span-2"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.3 }}
+                    >
+                        <div className="relative">
+                            {/* Glowing Border Effect */}
+                            <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-3xl opacity-20 blur-sm"></div>
 
-                            {activeTab === "form" ? (
-                                <form onSubmit={handleSubmit} noValidate className="space-y-6">{/* noValidate: disable browser validation untuk test */}
-                                    {submitError && (
-                                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-start">
-                                            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 mr-3 flex-shrink-0" />
-                                            <p className="text-sm text-red-800 dark:text-red-200 leading-relaxed font-medium">{submitError}</p>
-                                        </div>
-                                    )}
+                            <div className="relative rounded-3xl bg-[var(--bg-card)]/90 backdrop-blur-xl border border-[var(--border-color)] shadow-2xl overflow-hidden">
+                                {/* Gradient Top Bar */}
+                                <div className="h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500"></div>
 
-                                    {/* Cooldown Banner - Anti Spam */}
-                                    {isOnCooldown && remainingTime > 0 && (
-                                        <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 dark:border-yellow-600 rounded-xl p-4 mb-4 animate-pulse-slow">
-                                            <div className="flex items-start gap-3">
-                                                <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 animate-spin" />
-                                                <div className="flex-1">
-                                                    <h3 className="font-bold text-yellow-800 dark:text-yellow-300 mb-1 text-sm">
-                                                        ⏱️ Mohon Tunggu
-                                                    </h3>
-                                                    <p className="text-xs text-yellow-700 dark:text-yellow-400 mb-2">
-                                                        Anda bisa mengirim laporan lagi dalam <strong>{remainingTime} detik</strong>
-                                                    </p>
-                                                    <div className="bg-yellow-200 dark:bg-yellow-800 rounded-full h-2 overflow-hidden">
-                                                        <div
-                                                            className="bg-yellow-600 dark:bg-yellow-500 h-full transition-all duration-1000"
-                                                            style={{ width: `${(remainingTime / 60) * 100}%` }}
+                                {/* Decorative Corner Elements */}
+                                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-emerald-500/10 to-transparent rounded-tr-3xl"></div>
+                                <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-teal-500/10 to-transparent rounded-bl-3xl"></div>
+
+                                <div className="relative p-6 md:p-8">
+                                    {activeTab === "form" ? (
+                                        <form onSubmit={handleSubmit} noValidate className="space-y-6">
+                                            {/* Error Alert */}
+                                            {submitError && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                    className="p-4 rounded-xl flex items-start gap-3 bg-red-500/10 border border-red-500/30"
+                                                >
+                                                    <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                                                        <AlertCircle className="w-5 h-5 text-red-400" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-red-300">Terjadi Kesalahan</p>
+                                                        <p className="text-sm text-red-200/70">{submitError}</p>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+
+                                            {/* Cooldown Warning */}
+                                            {isOnCooldown && remainingTime > 0 && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, scale: 0.95 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    className="p-5 rounded-xl bg-amber-500/10 border-2 border-amber-500/40"
+                                                >
+                                                    <div className="flex items-start gap-4">
+                                                        <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                                                            <Clock className="w-6 h-6 text-amber-400 animate-spin" style={{ animationDuration: '3s' }} />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <h3 className="font-bold text-amber-300 mb-1">⏱️ Mohon Tunggu</h3>
+                                                            <p className="text-sm text-amber-200/70 mb-3">Kirim lagi dalam <strong className="text-amber-300">{remainingTime} detik</strong></p>
+                                                            <div className="h-2 rounded-full overflow-hidden bg-amber-500/20">
+                                                                <motion.div
+                                                                    className="h-full bg-gradient-to-r from-amber-500 to-orange-500"
+                                                                    initial={{ width: '100%' }}
+                                                                    animate={{ width: `${(remainingTime / 60) * 100}%` }}
+                                                                    transition={{ duration: 0.5 }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+
+                                            {/* Success Card */}
+                                            {showSuccessCard && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, scale: 0.9, y: -20 }}
+                                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                    className="p-6 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-teal-500/10 to-cyan-500/10 border-2 border-emerald-500/40 relative overflow-hidden"
+                                                >
+                                                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-transparent animate-pulse"></div>
+                                                    <div className="relative flex items-start gap-4">
+                                                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 animate-bounce" style={{ animationDuration: '2s' }}>
+                                                            <CheckCircle className="w-7 h-7 text-white" />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <h3 className="text-lg font-bold text-emerald-300 mb-1">🎉 Berhasil Dikirim!</h3>
+                                                            <p className="text-sm text-emerald-200/70 mb-3">Laporan Anda telah kami terima</p>
+                                                            <div className="p-4 rounded-xl bg-[var(--bg-panel)] border border-emerald-500/30 mb-3">
+                                                                <p className="text-xs text-[var(--text-secondary)] mb-1">ID Tiket Anda:</p>
+                                                                <div className="flex items-center gap-3">
+                                                                    <p className="text-2xl font-black text-emerald-400 tracking-wider flex-1">{successTicketId}</p>
+                                                                    <motion.button
+                                                                        type="button"
+                                                                        onClick={() => { navigator.clipboard.writeText(successTicketId); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+                                                                        className="px-4 py-2 rounded-lg text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30"
+                                                                        whileHover={{ scale: 1.05 }}
+                                                                        whileTap={{ scale: 0.95 }}
+                                                                    >
+                                                                        {copied ? '✓ Copied!' : '📋 Copy'}
+                                                                    </motion.button>
+                                                                </div>
+                                                            </div>
+                                                            <p className="text-xs text-emerald-400 flex items-center gap-1">
+                                                                <Zap className="w-3 h-3" />
+                                                                Auto redirect dalam 5 detik...
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+
+                                            {/* Form Fields */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                                {/* Nama Field */}
+                                                <div className="group">
+                                                    <label className="flex items-center gap-2 text-sm font-bold text-[var(--text-secondary)] mb-2">
+                                                        <User className="w-4 h-4 text-emerald-400" />
+                                                        Nama Lengkap
+                                                    </label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type="text"
+                                                            required
+                                                            value={form.nama}
+                                                            onChange={(e) => { setForm({ ...form, nama: e.target.value }); if (errors.nama) setErrors({ ...errors, nama: "" }); }}
+                                                            className="w-full px-4 py-3.5 rounded-xl outline-none transition-all duration-300 bg-[var(--bg-panel)] border-2 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                                                            style={{ borderColor: errors.nama ? '#EF4444' : 'var(--border-color)' }}
+                                                            placeholder="Sesuai KTP"
                                                         />
                                                     </div>
+                                                    {errors.nama && (
+                                                        <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-sm mt-2 text-red-400 flex items-center gap-1">
+                                                            <AlertCircle className="w-4 h-4" />{errors.nama}
+                                                        </motion.p>
+                                                    )}
+                                                </div>
+
+                                                {/* NIK Field */}
+                                                <div className="group">
+                                                    <label className="flex items-center gap-2 text-sm font-bold text-[var(--text-secondary)] mb-2">
+                                                        <Hash className="w-4 h-4 text-blue-400" />
+                                                        NIK <span className="text-red-400">*</span>
+                                                    </label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type="text"
+                                                            required
+                                                            value={form.nik}
+                                                            maxLength={16}
+                                                            onChange={(e) => { handleNikChange(e); if (errors.nik) setErrors({ ...errors, nik: "" }); }}
+                                                            className="w-full px-4 py-3.5 rounded-xl outline-none transition-all duration-300 bg-[var(--bg-panel)] border-2 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 font-mono"
+                                                            style={{ borderColor: errors.nik ? '#EF4444' : 'var(--border-color)' }}
+                                                            placeholder="16 digit NIK (wajib)"
+                                                        />
+                                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono text-[var(--text-secondary)]">
+                                                            {form.nik.length}/16
+                                                        </div>
+                                                    </div>
+                                                    {errors.nik && (
+                                                        <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-sm mt-2 text-red-400 flex items-center gap-1">
+                                                            <AlertCircle className="w-4 h-4" />{errors.nik}
+                                                        </motion.p>
+                                                    )}
                                                 </div>
                                             </div>
-                                        </div>
-                                    )}
 
-                                    {/* Success Card - Compact & Responsive */}
-                                    {showSuccessCard && (
-                                        <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-500 dark:border-green-600 rounded-xl p-4 md:p-6">
-                                            <div className="flex items-start gap-3 md:gap-4">
-                                                {/* Icon Success - Lebih kecil */}
-                                                <div className="flex-shrink-0 w-12 h-12 md:w-14 md:h-14 bg-green-500 rounded-full flex items-center justify-center">
-                                                    <CheckCircle className="w-7 h-7 md:w-8 md:h-8 text-white" />
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                                {/* Dusun Field */}
+                                                <div className="group">
+                                                    <label className="flex items-center gap-2 text-sm font-bold text-[var(--text-secondary)] mb-2">
+                                                        <MapPin className="w-4 h-4 text-purple-400" />
+                                                        Dusun
+                                                    </label>
+                                                    <select
+                                                        value={form.dusun}
+                                                        onChange={(e) => setForm({ ...form, dusun: e.target.value })}
+                                                        className="w-full px-4 py-3.5 rounded-xl outline-none cursor-pointer transition-all duration-300 bg-[var(--bg-panel)] border-2 border-[var(--border-color)] text-[var(--text-primary)] focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                                                    >
+                                                        <option value="Benteng">🏘️ Benteng</option>
+                                                        <option value="Kajuara">🏘️ Kajuara</option>
+                                                        <option value="Tanatengnga">🏘️ Tanatengnga</option>
+                                                        <option value="Panagi">🏘️ Panagi</option>
+                                                        <option value="Holiang">🏘️ Holiang</option>
+                                                    </select>
                                                 </div>
 
-                                                {/* Content - Compact */}
-                                                <div className="flex-1 min-w-0">
-                                                    <h3 className="text-base md:text-lg font-bold text-green-800 dark:text-green-300 mb-1">
-                                                        Berhasil Dikirim!
-                                                    </h3>
-                                                    <p className="text-xs md:text-sm text-green-700 dark:text-green-400 mb-3">
-                                                        Laporan Anda telah kami terima
-                                                    </p>
+                                                {/* Kategori Field */}
+                                                <div className="group">
+                                                    <label className="flex items-center gap-2 text-sm font-bold text-[var(--text-secondary)] mb-2">
+                                                        <Tag className="w-4 h-4 text-amber-400" />
+                                                        Kategori Laporan
+                                                    </label>
+                                                    <select
+                                                        value={form.kategori}
+                                                        onChange={(e) => setForm({ ...form, kategori: e.target.value })}
+                                                        className="w-full px-4 py-3.5 rounded-xl outline-none cursor-pointer transition-all duration-300 bg-[var(--bg-panel)] border-2 border-[var(--border-color)] text-[var(--text-primary)] focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+                                                    >
+                                                        <option value="Infrastruktur">🏗️ Infrastruktur</option>
+                                                        <option value="Pelayanan Publik">📋 Pelayanan Publik</option>
+                                                        <option value="Kesehatan">🏥 Kesehatan</option>
+                                                        <option value="Pendidikan">📚 Pendidikan</option>
+                                                        <option value="Keamanan & Ketertiban">🚨 Keamanan & Ketertiban</option>
+                                                        <option value="Ekonomi & UMKM">💼 Ekonomi & UMKM</option>
+                                                        <option value="Sosial & Budaya">🎭 Sosial & Budaya</option>
+                                                        <option value="Lingkungan">🌳 Lingkungan</option>
+                                                        <option value="Lainnya">📌 Lainnya</option>
+                                                    </select>
+                                                </div>
+                                            </div>
 
-                                                    {/* ID Tiket - Inline & Compact */}
-                                                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mb-3 border border-green-300 dark:border-green-700">
-                                                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                                                            ID Tiket:
-                                                        </p>
+                                            {/* Anonymous Toggle */}
+                                            <motion.div
+                                                className="p-5 rounded-xl cursor-pointer transition-all duration-300 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/15 hover:border-blue-500/50"
+                                                onClick={() => setForm({ ...form, is_anonymous: !form.is_anonymous })}
+                                                whileHover={{ scale: 1.01 }}
+                                                whileTap={{ scale: 0.99 }}
+                                            >
+                                                <label className="flex items-center gap-4 cursor-pointer">
+                                                    <div className={`w-12 h-7 rounded-full relative transition-colors duration-300 ${form.is_anonymous ? 'bg-gradient-to-r from-blue-500 to-cyan-500' : 'bg-[var(--bg-panel)]'}`}>
+                                                        <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-lg transition-all duration-300 ${form.is_anonymous ? 'left-6' : 'left-1'}`}></div>
+                                                    </div>
+                                                    <div className="flex-1">
                                                         <div className="flex items-center gap-2">
-                                                            <p className="text-lg md:text-xl font-black text-green-600 dark:text-green-400 tracking-wider flex-1">
-                                                                {successTicketId}
-                                                            </p>
-                                                            {/* Copy Button - No Alert! */}
+                                                            <Shield className="w-5 h-5 text-blue-400" />
+                                                            <span className="font-bold text-[var(--text-primary)]">Rahasiakan Identitas Saya</span>
+                                                        </div>
+                                                        <p className="mt-1 text-xs text-[var(--text-secondary)]">Identitas tetap tersimpan untuk validasi, namun tidak ditampilkan kepada admin.</p>
+                                                    </div>
+                                                </label>
+                                            </motion.div>
+
+                                            {/* Laporan Textarea */}
+                                            <div className="group">
+                                                <label className="flex items-center gap-2 text-sm font-bold text-[var(--text-secondary)] mb-2">
+                                                    <FileText className="w-4 h-4 text-teal-400" />
+                                                    Isi Laporan
+                                                </label>
+                                                <textarea
+                                                    required
+                                                    rows={5}
+                                                    value={form.laporan}
+                                                    onChange={(e) => { setForm({ ...form, laporan: e.target.value }); if (errors.laporan) setErrors({ ...errors, laporan: "" }); }}
+                                                    className="w-full px-4 py-3.5 rounded-xl outline-none transition-all duration-300 resize-none bg-[var(--bg-panel)] border-2 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+                                                    style={{ borderColor: errors.laporan ? '#EF4444' : 'var(--border-color)' }}
+                                                    placeholder="Jelaskan detail laporan Anda secara rinci..."
+                                                />
+                                                <div className="flex justify-between items-center mt-2">
+                                                    {errors.laporan ? (
+                                                        <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-sm text-red-400 flex items-center gap-1">
+                                                            <AlertCircle className="w-4 h-4" />{errors.laporan}
+                                                        </motion.p>
+                                                    ) : <span />}
+                                                    <span className="text-xs text-[var(--text-secondary)]">{form.laporan.length} karakter</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Image Upload */}
+                                            <div>
+                                                <label className="flex items-center gap-2 text-sm font-bold text-[var(--text-secondary)] mb-2">
+                                                    <ImageIcon className="w-4 h-4 text-pink-400" />
+                                                    Upload Bukti Foto (Opsional)
+                                                </label>
+                                                <div
+                                                    className={`relative border-2 border-dashed rounded-2xl p-6 transition-all duration-300 text-center ${imagePreview ? 'border-emerald-500 bg-emerald-500/5' : 'border-[var(--border-color)] hover:border-emerald-500/50 hover:bg-emerald-500/5'}`}
+                                                >
+                                                    <input
+                                                        type="file"
+                                                        ref={fileInputRef}
+                                                        accept="image/*"
+                                                        onChange={handleImageUpload}
+                                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                                    />
+                                                    {imagePreview ? (
+                                                        <div className="relative w-full h-48 rounded-xl overflow-hidden group">
+                                                            <Image src={imagePreview} alt="Preview" fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
+                                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                                             <button
                                                                 type="button"
-                                                                onClick={() => {
-                                                                    navigator.clipboard.writeText(successTicketId);
-                                                                    setCopied(true);
-                                                                    setTimeout(() => setCopied(false), 2000);
-                                                                }}
-                                                                className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-semibold transition-all flex-shrink-0"
+                                                                onClick={(e) => { e.preventDefault(); removeImage(); }}
+                                                                className="absolute top-3 right-3 p-2 bg-red-500 text-white rounded-full z-20 hover:bg-red-600 transition-all shadow-lg hover:scale-110"
                                                             >
-                                                                {copied ? '✓ Copied' : '📋 Copy'}
+                                                                <X className="w-4 h-4" />
                                                             </button>
                                                         </div>
-                                                    </div>
-
-                                                    {/* Instruksi - Compact */}
-                                                    <p className="text-xs text-green-700 dark:text-green-400">
-                                                        💡 Auto redirect ke tracking dalam 5 detik
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Nama Lengkap</label>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={form.nama}
-                                                onChange={(e) => {
-                                                    setForm({ ...form, nama: e.target.value });
-                                                    // Clear error saat user mengetik
-                                                    if (errors.nama) setErrors({ ...errors, nama: "" });
-                                                }}
-                                                className={`w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border text-[var(--text-primary)] focus:ring-1 outline-none transition-all ${errors.nama
-                                                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                                                    : "border-[var(--border-color)] focus:border-blue-500 focus:ring-blue-500"
-                                                    }`}
-                                                placeholder="Sesuai KTP"
-                                            />
-                                            {errors.nama && (
-                                                <p className="text-red-500 text-sm mt-1.5 flex items-start">
-                                                    <AlertCircle className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
-                                                    {errors.nama}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">NIK <span className="text-red-500">*</span></label>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={form.nik}
-                                                onChange={(e) => {
-                                                    handleNikChange(e);
-                                                    // Clear error saat user mengetik
-                                                    if (errors.nik) setErrors({ ...errors, nik: "" });
-                                                }}
-                                                maxLength={16}
-                                                className={`w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border text-[var(--text-primary)] focus:ring-1 outline-none transition-all ${errors.nik
-                                                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                                                    : "border-[var(--border-color)] focus:border-blue-500 focus:ring-blue-500"
-                                                    }`}
-                                                placeholder="16 digit NIK (wajib)"
-                                            />
-                                            {errors.nik && (
-                                                <p className="text-red-500 text-sm mt-1.5 flex items-start">
-                                                    <AlertCircle className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
-                                                    {errors.nik}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Dusun</label>
-                                            <select
-                                                value={form.dusun}
-                                                onChange={(e) => setForm({ ...form, dusun: e.target.value })}
-                                                className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-[var(--bg-panel)] to-[var(--bg-card)] border-2 border-[var(--border-color)] text-[var(--text-primary)] font-medium text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm hover:shadow-md cursor-pointer"
-                                            >
-                                                <option value="Benteng" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Benteng</option>
-                                                <option value="Kajuara" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Kajuara</option>
-                                                <option value="Tanatengnga" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Tanatengnga</option>
-                                                <option value="Panagi" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Panagi</option>
-                                                <option value="Holiang" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Holiang</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Kategori Laporan</label>
-                                            <select
-                                                value={form.kategori}
-                                                onChange={(e) => setForm({ ...form, kategori: e.target.value })}
-                                                className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-[var(--bg-panel)] to-[var(--bg-card)] border-2 border-[var(--border-color)] text-[var(--text-primary)] font-medium text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm hover:shadow-md cursor-pointer"
-                                            >
-                                                <option value="Infrastruktur" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">🏗️ Infrastruktur</option>
-                                                <option value="Pelayanan Publik" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">📋 Pelayanan Publik</option>
-                                                <option value="Kesehatan" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">🏥 Kesehatan</option>
-                                                <option value="Pendidikan" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">📚 Pendidikan</option>
-                                                <option value="Keamanan & Ketertiban" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">🚨 Keamanan & Ketertiban</option>
-                                                <option value="Ekonomi & UMKM" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">💼 Ekonomi & UMKM</option>
-                                                <option value="Sosial & Budaya" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">🎭 Sosial & Budaya</option>
-                                                <option value="Lingkungan" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">🌳 Lingkungan</option>
-                                                <option value="Lainnya" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">📌 Lainnya</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="flex items-center space-x-3 cursor-pointer group mb-6 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
-                                            <input
-                                                type="checkbox"
-                                                checked={form.is_anonymous}
-                                                onChange={(e) => setForm({ ...form, is_anonymous: e.target.checked })}
-                                                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                                            />
-                                            <div className="flex-1">
-                                                <div className="flex items-center">
-                                                    <Shield className="w-5 h-5 text-blue-600 mr-2" />
-                                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-200 group-hover:text-blue-600 transition-colors">
-                                                        Rahasiakan Identitas Saya (Laporan Anonim)
-                                                    </span>
-                                                </div>
-                                                <p className="mt-1 ml-7 text-xs text-gray-500 dark:text-gray-400">
-                                                    Identitas Anda tetap tersimpan untuk validasi, namun tidak akan ditampilkan kepada admin.
-                                                </p>
-                                            </div>
-                                        </label>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Isi Laporan</label>
-                                        <textarea
-                                            required
-                                            rows={5}
-                                            value={form.laporan}
-                                            onChange={(e) => {
-                                                setForm({ ...form, laporan: e.target.value });
-                                                // Clear error saat user mengetik
-                                                if (errors.laporan) setErrors({ ...errors, laporan: "" });
-                                            }}
-                                            className={`w-full px-4 py-3 rounded-xl bg-[var(--bg-card)] border text-[var(--text-primary)] focus:ring-1 outline-none transition-all resize-none ${errors.laporan
-                                                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                                                : "border-[var(--border-color)] focus:border-blue-500 focus:ring-blue-500"
-                                                }`}
-                                            placeholder="Jelaskan detail laporan Anda secara rinci..."
-                                        />
-                                        {errors.laporan && (
-                                            <p className="text-red-500 text-sm mt-1.5 flex items-start">
-                                                <AlertCircle className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
-                                                {errors.laporan}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {/* Image Upload Dropzone */}
-                                    <div>
-                                        <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Upload Bukti Foto (Opsional)</label>
-                                        <div
-                                            className={`relative border-2 border-dashed rounded-2xl p-6 transition-all text-center ${imagePreview ? "border-blue-500 bg-blue-500/5" : "border-[var(--border-color)] hover:border-blue-500 hover:bg-[var(--bg-card)]"
-                                                }`}
-                                        >
-                                            <input
-                                                type="file"
-                                                ref={fileInputRef}
-                                                accept="image/*"
-                                                onChange={handleImageUpload}
-                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                            />
-
-                                            {imagePreview ? (
-                                                <div className="relative w-full h-48 rounded-xl overflow-hidden">
-                                                    <Image src={imagePreview} alt="Preview" fill className="object-cover" />
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            removeImage();
-                                                        }}
-                                                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full z-20 hover:bg-red-600 transition-colors"
-                                                    >
-                                                        <X className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div className="flex flex-col items-center justify-center py-4">
-                                                    <div className="p-3 bg-[var(--bg-panel)] rounded-full mb-3">
-                                                        <ImageIcon className="w-6 h-6 text-[var(--text-secondary)]" />
-                                                    </div>
-                                                    <p className="text-sm font-bold text-[var(--text-primary)]">Klik atau tarik foto ke sini</p>
-                                                    <p className="text-xs text-[var(--text-secondary)] mt-1">Format: JPG, PNG (Max 5MB)</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        type="submit"
-                                        disabled={!!nikError || isSubmitting || isOnCooldown}
-                                        className={`w-full py-4 rounded-xl font-bold shadow-lg transition-all flex items-center justify-center ${isOnCooldown
-                                                ? "bg-yellow-500 cursor-not-allowed opacity-75 text-white"
-                                                : nikError || isSubmitting
-                                                    ? "bg-gray-500 cursor-not-allowed opacity-50 text-white"
-                                                    : "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-[1.02]"
-                                            }`}
-                                    >
-                                        {isOnCooldown ? (
-                                            <>
-                                                <Clock className="w-5 h-5 mr-2 animate-pulse" />
-                                                Tunggu {remainingTime}s
-                                            </>
-                                        ) : isSubmitting ? (
-                                            <>
-                                                <Clock className="w-5 h-5 mr-2 animate-spin" />
-                                                Mengirim...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Send className="w-5 h-5 mr-2" />
-                                                Kirim Laporan
-                                            </>
-                                        )}
-                                    </button>
-                                </form>
-                            ) : (
-                                <div className="space-y-8">
-                                    <div className="relative">
-                                        <input
-                                            type="text"
-                                            value={ticketId}
-                                            onChange={(e) => setTicketId(e.target.value)}
-                                            className="w-full pl-12 pr-4 py-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all text-lg font-mono"
-                                            placeholder="Masukkan ID Tiket (Contoh: ASP-001)"
-                                        />
-                                        <Search className="absolute left-4 top-4.5 text-[var(--text-secondary)] w-6 h-6" />
-                                        <button
-                                            onClick={() => handleSearch()}
-                                            className="absolute right-2 top-2 bottom-2 px-6 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-500 transition-all"
-                                        >
-                                            Cari
-                                        </button>
-                                    </div>
-
-                                    {searchResult ? (
-                                        <div className="animate-fade-in-up">
-                                            <div className="flex items-center justify-between mb-6">
-                                                <div>
-                                                    <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-1">Status Laporan</h3>
-                                                    <p className="text-[var(--text-secondary)] font-mono">{typeof searchResult.id === 'object' ? JSON.stringify(searchResult.id) : searchResult.id}</p>
-                                                </div>
-                                                <div className={`px-4 py-2 rounded-full font-bold flex items-center ${searchResult.status === "Selesai"
-                                                    ? "bg-emerald-500/20 text-emerald-500 border border-emerald-500/20"
-                                                    : searchResult.status === "Diproses"
-                                                        ? "bg-blue-500/20 text-blue-500 border border-blue-500/20"
-                                                        : searchResult.status === "Rejected"
-                                                            ? "bg-red-500/20 text-red-500 border border-red-500/20"
-                                                            : "bg-amber-500/20 text-amber-500 border border-amber-500/20"  // Pending
-                                                    }`}>
-                                                    {searchResult.status === "Selesai" && <CheckCircle className="w-4 h-4 mr-2" />}
-                                                    {searchResult.status === "Diproses" && <Clock className="w-4 h-4 mr-2 text-blue-500" />}
-                                                    {searchResult.status === "Rejected" && <AlertCircle className="w-4 h-4 mr-2" />}
-                                                    {searchResult.status === "Pending" && <Clock className="w-4 h-4 mr-2" />}
-                                                    {typeof searchResult.status === 'object' ? JSON.stringify(searchResult.status) : searchResult.status}
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-4">
-                                                <div className="bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border-color)]">
-                                                    <h4 className="text-sm font-bold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">Detail Laporan</h4>
-                                                    <p className="text-[var(--text-primary)] leading-relaxed break-words whitespace-pre-wrap">{typeof searchResult.laporan === 'object' ? JSON.stringify(searchResult.laporan) : searchResult.laporan}</p>
-                                                    <div className="mt-4 flex items-center text-sm text-[var(--text-secondary)]">
-                                                        <span className="mr-4">Oleh: {
-                                                            searchResult.is_anonymous
-                                                                ? <span className="flex items-center"><Shield className="w-4 h-4 mr-1 text-blue-500" /> <strong className="text-blue-500">Pelapor Anonim</strong></span>
-                                                                : (typeof searchResult.nama === 'object' ? JSON.stringify(searchResult.nama) : searchResult.nama)
-                                                        }</span>
-                                                        <span>{typeof searchResult.date === 'object' ? JSON.stringify(searchResult.date) : searchResult.date}</span>
-                                                    </div>
-                                                </div>
-
-                                                {searchResult.reply && (
-                                                    <div className="bg-blue-500/10 p-6 rounded-2xl border border-blue-500/20">
-                                                        <div className="flex items-center mb-3">
-                                                            <MessageSquare className="w-5 h-5 text-blue-500 mr-2" />
-                                                            <h4 className="text-sm font-bold text-blue-500 uppercase tracking-wider">Tanggapan Admin</h4>
+                                                    ) : (
+                                                        <div className="flex flex-col items-center justify-center py-4">
+                                                            <div className="p-4 rounded-full mb-3 bg-[var(--bg-panel)] border border-[var(--border-color)]">
+                                                                <Upload className="w-8 h-8 text-emerald-400" />
+                                                            </div>
+                                                            <p className="font-bold text-[var(--text-primary)]">Klik atau tarik foto ke sini</p>
+                                                            <p className="text-xs mt-1 text-[var(--text-secondary)]">Format: JPG, PNG (Max 5MB)</p>
                                                         </div>
-                                                        <p className="text-[var(--text-primary)] leading-relaxed">{typeof searchResult.reply === 'object' ? JSON.stringify(searchResult.reply) : searchResult.reply}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Submit Button */}
+                                            <motion.button
+                                                type="submit"
+                                                disabled={!!nikError || isSubmitting || isOnCooldown}
+                                                className="w-full py-4 rounded-xl font-bold text-white text-lg transition-all relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
+                                                style={{
+                                                    background: isOnCooldown ? 'linear-gradient(135deg, #F59E0B, #EF4444)' : 'linear-gradient(135deg, #10B981, #0EA5E9)',
+                                                    boxShadow: isOnCooldown || isSubmitting ? 'none' : '0 10px 30px rgba(16, 185, 129, 0.4)',
+                                                }}
+                                                whileHover={{ scale: isSubmitting || isOnCooldown ? 1 : 1.02 }}
+                                                whileTap={{ scale: isSubmitting || isOnCooldown ? 1 : 0.98 }}
+                                            >
+                                                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                                                <span className="relative z-10 flex items-center justify-center gap-2">
+                                                    {isOnCooldown ? (
+                                                        <><Clock className="w-5 h-5 animate-pulse" /> Tunggu {remainingTime}s</>
+                                                    ) : isSubmitting ? (
+                                                        <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> Mengirim...</>
+                                                    ) : (
+                                                        <><Send className="w-5 h-5" /> Kirim Laporan</>
+                                                    )}
+                                                </span>
+                                            </motion.button>
+                                        </form>
+                                    ) : activeTab === "track" ? (
+                                        <div className="space-y-6">
+                                            {/* Search Header */}
+                                            <div className="flex items-center gap-4 mb-6">
+                                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                                                    <Search className="w-6 h-6 text-white" />
+                                                </div>
+                                                <div>
+                                                    <h2 className="text-xl font-bold text-[var(--text-primary)]">Lacak Status Laporan</h2>
+                                                    <p className="text-sm text-[var(--text-secondary)]">Masukkan ID tiket Anda</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Search Input */}
+                                            <div className="relative group">
+                                                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
+                                                <div className="relative flex gap-3">
+                                                    <div className="flex-1 relative">
+                                                        <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)] group-focus-within:text-blue-400 transition-colors" />
+                                                        <input
+                                                            type="text"
+                                                            value={ticketId}
+                                                            onChange={(e) => setTicketId(e.target.value.toUpperCase())}
+                                                            className="w-full pl-12 pr-4 py-4 rounded-xl text-lg font-mono outline-none transition-all duration-300 bg-[var(--bg-panel)] border-2 border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                                                            placeholder="Contoh: ASP-001"
+                                                        />
                                                     </div>
+                                                    <motion.button
+                                                        onClick={() => handleSearch()}
+                                                        className="px-8 py-4 rounded-xl font-bold text-white bg-gradient-to-r from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/30 transition-all"
+                                                        whileHover={{ scale: 1.02, boxShadow: '0 10px 30px rgba(59, 130, 246, 0.5)' }}
+                                                        whileTap={{ scale: 0.98 }}
+                                                    >
+                                                        Cari
+                                                    </motion.button>
+                                                </div>
+                                            </div>
+
+                                            {/* Info: Link to dedicated track page */}
+                                            <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <Zap className="w-5 h-5 text-blue-400" />
+                                                    <span className="text-sm text-blue-300">Ingin tampilan lebih lengkap?</span>
+                                                </div>
+                                                <Link
+                                                    href="/aspirasi/track"
+                                                    className="px-4 py-2 rounded-lg font-semibold text-sm bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 transition-all"
+                                                >
+                                                    Buka Halaman Lacak →
+                                                </Link>
+                                            </div>
+
+                                            {/* Search Result */}
+                                            {searchResult ? (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    className="space-y-4"
+                                                >
+                                                    <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)]">
+                                                        <div>
+                                                            <p className="text-sm text-[var(--text-secondary)]">ID Tiket</p>
+                                                            <p className="text-xl font-bold text-[var(--text-primary)]">{searchResult.id}</p>
+                                                        </div>
+                                                        <div
+                                                            className="px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2"
+                                                            style={{ backgroundColor: getStatusStyle(searchResult.status).bg, color: getStatusStyle(searchResult.status).color, border: `1px solid ${getStatusStyle(searchResult.status).border}` }}
+                                                        >
+                                                            {searchResult.status === "Selesai" && <CheckCircle className="w-4 h-4" />}
+                                                            {searchResult.status === "Diproses" && <Clock className="w-4 h-4" />}
+                                                            {searchResult.status === "Pending" && <Clock className="w-4 h-4" />}
+                                                            {searchResult.status}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-5 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)]">
+                                                        <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">Detail Laporan</h4>
+                                                        <p className="text-[var(--text-primary)] leading-relaxed">{searchResult.laporan}</p>
+                                                        <div className="mt-4 pt-4 border-t border-[var(--border-color)] flex items-center gap-4 text-sm text-[var(--text-secondary)]">
+                                                            <span>{searchResult.is_anonymous ? '🛡️ Pelapor Anonim' : searchResult.nama}</span>
+                                                            <span>•</span>
+                                                            <span>{searchResult.date}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {searchResult.reply && (
+                                                        <div className="p-5 rounded-xl bg-blue-500/10 border border-blue-500/30">
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <MessageSquare className="w-5 h-5 text-blue-400" />
+                                                                <h4 className="font-bold text-blue-300">Tanggapan Admin</h4>
+                                                            </div>
+                                                            <p className="text-blue-100">{searchResult.reply}</p>
+                                                        </div>
+                                                    )}
+                                                </motion.div>
+                                            ) : (
+                                                <div className="text-center py-12">
+                                                    <div className="w-20 h-20 rounded-full bg-[var(--bg-panel)] flex items-center justify-center mx-auto mb-4">
+                                                        <Search className="w-10 h-10 text-[var(--text-secondary)]/30" />
+                                                    </div>
+                                                    <p className="text-[var(--text-secondary)]">Masukkan ID tiket untuk melihat status laporan Anda.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : activeTab === "admin" && isEditMode && (
+                                        <div className="space-y-6">
+                                            <div className="flex items-center justify-between">
+                                                <h3 className="text-2xl font-bold text-[var(--text-primary)]">Semua Aspirasi</h3>
+                                                <div className="px-4 py-2 rounded-full font-bold text-sm bg-emerald-500/20 text-emerald-400">
+                                                    Total: {aspirasi.length}
+                                                </div>
+                                            </div>
+                                            <div className="space-y-4">
+                                                {aspirasi.length === 0 ? (
+                                                    <div className="text-center py-12 text-[var(--text-secondary)]">Belum ada data aspirasi.</div>
+                                                ) : (
+                                                    aspirasi.map((item, index) => (
+                                                        <motion.div
+                                                            key={item.id}
+                                                            initial={{ opacity: 0, y: 20 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            transition={{ delay: index * 0.05 }}
+                                                            className="p-5 rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-emerald-500/30 transition-all group"
+                                                        >
+                                                            <div className="flex justify-between items-start mb-3">
+                                                                <div className="flex items-center gap-3">
+                                                                    <span className="font-mono font-bold text-emerald-400">{item.id}</span>
+                                                                    <span className="text-xs px-2 py-1 rounded-full font-bold" style={{ backgroundColor: getStatusStyle(item.status).bg, color: getStatusStyle(item.status).color }}>{item.status}</span>
+                                                                    {item.is_anonymous && (
+                                                                        <span className="flex items-center text-xs px-2 py-1 rounded-full font-bold bg-blue-500/20 text-blue-400">
+                                                                            <Shield className="w-3 h-3 mr-1" /> Anonim
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <span className="text-xs text-[var(--text-secondary)]">{item.date}</span>
+                                                            </div>
+                                                            <p className="mb-3 text-[var(--text-secondary)] line-clamp-2">{item.laporan}</p>
+                                                            <div className="flex justify-end">
+                                                                <button
+                                                                    onClick={() => { if (confirm("Hapus laporan ini?")) deleteAspirasi(item.id); }}
+                                                                    className="px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" /> Hapus
+                                                                </button>
+                                                            </div>
+                                                        </motion.div>
+                                                    ))
                                                 )}
                                             </div>
                                         </div>
-                                    ) : (
-                                        <div className="text-center py-12">
-                                            <Search className="w-16 h-16 text-[var(--text-secondary)] mx-auto mb-4 opacity-20" />
-                                            <p className="text-[var(--text-secondary)]">Masukkan ID tiket untuk melihat status laporan Anda.</p>
-                                        </div>
                                     )}
                                 </div>
-                            )}
-
-                            {activeTab === "admin" && isEditMode && (
-                                <div className="space-y-6 animate-fade-in">
-                                    <div className="flex items-center justify-between mb-6">
-                                        <h3 className="text-2xl font-bold text-[var(--text-primary)]">Semua Aspirasi Masuk</h3>
-                                        <div className="px-4 py-2 bg-blue-500/10 text-blue-500 rounded-full font-bold text-sm">
-                                            Total: {aspirasi.length} Laporan
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        {aspirasi.length === 0 ? (
-                                            <div className="text-center py-12 text-[var(--text-secondary)]">
-                                                Belum ada data aspirasi.
-                                            </div>
-                                        ) : (
-                                            aspirasi.map((item) => (
-                                                <div key={item.id} className="bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border-color)] relative group">
-                                                    <div className="flex justify-between items-start mb-4">
-                                                        <div>
-                                                            <div className="flex items-center space-x-3 mb-1">
-                                                                <span className="font-mono font-bold text-blue-500">{typeof item.id === 'object' ? JSON.stringify(item.id) : item.id}</span>
-                                                                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${item.status === "Selesai" || item.status === "Diproses" ? "bg-emerald-500/20 text-emerald-500" :
-                                                                    item.status === "Rejected" ? "bg-red-500/20 text-red-500" :
-                                                                        "bg-amber-500/20 text-amber-500"
-                                                                    }`}>
-                                                                    {typeof item.status === 'object' ? JSON.stringify(item.status) : item.status}
-                                                                </span>
-                                                                {item.is_anonymous && (
-                                                                    <span className="flex items-center text-xs px-2 py-0.5 rounded-full font-bold bg-blue-500/20 text-blue-500">
-                                                                        <Shield className="w-3 h-3 mr-1" /> Anonim
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                            <h4 className="font-bold text-[var(--text-primary)]">
-                                                                {item.is_anonymous
-                                                                    ? <span className="text-blue-500 flex items-center"><Shield className="w-4 h-4 mr-2" />Pelapor Anonim</span>
-                                                                    : <>{typeof item.nama === 'object' ? JSON.stringify(item.nama) : item.nama} <span className="text-[var(--text-secondary)] font-normal text-sm">({typeof item.dusun === 'object' ? JSON.stringify(item.dusun) : item.dusun})</span></>
-                                                                }
-                                                            </h4>
-                                                        </div>
-                                                        <div className="text-xs text-[var(--text-secondary)]">
-                                                            {typeof item.date === 'object' ? JSON.stringify(item.date) : item.date}
-                                                        </div>
-                                                    </div>
-
-                                                    <p className="text-[var(--text-secondary)] mb-4 line-clamp-3">{typeof item.laporan === 'object' ? JSON.stringify(item.laporan) : item.laporan}</p>
-
-                                                    <div className="flex justify-end space-x-2">
-                                                        <button
-                                                            onClick={() => {
-                                                                if (confirm("Hapus laporan ini permanen?")) {
-                                                                    deleteAspirasi(item.id);
-                                                                }
-                                                            }}
-                                                            className="px-4 py-2 bg-red-500/10 text-red-500 rounded-lg font-bold text-sm hover:bg-red-500 hover:text-white transition-colors flex items-center"
-                                                        >
-                                                            <Trash2 className="w-4 h-4 mr-2" />
-                                                            Hapus
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Sidebar: My History */}
-                    <div className="lg:col-span-1">
-                        <div className="glass-panel rounded-[2rem] p-6 h-full">
-                            <div className="flex items-center mb-6">
-                                <History className="w-5 h-5 text-[var(--text-primary)] mr-2" />
-                                <h3 className="text-xl font-bold text-[var(--text-primary)]">Riwayat Saya</h3>
                             </div>
-
-                            {myHistory.length === 0 ? (
-                                <div className="text-center py-8 text-[var(--text-secondary)] text-sm">
-                                    Belum ada riwayat laporan di perangkat ini.
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {myHistory.filter((value, index, self) => self.indexOf(value) === index).map((id) => {
-                                        const item = getAspirasiByTicket(id);
-                                        return (
-                                            <button
-                                                key={typeof id === 'string' || typeof id === 'number' ? id : JSON.stringify(id)}
-                                                onClick={() => handleSearch(typeof id === 'string' ? id : String(id))}
-                                                className="w-full text-left p-4 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--bg-panel)] border border-[var(--border-color)] transition-all group"
-                                            >
-                                                <div className="flex justify-between items-center mb-1">
-                                                    <span className="font-mono font-bold text-blue-500 text-sm">{typeof id === 'object' ? JSON.stringify(id) : id}</span>
-                                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${item?.status === "Selesai" || item?.status === "Diproses" ? "bg-emerald-500/20 text-emerald-500" :
-                                                        item?.status === "Rejected" ? "bg-red-500/20 text-red-500" :
-                                                            "bg-amber-500/20 text-amber-500"
-                                                        }`}>
-                                                        {typeof item?.status === 'object' ? JSON.stringify(item?.status) : (item?.status || "Unknown")}
-                                                    </span>
-                                                </div>
-                                                <div className="text-xs text-[var(--text-secondary)] line-clamp-1 group-hover:text-[var(--text-primary)]">
-                                                    {typeof item?.laporan === 'object' ? JSON.stringify(item?.laporan) : (item?.laporan || "Memuat...")}
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
                         </div>
-                    </div>
+                    </motion.div>
+
+                    {/* Sidebar: History */}
+                    <motion.div
+                        className="lg:col-span-1"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.6, delay: 0.4 }}
+                    >
+                        <div className="relative sticky top-28">
+                            <div className="absolute -inset-0.5 bg-gradient-to-b from-emerald-500/20 to-teal-500/20 rounded-3xl opacity-50 blur-sm"></div>
+                            <div className="relative rounded-3xl p-6 bg-[var(--bg-card)]/90 backdrop-blur-xl border border-[var(--border-color)] shadow-xl">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                                        <History className="w-5 h-5 text-white" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-[var(--text-primary)]">Riwayat Saya</h3>
+                                </div>
+
+                                {myHistory.length === 0 ? (
+                                    <div className="text-center py-8">
+                                        <div className="w-16 h-16 rounded-full bg-[var(--bg-panel)] flex items-center justify-center mx-auto mb-3">
+                                            <Ticket className="w-8 h-8 text-[var(--text-secondary)]/30" />
+                                        </div>
+                                        <p className="text-sm text-[var(--text-secondary)]">Belum ada riwayat laporan di perangkat ini.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {myHistory.filter((value, index, self) => self.indexOf(value) === index).slice(0, 5).map((id, index) => {
+                                            const item = getAspirasiByTicket(id);
+                                            return (
+                                                <motion.button
+                                                    key={id}
+                                                    onClick={() => handleSearch(id)}
+                                                    className="w-full text-left p-4 rounded-xl transition-all duration-300 bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10 group"
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: index * 0.1 }}
+                                                    whileHover={{ scale: 1.02, x: 5 }}
+                                                >
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <span className="font-mono font-bold text-sm text-emerald-400">{id}</span>
+                                                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: getStatusStyle(item?.status || 'Pending').bg, color: getStatusStyle(item?.status || 'Pending').color }}>
+                                                            {item?.status || "Unknown"}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs line-clamp-1 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
+                                                        {item?.laporan || "Memuat..."}
+                                                    </p>
+                                                </motion.button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </motion.div>
                 </div>
             </div>
-        </div >
+        </div>
     );
 }

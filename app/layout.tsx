@@ -1,13 +1,14 @@
 
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AppProvider } from "@/context/AppContext";
 
-const inter = Inter({ subsets: ["latin"] });
+const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
+const playfair = Playfair_Display({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800", "900"], variable: "--font-playfair" });
 
 export const metadata: Metadata = {
     title: "Sistem Informasi Desa Cenrana",
@@ -21,16 +22,16 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="id" suppressHydrationWarning>
-            <body className={`${inter.className} flex flex-col min-h-screen`}>
+            <body className={`${plusJakarta.className} ${playfair.variable} antialiased`}>
                 <ThemeProvider
                     attribute="class"
-                    defaultTheme="system"
-                    enableSystem
-                    disableTransitionOnChange
+                    defaultTheme="dark"
+                    enableSystem={false}
+                    storageKey="desa-cenrana-theme-v2"
                 >
                     <AppProvider>
                         <Navbar />
-                        <main className="flex-grow">{children}</main>
+                        <main className="flex-grow w-full max-w-[100vw] overflow-x-hidden">{children}</main>
                         <Footer />
                     </AppProvider>
                 </ThemeProvider>

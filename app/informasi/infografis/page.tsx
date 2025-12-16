@@ -1,12 +1,32 @@
 "use client";
 
+import React from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { useTheme } from "next-themes";
 import { useAppContext } from "@/context/AppContext";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from "recharts";
-import { Users, GraduationCap, Briefcase } from "lucide-react";
+import { Users, GraduationCap, Briefcase, BarChart3, ArrowLeft } from "lucide-react";
+
+const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+};
 
 export default function InfografisPage() {
     const { cmsContent } = useAppContext();
     const { infografis } = cmsContent;
+    const { resolvedTheme } = useTheme();
+    const [mounted, setMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const isDark = mounted ? resolvedTheme === "dark" : true;
+    const bgColor = isDark ? "#0A0F1A" : "#F8FAFC";
+    const textColor = isDark ? "#FFFFFF" : "#1E293B";
+    const subtextColor = isDark ? "#9CA3AF" : "#64748B";
 
     const RADIAN = Math.PI / 180;
     const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
@@ -22,26 +42,72 @@ export default function InfografisPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[var(--bg-primary)] pt-32 pb-10 px-4">
-            <div className="container mx-auto max-w-7xl">
+        <div className="min-h-screen pt-28 pb-20 px-4" style={{ backgroundColor: bgColor }}>
+            <div className="max-w-7xl mx-auto">
+                {/* Back Button */}
+                <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    variants={fadeInUp}
+                    className="mb-8"
+                >
+                    <Link
+                        href="/informasi"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all hover:gap-3"
+                        style={{
+                            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                            color: subtextColor
+                        }}
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        Kembali
+                    </Link>
+                </motion.div>
 
                 {/* Header */}
-                <div className="mb-10 text-center">
-                    <h1 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-3">Infografis Desa</h1>
-                    <p className="text-[var(--text-secondary)] max-w-2xl mx-auto">
-                        Data statistik kependudukan dan demografi Desa Cenrana secara visual.
+                <motion.div
+                    className="mb-10 text-center"
+                    initial="hidden"
+                    animate="visible"
+                    variants={fadeInUp}
+                >
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4"
+                        style={{
+                            backgroundColor: isDark ? 'rgba(168, 85, 247, 0.1)' : 'rgba(168, 85, 247, 0.1)',
+                            border: `1px solid ${isDark ? 'rgba(168, 85, 247, 0.3)' : 'rgba(168, 85, 247, 0.4)'}`,
+                            color: isDark ? '#A855F7' : '#9333EA'
+                        }}
+                    >
+                        <BarChart3 className="w-4 h-4" />
+                        <span className="text-sm font-semibold">Data Statistik</span>
+                    </div>
+                    <h1 className="text-3xl md:text-4xl font-extrabold mb-3" style={{ color: textColor }}>Infografis Desa</h1>
+                    <p className="max-w-2xl mx-auto" style={{ color: subtextColor }}>
+                        Data statistik kependudukan dan demografi Desa Cenrana secara visual
                     </p>
-                </div>
+                </motion.div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-                    {/* Chart 1: Gender Distribution (Pie) */}
-                    <div className="bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-xl">
+                    {/* Gender Chart */}
+                    <motion.div
+                        className="p-6 rounded-3xl"
+                        initial="hidden"
+                        animate="visible"
+                        variants={fadeInUp}
+                        style={{
+                            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#FFFFFF',
+                            border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0'}`,
+                            boxShadow: `0 4px 20px ${isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.08)'}`,
+                        }}
+                    >
                         <div className="flex items-center space-x-3 mb-6">
-                            <div className="p-3 bg-blue-500/20 rounded-xl text-blue-500">
+                            <div className="p-3 rounded-xl text-white" style={{
+                                background: 'linear-gradient(135deg, #0EA5E9, #10B981)',
+                                boxShadow: '0 8px 20px rgba(14, 165, 233, 0.3)'
+                            }}>
                                 <Users className="w-6 h-6" />
                             </div>
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Jenis Kelamin</h2>
+                            <h2 className="text-xl font-bold" style={{ color: textColor }}>Jenis Kelamin</h2>
                         </div>
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
@@ -62,46 +128,55 @@ export default function InfografisPage() {
                                     </Pie>
                                     <Tooltip
                                         contentStyle={{
-                                            backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                                            backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
                                             borderRadius: '12px',
-                                            border: '1px solid rgba(0,0,0,0.1)',
+                                            border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0'}`,
                                             boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                            padding: '12px'
+                                            color: textColor
                                         }}
-                                        labelStyle={{ color: '#1f2937', fontWeight: 'bold', fontSize: '14px' }}
-                                        itemStyle={{ color: '#374151', fontSize: '13px' }}
                                     />
                                     <Legend />
                                 </PieChart>
                             </ResponsiveContainer>
                         </div>
-                    </div>
+                    </motion.div>
 
-                    {/* Chart 2: Education Level (Bar) */}
-                    <div className="bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-xl">
+                    {/* Education Chart */}
+                    <motion.div
+                        className="p-6 rounded-3xl"
+                        initial="hidden"
+                        animate="visible"
+                        variants={fadeInUp}
+                        style={{
+                            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#FFFFFF',
+                            border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0'}`,
+                            boxShadow: `0 4px 20px ${isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.08)'}`,
+                        }}
+                    >
                         <div className="flex items-center space-x-3 mb-6">
-                            <div className="p-3 bg-emerald-500/20 rounded-xl text-emerald-500">
+                            <div className="p-3 rounded-xl text-white" style={{
+                                background: 'linear-gradient(135deg, #10B981, #059669)',
+                                boxShadow: '0 8px 20px rgba(16, 185, 129, 0.3)'
+                            }}>
                                 <GraduationCap className="w-6 h-6" />
                             </div>
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Tingkat Pendidikan</h2>
+                            <h2 className="text-xl font-bold" style={{ color: textColor }}>Tingkat Pendidikan</h2>
                         </div>
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={infografis.education}>
                                     <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
-                                    <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={12} />
-                                    <YAxis stroke="var(--text-secondary)" fontSize={12} />
+                                    <XAxis dataKey="name" stroke={subtextColor} fontSize={12} />
+                                    <YAxis stroke={subtextColor} fontSize={12} />
                                     <Tooltip
-                                        cursor={{ fill: 'rgba(255,255,255,0.1)' }}
+                                        cursor={{ fill: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
                                         contentStyle={{
-                                            backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                                            backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
                                             borderRadius: '12px',
-                                            border: '1px solid rgba(0,0,0,0.1)',
+                                            border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0'}`,
                                             boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                            padding: '12px'
+                                            color: textColor
                                         }}
-                                        labelStyle={{ color: '#1f2937', fontWeight: 'bold', fontSize: '14px' }}
-                                        itemStyle={{ color: '#374151', fontSize: '13px' }}
                                     />
                                     <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                                         {infografis.education.map((entry, index) => (
@@ -111,15 +186,28 @@ export default function InfografisPage() {
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
-                    </div>
+                    </motion.div>
 
-                    {/* Chart 3: Occupation (Pie/Donut) */}
-                    <div className="lg:col-span-2 bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-xl">
+                    {/* Occupation Chart */}
+                    <motion.div
+                        className="lg:col-span-2 p-6 rounded-3xl"
+                        initial="hidden"
+                        animate="visible"
+                        variants={fadeInUp}
+                        style={{
+                            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#FFFFFF',
+                            border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0'}`,
+                            boxShadow: `0 4px 20px ${isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.08)'}`,
+                        }}
+                    >
                         <div className="flex items-center space-x-3 mb-6">
-                            <div className="p-3 bg-purple-500/20 rounded-xl text-purple-500">
+                            <div className="p-3 rounded-xl text-white" style={{
+                                background: 'linear-gradient(135deg, #A855F7, #7C3AED)',
+                                boxShadow: '0 8px 20px rgba(168, 85, 247, 0.3)'
+                            }}>
                                 <Briefcase className="w-6 h-6" />
                             </div>
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Mata Pencaharian</h2>
+                            <h2 className="text-xl font-bold" style={{ color: textColor }}>Mata Pencaharian</h2>
                         </div>
                         <div className="h-[400px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
@@ -141,21 +229,18 @@ export default function InfografisPage() {
                                     </Pie>
                                     <Tooltip
                                         contentStyle={{
-                                            backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                                            backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
                                             borderRadius: '12px',
-                                            border: '1px solid rgba(0,0,0,0.1)',
+                                            border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0'}`,
                                             boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                            padding: '12px'
+                                            color: textColor
                                         }}
-                                        labelStyle={{ color: '#1f2937', fontWeight: 'bold', fontSize: '14px' }}
-                                        itemStyle={{ color: '#374151', fontSize: '13px' }}
                                     />
                                     <Legend />
                                 </PieChart>
                             </ResponsiveContainer>
                         </div>
-                    </div>
-
+                    </motion.div>
                 </div>
             </div>
         </div>
