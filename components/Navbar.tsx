@@ -159,7 +159,7 @@ export default function Navbar() {
                         {isLoggedIn ? (
                             <Link
                                 href="/admin"
-                                className="px-4 lg:px-6 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-full text-sm lg:text-base font-bold shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-105 transition-all flex items-center"
+                                className="px-4 lg:px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-emerald-500 text-white rounded-full text-sm lg:text-base font-bold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all flex items-center"
                             >
                                 <User className="w-4 h-4 mr-1 lg:mr-2" />
                                 <span className="hidden lg:inline">Dashboard</span>
