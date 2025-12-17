@@ -915,18 +915,18 @@ export default function AdminDashboard() {
                                 {/* ANALYTICS TAB */}
                                 {lapakSubTab === "analytics" && (
                                     <div className="space-y-6 animate-fade-in">
-                                        {/* Stats Cards - Compact */}
-                                        <div className="grid grid-cols-3 gap-4">
+                                        {/* Stats Cards - Responsive */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                                             <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl p-4 text-white shadow-lg transform hover:scale-105 transition-transform duration-300">
                                                 <div className="flex items-center justify-between mb-2">
                                                     <div>
                                                         <p className="text-blue-100 text-xs font-bold mb-1">Total Views</p>
-                                                        <p className="text-3xl font-bold">
+                                                        <p className="text-2xl sm:text-3xl font-bold">
                                                             {lapak.filter(p => p.status === 'Active').reduce((sum, p) => sum + (p.view_count || 0), 0)}
                                                         </p>
                                                     </div>
                                                     <div className="bg-white/20 p-2 rounded-lg">
-                                                        <Eye className="w-6 h-6" />
+                                                        <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -935,12 +935,12 @@ export default function AdminDashboard() {
                                                 <div className="flex items-center justify-between mb-2">
                                                     <div>
                                                         <p className="text-emerald-100 text-xs font-bold mb-1">WA Clicks</p>
-                                                        <p className="text-3xl font-bold">
+                                                        <p className="text-2xl sm:text-3xl font-bold">
                                                             {lapak.filter(p => p.status === 'Active').reduce((sum, p) => sum + (p.wa_click_count || 0), 0)}
                                                         </p>
                                                     </div>
                                                     <div className="bg-white/20 p-2 rounded-lg">
-                                                        <MessageSquare className="w-6 h-6" />
+                                                        <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -949,7 +949,7 @@ export default function AdminDashboard() {
                                                 <div className="flex items-center justify-between mb-2">
                                                     <div>
                                                         <p className="text-violet-100 text-xs font-bold mb-1">Conversion</p>
-                                                        <p className="text-3xl font-bold">
+                                                        <p className="text-2xl sm:text-3xl font-bold">
                                                             {(() => {
                                                                 const activeProducts = lapak.filter(p => p.status === 'Active');
                                                                 const totalViews = activeProducts.reduce((sum, p) => sum + (p.view_count || 0), 0);
@@ -959,7 +959,7 @@ export default function AdminDashboard() {
                                                         </p>
                                                     </div>
                                                     <div className="bg-white/20 p-2 rounded-lg">
-                                                        <Star className="w-6 h-6" />
+                                                        <Star className="w-5 h-5 sm:w-6 sm:h-6" />
                                                     </div>
                                                 </div>
                                             </div>

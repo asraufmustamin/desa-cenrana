@@ -46,12 +46,12 @@ export default function AdminSettingsPage() {
 
     if (!isLoggedIn) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-dark-base">
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
                 <div className="text-center">
                     <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                    <h1 className="text-2xl font-bold text-white mb-2">Akses Ditolak</h1>
-                    <p className="text-gray-400 mb-4">Silakan login sebagai admin untuk mengakses halaman ini.</p>
-                    <Link href="/admin/login" className="px-6 py-3 bg-neon-blue text-white rounded-xl font-semibold hover:opacity-90 transition-opacity">
+                    <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Akses Ditolak</h1>
+                    <p className="text-[var(--text-secondary)] mb-4">Silakan login sebagai admin untuk mengakses halaman ini.</p>
+                    <Link href="/admin/login" className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-emerald-500 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity">
                         Login Admin
                     </Link>
                 </div>
@@ -60,7 +60,7 @@ export default function AdminSettingsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-dark-base py-24 px-4">
+        <div className="min-h-screen py-24 px-4" style={{ backgroundColor: 'var(--bg-primary)' }}>
             <div className="max-w-2xl mx-auto">
                 {/* Header */}
                 <motion.div
@@ -69,20 +69,20 @@ export default function AdminSettingsPage() {
                     animate={{ opacity: 1, y: 0 }}
                 >
                     <div className="flex items-center gap-3 mb-2">
-                        <Settings className="w-8 h-8 text-neon-blue" />
-                        <h1 className="text-3xl font-bold text-white">Pengaturan Status</h1>
+                        <Settings className="w-8 h-8 text-cyan-500" />
+                        <h1 className="text-3xl font-bold text-[var(--text-primary)]">Pengaturan Status</h1>
                     </div>
-                    <p className="text-gray-400">Kelola status kehadiran Kepala Desa yang akan ditampilkan di halaman utama</p>
+                    <p className="text-[var(--text-secondary)]">Kelola status kehadiran Kepala Desa yang akan ditampilkan di halaman utama</p>
                 </motion.div>
 
                 {/* Current Status Display */}
                 <motion.div
-                    className="glow-card p-6 mb-8"
+                    className="p-6 mb-8 rounded-2xl border" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                 >
-                    <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                         <UserCheck className="w-5 h-5" />
                         Status Kehadiran Kepala Desa
                     </h2>
@@ -96,17 +96,18 @@ export default function AdminSettingsPage() {
                                     onClick={() => handleStatusChange(option.value)}
                                     disabled={saving}
                                     className={`w-full p-4 rounded-xl border-2 transition-all duration-300 text-left flex items-center gap-4 ${isSelected
-                                            ? 'border-current bg-current/10'
-                                            : 'border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10'
+                                        ? 'border-current'
+                                        : 'border-[var(--border-color)] hover:border-slate-400'
                                         } ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     style={{
                                         borderColor: isSelected ? option.color : undefined,
-                                        color: isSelected ? option.color : 'white'
+                                        backgroundColor: isSelected ? `${option.color}15` : 'var(--bg-panel)',
+                                        color: isSelected ? option.color : 'var(--text-primary)'
                                     }}
                                 >
                                     {/* Radio indicator */}
                                     <div
-                                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${isSelected ? 'border-current' : 'border-gray-500'
+                                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${isSelected ? 'border-current' : 'border-[var(--text-secondary)]'
                                             }`}
                                     >
                                         {isSelected && (
@@ -130,10 +131,10 @@ export default function AdminSettingsPage() {
 
                                     {/* Text */}
                                     <div className="flex-1 min-w-0">
-                                        <p className={`font-semibold ${isSelected ? '' : 'text-white'}`}>
+                                        <p className="font-semibold">
                                             {option.label}
                                         </p>
-                                        <p className="text-sm text-gray-400 line-clamp-1">
+                                        <p className="text-sm text-[var(--text-secondary)] line-clamp-1">
                                             {option.description}
                                         </p>
                                     </div>
@@ -152,30 +153,30 @@ export default function AdminSettingsPage() {
 
                 {/* Info Box */}
                 <motion.div
-                    className="glow-card p-6 border-l-4 border-neon-blue"
+                    className="p-6 border-l-4 border-cyan-500 rounded-2xl" style={{ backgroundColor: 'var(--bg-card)' }}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                 >
-                    <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
-                        <Users className="w-5 h-5 text-neon-blue" />
+                    <h3 className="text-[var(--text-primary)] font-semibold mb-2 flex items-center gap-2">
+                        <Users className="w-5 h-5 text-cyan-500" />
                         Informasi
                     </h3>
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-[var(--text-secondary)] text-sm">
                         Status ini akan ditampilkan pada badge di halaman utama website. Warna badge akan berubah sesuai status:
                     </p>
                     <ul className="mt-3 space-y-2 text-sm">
                         <li className="flex items-center gap-2">
                             <span className="w-3 h-3 rounded-full bg-green-500"></span>
-                            <span className="text-gray-300">Hijau = Di Kantor</span>
+                            <span className="text-[var(--text-primary)]">Hijau = Di Kantor</span>
                         </li>
                         <li className="flex items-center gap-2">
                             <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
-                            <span className="text-gray-300">Kuning = Sedang Rapat</span>
+                            <span className="text-[var(--text-primary)]">Kuning = Sedang Rapat</span>
                         </li>
                         <li className="flex items-center gap-2">
                             <span className="w-3 h-3 rounded-full bg-red-500"></span>
-                            <span className="text-gray-300">Merah = Tidak di Kantor</span>
+                            <span className="text-[var(--text-primary)]">Merah = Tidak di Kantor</span>
                         </li>
                     </ul>
                 </motion.div>
@@ -187,7 +188,7 @@ export default function AdminSettingsPage() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
                 >
-                    <Link href="/admin" className="text-neon-blue font-medium hover:underline">
+                    <Link href="/admin" className="text-cyan-500 font-medium hover:underline">
                         ← Kembali ke Dashboard Admin
                     </Link>
                 </motion.div>

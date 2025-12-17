@@ -317,7 +317,7 @@ export default function Navbar() {
                     <div className="pt-4 border-t border-slate-200 dark:border-slate-800 mt-4">
                         <Link
                             href={isLoggedIn ? "/admin" : "/admin/login"}
-                            className="block w-full text-center px-6 py-3 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-xl font-bold shadow-lg"
+                            className="block w-full text-center px-6 py-3 bg-gradient-to-r from-cyan-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg shadow-emerald-500/20"
                             onClick={() => setIsOpen(false)}
                         >
                             {isLoggedIn ? "Dashboard Admin" : "Masuk Admin"}
