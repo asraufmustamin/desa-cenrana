@@ -716,7 +716,7 @@ export default function Home() {
             variants={staggerContainer}
           >
             {news && news.length > 0 ? (
-              news.slice(0, 4).map((item, idx) => (
+              news.filter(n => n.status !== 'draft').slice(0, 4).map((item, idx) => (
                 <motion.div key={item.id} variants={scaleIn}>
                   <div className="glow-card overflow-hidden group h-full flex flex-col">
                     <div className="relative h-48 overflow-hidden">

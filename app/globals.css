@@ -16,12 +16,15 @@
 
 /* 
     * HTML/Body Reset
-    * Theme background is handled by AppContext wrapper div 
+    * Theme background respects dark/light mode via CSS variables
     */
 html,
 body {
     margin: 0;
     padding: 0;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
 }
 
 @layer utilities {

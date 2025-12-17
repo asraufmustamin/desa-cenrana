@@ -92,8 +92,8 @@ export default function SambutanKadesPage() {
                                             className="w-full h-full object-cover"
                                         />
                                         {/* Status Badge */}
-                                        <div className={`absolute bottom-2 left-2 right-2 px-2 py-1 rounded-lg text-center text-[10px] font-bold backdrop-blur-md ${kepalaDesaStatus?.isActive ? 'bg-emerald-500/80 text-white' : 'bg-red-500/80 text-white'}`}>
-                                            {kepalaDesaStatus?.isActive ? '🟢 Aktif Menjabat' : '🔴 Tidak Aktif'}
+                                        <div className={`absolute bottom-2 left-2 right-2 px-2 py-1 rounded-lg text-center text-[10px] font-bold backdrop-blur-md ${kepalaDesaStatus === 'di_kantor' || kepalaDesaStatus === 'rapat' ? 'bg-emerald-500/80 text-white' : 'bg-red-500/80 text-white'}`}>
+                                            {kepalaDesaStatus === 'di_kantor' ? '🟢 Di Kantor' : kepalaDesaStatus === 'rapat' ? '🟡 Rapat' : '🔴 Tidak Hadir'}
                                         </div>
                                     </div>
                                 </motion.div>

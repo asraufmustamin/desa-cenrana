@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useAppContext } from '@/context/AppContext';
-import { requestEmergencyDisclosure, getDisclosureHistory, getAccessLogs } from '@/lib/emergency-disclosure';
-import { Shield, AlertTriangle, FileText, History, Lock } from 'lucide-react';
+import { requestEmergencyDisclosure, getDisclosureHistory, getAccessLogs, deleteDisclosureRequest, deleteAuditLog } from '@/lib/emergency-disclosure';
+import { Shield, AlertTriangle, FileText, History, Lock, Trash2 } from 'lucide-react';
 
 interface DisclosureResult {
     requestId: number;
@@ -22,6 +22,67 @@ export default function EmergencyDisclosurePage() {
     const [isProcessing, setIsProcessing] = useState(false);
     const [result, setResult] = useState<DisclosureResult | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [historyData, setHistoryData] = useState<any[]>([]);
+    const [auditData, setAuditData] = useState<any[]>([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+    const [loadingAudit, setLoadingAudit] = useState(false);
+
+    // Fetch history when tab changes
+    const fetchHistory = async () => {
+        setLoadingHistory(true);
+        try {
+            const data = await getDisclosureHistory();
+            setHistoryData(data || []);
+        } catch (err) {
+            console.error('Error fetching history:', err);
+        } finally {
+            setLoadingHistory(false);
+        }
+    };
+
+    // Fetch audit logs when tab changes
+    const fetchAudit = async () => {
+        setLoadingAudit(true);
+        try {
+            const data = await getAccessLogs();
+            setAuditData(data || []);
+        } catch (err) {
+            console.error('Error fetching audit:', err);
+        } finally {
+            setLoadingAudit(false);
+        }
+    };
+
+    // Fetch data when switching tabs
+    const handleTabChange = (tab: 'request' | 'history' | 'audit') => {
+        setActiveTab(tab);
+        if (tab === 'history') fetchHistory();
+        if (tab === 'audit') fetchAudit();
+    };
+
+    // Delete disclosure request
+    const handleDeleteDisclosure = async (id: number) => {
+        if (!confirm('Hapus riwayat pengungkapan ini?')) return;
+        try {
+            await deleteDisclosureRequest(id);
+            fetchHistory(); // Refresh list
+        } catch (err) {
+            console.error('Error deleting disclosure:', err);
+            alert('Gagal menghapus riwayat');
+        }
+    };
+
+    // Delete audit log
+    const handleDeleteAudit = async (id: number) => {
+        if (!confirm('Hapus log audit ini?')) return;
+        try {
+            await deleteAuditLog(id);
+            fetchAudit(); // Refresh list
+        } catch (err) {
+            console.error('Error deleting audit:', err);
+            alert('Gagal menghapus log');
+        }
+    };
 
     // Form state
     const [formData, setFormData] = useState({
@@ -113,7 +174,7 @@ export default function EmergencyDisclosurePage() {
                 {/* Tabs */}
                 <div className="flex gap-2 mb-6">
                     <button
-                        onClick={() => setActiveTab('request')}
+                        onClick={() => handleTabChange('request')}
                         className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'request'
                             ? 'bg-red-600 text-white shadow-lg'
                             : 'bg-[var(--bg-panel)] text-[var(--text-secondary)] hover:bg-[var(--bg-card)]'
@@ -123,7 +184,7 @@ export default function EmergencyDisclosurePage() {
                         Ajukan Pengungkapan
                     </button>
                     <button
-                        onClick={() => setActiveTab('history')}
+                        onClick={() => handleTabChange('history')}
                         className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'history'
                             ? 'bg-red-600 text-white shadow-lg'
                             : 'bg-[var(--bg-panel)] text-[var(--text-secondary)] hover:bg-[var(--bg-card)]'
@@ -133,7 +194,7 @@ export default function EmergencyDisclosurePage() {
                         Riwayat Pengungkapan
                     </button>
                     <button
-                        onClick={() => setActiveTab('audit')}
+                        onClick={() => handleTabChange('audit')}
                         className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'audit'
                             ? 'bg-red-600 text-white shadow-lg'
                             : 'bg-[var(--bg-panel)] text-[var(--text-secondary)] hover:bg-[var(--bg-card)]'
@@ -302,11 +363,51 @@ export default function EmergencyDisclosurePage() {
                 {activeTab === 'history' && (
                     <div className="glass-panel rounded-2xl p-8">
                         <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6">
-                            Disclosure History
+                            Riwayat Pengungkapan
                         </h2>
-                        <p className="text-[var(--text-secondary)]">
-                            History of all disclosure requests (Coming in next update)
-                        </p>
+                        {loadingHistory ? (
+                            <div className="text-center py-8">
+                                <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                                <p className="text-[var(--text-secondary)]">Memuat riwayat...</p>
+                            </div>
+                        ) : historyData.length === 0 ? (
+                            <p className="text-[var(--text-secondary)] text-center py-8">
+                                Belum ada riwayat pengungkapan.
+                            </p>
+                        ) : (
+                            <div className="space-y-4">
+                                {historyData.map((item, index) => (
+                                    <div key={index} className="p-4 bg-[var(--bg-card)] rounded-xl border border-[var(--border-color)]">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="font-mono font-bold text-red-500">Request #{item.id}</span>
+                                            <span className="text-xs text-[var(--text-secondary)]">
+                                                {new Date(item.created_at).toLocaleString('id-ID')}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-[var(--text-secondary)] mb-1">
+                                            <strong>Tiket:</strong> {item.ticket_code}
+                                        </p>
+                                        <p className="text-sm text-[var(--text-secondary)] mb-1">
+                                            <strong>Diminta oleh:</strong> {item.requested_by}
+                                        </p>
+                                        <p className="text-sm text-[var(--text-secondary)]">
+                                            <strong>Alasan:</strong> {item.request_reason?.substring(0, 100)}...
+                                        </p>
+                                        {item.disclosed_niks && item.disclosed_niks.length > 0 && (
+                                            <div className="mt-2 p-2 bg-emerald-500/10 rounded-lg">
+                                                <p className="text-xs text-emerald-400 font-bold">NIK Terungkap: {item.disclosed_niks.join(', ')}</p>
+                                            </div>
+                                        )}
+                                        <button
+                                            onClick={() => handleDeleteDisclosure(item.id)}
+                                            className="mt-3 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"
+                                        >
+                                            <Trash2 className="w-3 h-3" /> Hapus
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -314,11 +415,45 @@ export default function EmergencyDisclosurePage() {
                 {activeTab === 'audit' && (
                     <div className="glass-panel rounded-2xl p-8">
                         <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6">
-                            Audit Trail
+                            Jejak Audit
                         </h2>
-                        <p className="text-[var(--text-secondary)]">
-                            Complete audit log of all access (Coming in next update)
-                        </p>
+                        {loadingAudit ? (
+                            <div className="text-center py-8">
+                                <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                                <p className="text-[var(--text-secondary)]">Memuat jejak audit...</p>
+                            </div>
+                        ) : auditData.length === 0 ? (
+                            <p className="text-[var(--text-secondary)] text-center py-8">
+                                Belum ada log audit.
+                            </p>
+                        ) : (
+                            <div className="space-y-3">
+                                {auditData.map((log, index) => (
+                                    <div key={index} className="p-3 bg-[var(--bg-card)] rounded-xl border border-[var(--border-color)] flex items-center gap-4">
+                                        <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                                            <Shield className="w-5 h-5 text-red-500" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex justify-between items-start">
+                                                <span className="font-bold text-sm text-[var(--text-primary)]">{log.action}</span>
+                                                <span className="text-xs text-[var(--text-secondary)]">
+                                                    {new Date(log.created_at).toLocaleString('id-ID')}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-[var(--text-secondary)]">
+                                                Oleh: {log.performed_by} | IP: {log.ip_address}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => handleDeleteAudit(log.id)}
+                                            className="px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"
+                                        >
+                                            <Trash2 className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

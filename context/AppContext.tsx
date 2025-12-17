@@ -14,6 +14,9 @@ export interface NewsItem {
     image: string;
     category?: string;
     content?: string;
+    author?: string;
+    tags?: string;
+    status?: 'published' | 'draft';
 }
 
 export interface LapakItem {
@@ -455,10 +458,20 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                 // Validate data structure
                 if (data?.data && typeof data.data === 'object' && Object.keys(data.data).length > 0) {
                     console.log('✅ CMS loaded from Supabase (global)');
-                    setCmsContent(data.data as CMSContent);
+
+                    // Merge with default content to ensure new fields (like sotk_new) exist if missing in DB
+                    const mergedContent = { ...defaultCMSContent, ...data.data };
+
+                    // Ensure sotk_new explicitly exists (safety check)
+                    if (!mergedContent.sotk_new) {
+                        mergedContent.sotk_new = defaultCMSContent.sotk_new;
+                    }
+
+                    setCmsContent(mergedContent as CMSContent);
+
                     // Backup to localStorage
                     try {
-                        localStorage.setItem('cmsContent', JSON.stringify(data.data));
+                        localStorage.setItem('cmsContent', JSON.stringify(mergedContent));
                     } catch (err) {
                         console.warn('Failed to backup to localStorage:', err);
                     }
@@ -487,7 +500,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                     .order('created_at', { ascending: false })
                     .limit(50);
                 if (newsData) setNews(newsData);
-                else setNews(newsItems); // Fallback
+                // No fallback - only use database data
 
                 // Fetch Lapak (limit 100 products)
                 const { data: lapakData } = await supabase
@@ -513,33 +526,22 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                 try {
                     const { data: aspirasiData, error: aspirasiError } = await supabase
                         .from('aspirasi')
-                        .select('ticket_code, name, nik, dusun, category, message, status,date, created_at, reply, is_anonymous, priority, rating, feedback_text')
+                        .select('ticket_code, nama, dusun, kategori, laporan, status, created_at, reply, is_anonymous, image, priority, rating, feedback_text')
                         .order('created_at', { ascending: false })
                         .limit(50);
                     if (aspirasiData && !aspirasiError) {
-                        // Fetch photo metadata separately (just check if exists)
-                        const ticketCodes = aspirasiData.map((item: any) => item.ticket_code);
-                        const { data: photoMeta } = await supabase
-                            .from('aspirasi')
-                            .select('ticket_code')
-                            .in('ticket_code', ticketCodes)
-                            .not('photo', 'is', null);
-
-                        const hasPhotoSet = new Set(photoMeta?.map(p => p.ticket_code) || []);
-
                         const mappedAspirasi = aspirasiData.map((item: any) => ({
                             id: item.ticket_code,
-                            nama: item.name,
-                            nik: item.nik || "",
+                            nama: item.nama,
                             dusun: item.dusun,
-                            kategori: item.category,
-                            laporan: item.message,
+                            kategori: item.kategori,
+                            laporan: item.laporan,
                             status: item.status,
-                            date: item.date || (item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : ''),
+                            date: item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
                             reply: item.reply,
                             is_anonymous: item.is_anonymous || false,
-                            image: "", // Don't load photo in list  
-                            hasPhoto: hasPhotoSet.has(item.ticket_code), // ✅ Flag dari metadata query
+                            image: item.image || "",
+                            hasPhoto: !!item.image,
                             priority: item.priority || "Medium",
                             rating: item.rating || undefined,
                             feedback_text: item.feedback_text || undefined
@@ -701,30 +703,73 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
     // News Management
     const addNews = async (item: Omit<NewsItem, "id">) => {
-        const newItem = { ...item, id: Date.now() }; // Temporary ID, Supabase should generate real one if Serial
-        // Optimistic
+        const newItem = { ...item, id: Date.now() }; // Temporary ID
+        // Optimistic update
         setNews(prev => [newItem, ...prev]);
 
-        const { data, error } = await supabase.from('berita').insert([item]).select();
+        // Only insert columns that exist in the database
+        const dbPayload = {
+            title: item.title,
+            excerpt: item.excerpt,
+            content: item.content || '',
+            image: item.image,
+            category: item.category,
+            date: item.date,
+            status: item.status || 'published'
+        };
+
+        const { data, error } = await supabase.from('berita').insert([dbPayload]).select();
         if (error) {
             console.error("Error adding news:", error);
-            // Rollback or handle error
+            // Rollback optimistic update
+            setNews(prev => prev.filter(n => n.id !== newItem.id));
+            alert(`Gagal menambahkan berita: ${error.message}`);
         } else if (data) {
             // Update ID with real one from DB
-            setNews(prev => prev.map(n => n.id === newItem.id ? data[0] : n));
+            setNews(prev => prev.map(n => n.id === newItem.id ? { ...newItem, ...data[0] } : n));
         }
         setLastActivity(Date.now());
     };
 
     const deleteNews = async (id: number) => {
-        setNews(prev => prev.filter(item => item.id !== id));
-        await supabase.from('berita').delete().eq('id', id);
+        console.log(`🗑️ Deleting news ID: ${id}`);
+
+        // Delete from database first
+        const { error } = await supabase.from('berita').delete().eq('id', id);
+
+        if (error) {
+            console.error("❌ Error deleting news:", error);
+            alert(`Gagal menghapus berita: ${error.message}`);
+        } else {
+            console.log("✅ News deleted successfully");
+        }
+
+        // Always refetch to ensure sync with database
+        const { data } = await supabase.from('berita').select('*').order('created_at', { ascending: false });
+        if (data) {
+            setNews(data);
+        }
         setLastActivity(Date.now());
     };
 
     const updateNews = async (id: number, updates: Partial<NewsItem>) => {
-        setNews(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-        await supabase.from('berita').update(updates).eq('id', id);
+        console.log(`📝 Updating news ID: ${id}`, updates);
+
+        // Update in database first
+        const { error } = await supabase.from('berita').update(updates).eq('id', id);
+
+        if (error) {
+            console.error("❌ Error updating news:", error);
+            alert(`Gagal mengupdate berita: ${error.message}`);
+        } else {
+            console.log("✅ News updated successfully");
+        }
+
+        // Always refetch to ensure sync with database
+        const { data } = await supabase.from('berita').select('*').order('created_at', { ascending: false });
+        if (data) {
+            setNews(data);
+        }
         setLastActivity(Date.now());
     };
 
@@ -788,51 +833,55 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             throw new Error("Validasi Gagal: NIK tidak ditemukan di data penduduk.");
         }
 
-        // Step 3: Prepare database payload
-        // ✅ FIXED: Remove client-side ticket generation
-        // Database trigger will auto-generate unique sequential ticket_code
+        // Step 3: Generate sequential ticket number
+        // Get the latest ticket code from database
+        const { data: lastTicket } = await supabase
+            .from('aspirasi')
+            .select('ticket_code')
+            .order('id', { ascending: false })
+            .limit(1)
+            .single();
+
+        // Parse last number and increment, start from 1 if no tickets
+        const lastNumber = lastTicket?.ticket_code ? parseInt(lastTicket.ticket_code) : 0;
+        const ticketCode = String(lastNumber + 1).padStart(3, '0'); // Format: 001, 002, 003...
+
+        // Step 4: Prepare database payload
         const dbPayload = {
-            // ticket_code will be auto-generated by database trigger
-            name: item.nama,
-            nik: item.nik,
+            ticket_code: ticketCode,
+            nama: item.nama,
             dusun: item.dusun,
-            category: item.kategori,
-            message: item.laporan,
+            kategori: item.kategori,
+            laporan: item.laporan,
             status: 'Pending',
-            date: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
             is_anonymous: item.is_anonymous || false,
             priority: item.priority || 'Medium',
-            photo: item.image || null, // ✅ Photo included
+            image: item.image || null,
             reply: null
         };
 
-        // Step 4: Insert to database and get generated ticket_code
-        const { data, error } = await supabase
+        // Step 5: Insert to database
+        const { error } = await supabase
             .from('aspirasi')
-            .insert([dbPayload])
-            .select('ticket_code')
-            .single();
+            .insert([dbPayload]);
 
-        if (error || !data) {
+        if (error) {
             console.error("Error adding aspirasi:", error?.message, error?.details, error?.hint);
             throw new Error(`Gagal mengirim aspirasi: ${error?.message || 'Unknown error'}`);
         }
 
-        // Step 5: Get the generated ticket code from database
-        const ticketId = data.ticket_code;
-
         // Step 6: Create local item for optimistic update
         const newItem: AspirasiItem = {
             ...item,
-            id: ticketId,
+            id: ticketCode,
             status: "Pending",
             date: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
         };
 
-        // Optimistic update with correct ticket code
+        // Optimistic update
         setAspirasi(prev => [newItem, ...prev]);
 
-        return ticketId;
+        return ticketCode;
     };
 
     const verifyAspirasi = async (id: string, status: "Diproses" | "Rejected") => {
@@ -853,9 +902,25 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const deleteAspirasi = async (id: string) => {
-        setAspirasi(prev => prev.filter(item => item.id !== id));
-        await supabase.from('aspirasi').delete().eq('ticket_code', id);
-        setLastActivity(Date.now());
+        try {
+            console.log('Deleting aspirasi:', id);
+            // 1. Delete from Supabase
+            const { error } = await supabase.from('aspirasi').delete().eq('ticket_code', id);
+
+            if (error) {
+                console.error('Delete error:', error);
+                alert('Gagal menghapus aspirasi: ' + error.message);
+                return;
+            }
+
+            // 2. Update local state
+            setAspirasi(prev => prev.filter(item => item.id !== id));
+            setLastActivity(Date.now());
+            console.log('Delete successful');
+        } catch (err) {
+            console.error('Exception deleting aspirasi:', err);
+            alert('Gagal menghapus aspirasi');
+        }
     };
 
     const submitRating = async (ticketId: string, rating: number, feedback?: string) => {
@@ -875,7 +940,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         try {
             const { data, error } = await supabase
                 .from('aspirasi')
-                .select('photo')
+                .select('image')
                 .eq('ticket_code', ticketCode)
                 .single();
 
@@ -884,7 +949,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                 return '';
             }
 
-            return data.photo || '';
+            return data.image || '';
         } catch (err) {
             console.error('Exception fetching photo:', err);
             return '';

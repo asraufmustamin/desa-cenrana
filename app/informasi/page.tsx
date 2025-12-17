@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, Newspaper, Image, Calendar, MapPin, BarChart3, FileText, Scale, Lightbulb, Building2, History, Users, Sparkles, ArrowRight, Info, BookOpen } from "lucide-react";
+import { ArrowLeft, Newspaper, Image, Calendar, MapPin, BarChart3, FileText, Scale, Lightbulb, Building2, History, Users, Sparkles, ArrowRight, Info, BookOpen, Target, MessageCircle, Landmark, Home } from "lucide-react";
 
 // Menu items configuration
 const informasiMenus = [
@@ -19,8 +19,13 @@ const informasiMenus = [
 
 const profilMenus = [
     { title: "Profil Desa", description: "Info umum Desa Cenrana", href: "/profil", icon: Building2, gradient: "from-cyan-500 to-blue-600", color: "cyan" },
-    { title: "Sejarah Desa", description: "Asal-usul & perjalanan", href: "/profil#sejarah", icon: History, gradient: "from-emerald-500 to-green-600", color: "emerald" },
-    { title: "Struktur Organisasi", description: "Bagan SOTK pemerintahan", href: "/profil#struktur", icon: Users, gradient: "from-violet-500 to-purple-600", color: "violet" },
+    { title: "Sejarah Desa", description: "Asal-usul & perjalanan", href: "/profil/sejarah", icon: History, gradient: "from-emerald-500 to-green-600", color: "emerald" },
+    { title: "Struktur Organisasi", description: "Bagan SOTK pemerintahan", href: "/profil/sotk", icon: Users, gradient: "from-violet-500 to-purple-600", color: "violet" },
+    { title: "Visi & Misi", description: "Tujuan pembangunan desa", href: "/profil/visi-misi", icon: Target, gradient: "from-blue-500 to-indigo-600", color: "blue" },
+    { title: "Sambutan Kades", description: "Kata sambutan pimpinan", href: "/profil/sambutan", icon: MessageCircle, gradient: "from-amber-500 to-orange-600", color: "amber" },
+    { title: "Lembaga Desa", description: "BPD, PKK, Karang Taruna", href: "/profil/lembaga", icon: Landmark, gradient: "from-rose-500 to-pink-600", color: "rose" },
+    { title: "Sarana Prasarana", description: "Fasilitas umum desa", href: "/profil/sarana", icon: Home, gradient: "from-teal-500 to-cyan-600", color: "teal" },
+    { title: "Potensi Desa", description: "SDA & ekonomi lokal", href: "/profil/potensi", icon: Sparkles, gradient: "from-lime-500 to-green-600", color: "lime" },
 ];
 
 export default function InformasiPage() {
@@ -94,7 +99,7 @@ export default function InformasiPage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         {profilMenus.map((menu, index) => (
                             <motion.div
                                 key={menu.href}

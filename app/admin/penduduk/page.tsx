@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { supabase } from "@/lib/supabase";
-import { Users, Plus, Trash2, X, Upload } from "lucide-react";
+import { Users, Plus, Trash2, X, Upload, Edit3 } from "lucide-react";
 import ImportExcelPenduduk from "@/components/ImportExcelPenduduk";
 
 interface PendudukItem {
@@ -21,6 +21,7 @@ export default function PendudukPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'list' | 'import'>('list');
     const [showModal, setShowModal] = useState(false);
+    const [editingId, setEditingId] = useState<number | null>(null);
     const [formData, setFormData] = useState({
         nik: "",
         nama: "",
@@ -132,6 +133,52 @@ export default function PendudukPage() {
         }
     };
 
+    const handleEdit = (item: PendudukItem) => {
+        setEditingId(item.id);
+        setFormData({
+            nik: item.nik,
+            nama: item.nama,
+            dusun: item.dusun,
+            pekerjaan: item.pekerjaan || "",
+            tanggal_lahir: item.tanggal_lahir || "",
+        });
+        setShowModal(true);
+    };
+
+    const handleUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingId) return;
+
+        try {
+            const { error } = await supabase
+                .from('penduduk')
+                .update({
+                    nik: formData.nik,
+                    nama: formData.nama,
+                    dusun: formData.dusun,
+                    pekerjaan: formData.pekerjaan || null,
+                    tanggal_lahir: formData.tanggal_lahir || null,
+                })
+                .eq('id', editingId);
+
+            if (error) throw error;
+
+            alert("✅ Data berhasil diperbarui!");
+            setShowModal(false);
+            setEditingId(null);
+            setFormData({ nik: "", nama: "", dusun: "", pekerjaan: "", tanggal_lahir: "" });
+            fetchPenduduk();
+        } catch (error: any) {
+            alert(`❌ Error: ${error.message}`);
+        }
+    };
+
+    const resetForm = () => {
+        setShowModal(false);
+        setEditingId(null);
+        setFormData({ nik: "", nama: "", dusun: "", pekerjaan: "", tanggal_lahir: "" });
+    };
+
     if (!isLoggedIn) {
         return (
             <div className="min-h-screen pt-24 pb-12 flex items-center justify-center">
@@ -223,13 +270,22 @@ export default function PendudukPage() {
                                                 <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{item.dusun}</td>
                                                 <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{item.pekerjaan || "-"}</td>
                                                 <td className="px-6 py-4">
-                                                    <button
-                                                        onClick={() => handleDelete(item.id)}
-                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                        title="Hapus"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => handleEdit(item)}
+                                                            className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                                                            title="Edit"
+                                                        >
+                                                            <Edit3 className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(item.id)}
+                                                            className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                                                            title="Hapus"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))
@@ -247,20 +303,22 @@ export default function PendudukPage() {
                 )}
             </div>
 
-            {/* Modal Tambah Penduduk */}
+            {/* Modal Tambah/Edit Penduduk */}
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                     <div className="glass-panel w-full max-w-lg rounded-2xl p-8 relative animate-fade-in-up">
                         <button
-                            onClick={() => setShowModal(false)}
+                            onClick={resetForm}
                             className="absolute top-4 right-4 p-2 rounded-full hover:bg-[var(--bg-card)] transition-colors"
                         >
                             <X className="w-5 h-5" />
                         </button>
 
-                        <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Tambah Data Penduduk</h2>
+                        <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6">
+                            {editingId ? "Edit Data Penduduk" : "Tambah Data Penduduk"}
+                        </h2>
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={editingId ? handleUpdate : handleSubmit} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">NIK</label>
                                 <input
@@ -324,7 +382,7 @@ export default function PendudukPage() {
                                 type="submit"
                                 className="w-full py-4 bg-gradient-to-r from-cyan-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg hover:from-cyan-600 hover:to-emerald-600 transition-all mt-4"
                             >
-                                Simpan Data
+                                {editingId ? "Update Data" : "Simpan Data"}
                             </button>
                         </form>
                     </div>

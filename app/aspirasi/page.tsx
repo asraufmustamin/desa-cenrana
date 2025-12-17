@@ -20,7 +20,7 @@ const staggerContainer = {
 };
 
 export default function Aspirasi() {
-    const { addAspirasi, getAspirasiByTicket, aspirasi, deleteAspirasi, isEditMode, checkNikAvailability } = useAppContext();
+    const { addAspirasi, getAspirasiByTicket, aspirasi, deleteAspirasi, verifyAspirasi, replyAspirasi, isEditMode, checkNikAvailability } = useAppContext();
     const { resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const [activeTab, setActiveTab] = useState<"form" | "track" | "admin">("form");
@@ -49,6 +49,8 @@ export default function Aspirasi() {
     const [copied, setCopied] = useState(false);
     const [isOnCooldown, setIsOnCooldown] = useState(false);
     const [remainingTime, setRemainingTime] = useState(0);
+    const [showPhotoModal, setShowPhotoModal] = useState(false);
+    const [selectedPhotoUrl, setSelectedPhotoUrl] = useState<string>("");
 
     useEffect(() => {
         setMounted(true);
@@ -622,7 +624,7 @@ export default function Aspirasi() {
                                                             value={ticketId}
                                                             onChange={(e) => setTicketId(e.target.value.toUpperCase())}
                                                             className="w-full pl-12 pr-4 py-4 rounded-xl text-lg font-mono outline-none transition-all duration-300 bg-[var(--bg-panel)] border-2 border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                                                            placeholder="Contoh: ASP-001"
+                                                            placeholder="Contoh: 001"
                                                         />
                                                     </div>
                                                     <motion.button
@@ -660,18 +662,90 @@ export default function Aspirasi() {
                                                     <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)]">
                                                         <div>
                                                             <p className="text-sm text-[var(--text-secondary)]">ID Tiket</p>
-                                                            <p className="text-xl font-bold text-[var(--text-primary)]">{searchResult.id}</p>
+                                                            <p className="text-xl font-bold text-[var(--text-primary)]">#{searchResult.id}</p>
                                                         </div>
                                                         <div
                                                             className="px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2"
                                                             style={{ backgroundColor: getStatusStyle(searchResult.status).bg, color: getStatusStyle(searchResult.status).color, border: `1px solid ${getStatusStyle(searchResult.status).border}` }}
                                                         >
                                                             {searchResult.status === "Selesai" && <CheckCircle className="w-4 h-4" />}
-                                                            {searchResult.status === "Diproses" && <Clock className="w-4 h-4" />}
+                                                            {searchResult.status === "Diproses" && <Clock className="w-4 h-4 animate-spin" />}
                                                             {searchResult.status === "Pending" && <Clock className="w-4 h-4" />}
+                                                            {searchResult.status === "Rejected" && <AlertCircle className="w-4 h-4" />}
                                                             {searchResult.status}
                                                         </div>
                                                     </div>
+
+                                                    {/* Animated Status Progress Timeline */}
+                                                    <motion.div
+                                                        className="p-5 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)]"
+                                                        initial={{ opacity: 0, scale: 0.95 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        transition={{ delay: 0.2 }}
+                                                    >
+                                                        <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-4">Progress Status</h4>
+                                                        <div className="relative flex items-center justify-between">
+                                                            {/* Progress Line Background */}
+                                                            <div className="absolute left-0 right-0 top-1/2 h-1 bg-[var(--border-color)] -translate-y-1/2 rounded-full" />
+
+                                                            {/* Progress Line Active */}
+                                                            <motion.div
+                                                                className="absolute left-0 top-1/2 h-1 rounded-full -translate-y-1/2"
+                                                                style={{
+                                                                    background: searchResult.status === 'Rejected'
+                                                                        ? 'linear-gradient(90deg, #F59E0B, #EF4444)'
+                                                                        : 'linear-gradient(90deg, #10B981, #0EA5E9)'
+                                                                }}
+                                                                initial={{ width: '0%' }}
+                                                                animate={{
+                                                                    width: searchResult.status === 'Pending' ? '10%'
+                                                                        : searchResult.status === 'Diproses' ? '50%'
+                                                                            : '100%'
+                                                                }}
+                                                                transition={{ duration: 0.8, ease: 'easeOut' }}
+                                                            />
+
+                                                            {/* Status Points */}
+                                                            {[
+                                                                { key: 'Pending', label: 'Diterima', icon: Clock, color: '#F59E0B' },
+                                                                { key: 'Diproses', label: 'Diproses', icon: MessageSquare, color: '#3B82F6' },
+                                                                { key: 'Selesai', label: searchResult.status === 'Rejected' ? 'Ditolak' : 'Selesai', icon: searchResult.status === 'Rejected' ? AlertCircle : CheckCircle, color: searchResult.status === 'Rejected' ? '#EF4444' : '#10B981' }
+                                                            ].map((step, index) => {
+                                                                const statusOrder = ['Pending', 'Diproses', 'Selesai'];
+                                                                const currentIndex = statusOrder.indexOf(searchResult.status === 'Rejected' ? 'Selesai' : searchResult.status);
+                                                                const isActive = index <= currentIndex;
+                                                                const isCurrent = (searchResult.status === 'Rejected' && index === 2) || step.key === searchResult.status;
+
+                                                                return (
+                                                                    <motion.div
+                                                                        key={step.key}
+                                                                        className="relative z-10 flex flex-col items-center"
+                                                                        initial={{ scale: 0 }}
+                                                                        animate={{ scale: 1 }}
+                                                                        transition={{ delay: 0.3 + index * 0.15 }}
+                                                                    >
+                                                                        <motion.div
+                                                                            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${isActive
+                                                                                ? 'shadow-lg'
+                                                                                : 'bg-[var(--bg-card)] border-2 border-[var(--border-color)]'
+                                                                                }`}
+                                                                            style={isActive ? {
+                                                                                backgroundColor: step.color,
+                                                                                boxShadow: `0 0 20px ${step.color}50`
+                                                                            } : {}}
+                                                                            animate={isCurrent ? { scale: [1, 1.1, 1] } : {}}
+                                                                            transition={{ repeat: isCurrent ? Infinity : 0, duration: 2 }}
+                                                                        >
+                                                                            <step.icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-[var(--text-secondary)]'}`} />
+                                                                        </motion.div>
+                                                                        <span className={`mt-2 text-xs font-bold ${isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
+                                                                            {step.label}
+                                                                        </span>
+                                                                    </motion.div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </motion.div>
 
                                                     <div className="p-5 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)]">
                                                         <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">Detail Laporan</h4>
@@ -684,13 +758,18 @@ export default function Aspirasi() {
                                                     </div>
 
                                                     {searchResult.reply && (
-                                                        <div className="p-5 rounded-xl bg-blue-500/10 border border-blue-500/30">
+                                                        <motion.div
+                                                            className="p-5 rounded-xl bg-emerald-500/10 border border-emerald-500/30"
+                                                            initial={{ opacity: 0, y: 10 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            transition={{ delay: 0.5 }}
+                                                        >
                                                             <div className="flex items-center gap-2 mb-2">
-                                                                <MessageSquare className="w-5 h-5 text-blue-400" />
-                                                                <h4 className="font-bold text-blue-300">Tanggapan Admin</h4>
+                                                                <MessageSquare className="w-5 h-5 text-emerald-400" />
+                                                                <h4 className="font-bold text-emerald-300">Tanggapan Admin</h4>
                                                             </div>
-                                                            <p className="text-blue-100">{searchResult.reply}</p>
-                                                        </div>
+                                                            <p className="text-emerald-100">{searchResult.reply}</p>
+                                                        </motion.div>
                                                     )}
                                                 </motion.div>
                                             ) : (
@@ -719,12 +798,13 @@ export default function Aspirasi() {
                                                             key={item.id}
                                                             initial={{ opacity: 0, y: 20 }}
                                                             animate={{ opacity: 1, y: 0 }}
-                                                            transition={{ delay: index * 0.05 }}
-                                                            className="p-5 rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-emerald-500/30 transition-all group"
+                                                            transition={{ delay: index * 0.03 }}
+                                                            className="p-5 rounded-2xl bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-emerald-500/30 transition-all"
                                                         >
+                                                            {/* Header */}
                                                             <div className="flex justify-between items-start mb-3">
                                                                 <div className="flex items-center gap-3">
-                                                                    <span className="font-mono font-bold text-emerald-400">{item.id}</span>
+                                                                    <span className="font-mono font-bold text-emerald-400">#{item.id}</span>
                                                                     <span className="text-xs px-2 py-1 rounded-full font-bold" style={{ backgroundColor: getStatusStyle(item.status).bg, color: getStatusStyle(item.status).color }}>{item.status}</span>
                                                                     {item.is_anonymous && (
                                                                         <span className="flex items-center text-xs px-2 py-1 rounded-full font-bold bg-blue-500/20 text-blue-400">
@@ -734,13 +814,78 @@ export default function Aspirasi() {
                                                                 </div>
                                                                 <span className="text-xs text-[var(--text-secondary)]">{item.date}</span>
                                                             </div>
-                                                            <p className="mb-3 text-[var(--text-secondary)] line-clamp-2">{item.laporan}</p>
-                                                            <div className="flex justify-end">
+
+                                                            {/* Content */}
+                                                            <p className="mb-3 text-[var(--text-secondary)]">{item.laporan}</p>
+
+                                                            {/* Reply if exists */}
+                                                            {item.reply && (
+                                                                <div className="mb-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+                                                                    <p className="text-xs font-bold text-emerald-400 mb-1">Tanggapan Admin:</p>
+                                                                    <p className="text-sm text-emerald-300">{item.reply}</p>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Action Buttons */}
+                                                            <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-[var(--border-color)]">
+                                                                {/* Lihat Foto - always show if image exists */}
+                                                                {item.image && (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setSelectedPhotoUrl(item.image);
+                                                                            setShowPhotoModal(true);
+                                                                        }}
+                                                                        className="px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-all"
+                                                                    >
+                                                                        <ImageIcon className="w-3.5 h-3.5" /> Lihat Foto
+                                                                    </button>
+                                                                )}
+
+                                                                {/* Proses Button - show if Pending */}
+                                                                {item.status === "Pending" && (
+                                                                    <button
+                                                                        onClick={() => verifyAspirasi(item.id, "Diproses")}
+                                                                        className="px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all"
+                                                                    >
+                                                                        <Clock className="w-3.5 h-3.5" /> Proses
+                                                                    </button>
+                                                                )}
+
+                                                                {/* Selesaikan Button - show if Diproses */}
+                                                                {item.status === "Diproses" && (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            const reply = prompt("Masukkan tanggapan admin untuk menyelesaikan laporan ini:");
+                                                                            if (reply && reply.trim()) {
+                                                                                replyAspirasi(item.id, reply.trim());
+                                                                            }
+                                                                        }}
+                                                                        className="px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-all"
+                                                                    >
+                                                                        <CheckCircle className="w-3.5 h-3.5" /> Selesaikan
+                                                                    </button>
+                                                                )}
+
+                                                                {/* Tolak Button - show if Pending or Diproses */}
+                                                                {(item.status === "Pending" || item.status === "Diproses") && (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            if (confirm("Tolak laporan ini?")) {
+                                                                                verifyAspirasi(item.id, "Rejected");
+                                                                            }
+                                                                        }}
+                                                                        className="px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 transition-all"
+                                                                    >
+                                                                        <AlertCircle className="w-3.5 h-3.5" /> Tolak
+                                                                    </button>
+                                                                )}
+
+                                                                {/* Hapus Button */}
                                                                 <button
                                                                     onClick={() => { if (confirm("Hapus laporan ini?")) deleteAspirasi(item.id); }}
-                                                                    className="px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"
+                                                                    className="px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"
                                                                 >
-                                                                    <Trash2 className="w-4 h-4" /> Hapus
+                                                                    <Trash2 className="w-3.5 h-3.5" /> Hapus
                                                                 </button>
                                                             </div>
                                                         </motion.div>
@@ -811,6 +956,44 @@ export default function Aspirasi() {
                     </motion.div>
                 </div>
             </div>
+
+            {/* Photo Modal */}
+            {showPhotoModal && selectedPhotoUrl && (
+                <motion.div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    onClick={() => setShowPhotoModal(false)}
+                >
+                    <motion.div
+                        className="relative max-w-4xl max-h-[90vh] rounded-2xl overflow-hidden bg-[var(--bg-card)] border border-[var(--border-color)] shadow-2xl"
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="absolute top-4 right-4 z-10">
+                            <button
+                                onClick={() => setShowPhotoModal(false)}
+                                className="p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-all"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <div className="p-2">
+                            <Image
+                                src={selectedPhotoUrl}
+                                alt="Foto Bukti Aspirasi"
+                                width={800}
+                                height={600}
+                                className="rounded-xl object-contain max-h-[80vh] w-auto mx-auto"
+                            />
+                        </div>
+                        <div className="p-4 border-t border-[var(--border-color)] text-center">
+                            <p className="text-sm text-[var(--text-secondary)]">Foto Bukti Aspirasi</p>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
         </div>
     );
 }

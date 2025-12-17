@@ -47,16 +47,22 @@ export async function logAccess(
     recordId?: number
 ) {
     try {
+        // Build insert data - only include request_id if provided (FK constraint)
+        const insertData: any = {
+            performed_by: accessedBy,
+            action,
+            details: { table_name: tableName, user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server' },
+            ip_address: typeof window !== 'undefined' ? window.location.hostname : 'server'
+        };
+
+        // Only add request_id if valid to avoid FK constraint error
+        if (recordId) {
+            insertData.request_id = recordId;
+        }
+
         const { error } = await supabase
-            .from('access_log')
-            .insert({
-                accessed_by: accessedBy,
-                action,
-                table_name: tableName,
-                record_id: recordId,
-                ip_address: typeof window !== 'undefined' ? window.location.hostname : 'server',
-                user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server'
-            });
+            .from('emergency_access_logs')
+            .insert(insertData);
 
         if (error) {
             console.error('Failed to log access:', error);
@@ -221,20 +227,19 @@ export async function requestEmergencyDisclosure(
     await logAccess(
         currentUser.email,
         'DISCLOSURE_REQUEST',
-        'disclosure_requests',
+        'emergency_disclosure_requests',
         undefined
     );
 
     // 4. Create disclosure request record
     const { data: requestRecord, error: requestError } = await supabase
-        .from('disclosure_requests')
+        .from('emergency_disclosure_requests')
         .insert({
             ticket_code: request.ticketCode,
             requested_by: request.requestedBy,
             request_reason: request.requestReason,
             official_document: request.officialDocument,
-            authorized_by: request.authorizedBy,
-            status: 'pending'
+            authorized_by: request.authorizedBy
         })
         .select()
         .single();
@@ -246,14 +251,13 @@ export async function requestEmergencyDisclosure(
     // 5. Perform reverse NIK lookup
     const possibleNIKs = await reverseNIKLookup(request.ticketCode);
 
-    // 6. Update request with disclosed NIK (if single match with high probability)
-    if (possibleNIKs.length === 1 && possibleNIKs[0].probability > 80) {
+    // 6. Update request with disclosed NIKs (if matches found)
+    if (possibleNIKs.length > 0) {
+        const nikArray = possibleNIKs.map(p => p.nik);
         await supabase
-            .from('disclosure_requests')
+            .from('emergency_disclosure_requests')
             .update({
-                disclosed_nik: possibleNIKs[0].nik,
-                status: 'approved',
-                approved_at: new Date().toISOString()
+                disclosed_niks: nikArray
             })
             .eq('id', requestRecord.id);
     }
@@ -262,7 +266,7 @@ export async function requestEmergencyDisclosure(
     await logAccess(
         currentUser.email,
         'DISCLOSURE_COMPLETED',
-        'disclosure_requests',
+        'emergency_disclosure_requests',
         requestRecord.id
     );
 
@@ -282,7 +286,7 @@ export async function requestEmergencyDisclosure(
  */
 export async function getDisclosureHistory(limit: number = 50) {
     const { data, error } = await supabase
-        .from('disclosure_requests')
+        .from('emergency_disclosure_requests')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -299,9 +303,9 @@ export async function getDisclosureHistory(limit: number = 50) {
  */
 export async function getAccessLogs(limit: number = 100) {
     const { data, error } = await supabase
-        .from('access_log')
+        .from('emergency_access_logs')
         .select('*')
-        .order('timestamp', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(limit);
 
     if (error) {
@@ -309,4 +313,53 @@ export async function getAccessLogs(limit: number = 100) {
     }
 
     return data;
+}
+
+/**
+ * Delete disclosure request by ID
+ */
+export async function deleteDisclosureRequest(id: number) {
+    console.log('Deleting disclosure request:', id);
+
+    // First delete related audit logs
+    const { error: auditError } = await supabase
+        .from('emergency_access_logs')
+        .delete()
+        .eq('request_id', id);
+
+    if (auditError) {
+        console.error('Error deleting related audit logs:', auditError);
+    }
+
+    // Then delete the request itself
+    const { error } = await supabase
+        .from('emergency_disclosure_requests')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        console.error('Error deleting disclosure:', error);
+        throw new Error(`Failed to delete disclosure: ${error.message}`);
+    }
+
+    console.log('Disclosure deleted successfully');
+}
+
+/**
+ * Delete audit log by ID
+ */
+export async function deleteAuditLog(id: number) {
+    console.log('Deleting audit log:', id);
+
+    const { error } = await supabase
+        .from('emergency_access_logs')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        console.error('Error deleting audit log:', error);
+        throw new Error(`Failed to delete log: ${error.message}`);
+    }
+
+    console.log('Audit log deleted successfully');
 }

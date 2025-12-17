@@ -16,7 +16,10 @@ export default function BeritaPage() {
         setMounted(true);
     }, []);
 
-    const filteredNews = news.filter(item =>
+    // Only show published news to public (filter out drafts)
+    const publishedNews = news.filter(item => (item as any).status !== 'draft');
+
+    const filteredNews = publishedNews.filter(item =>
         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.excerpt?.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -157,7 +160,7 @@ export default function BeritaPage() {
                     transition={{ delay: 0.3 }}
                 >
                     <div className="px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/30 text-center">
-                        <div className="text-lg font-black text-blue-400">{news.length}</div>
+                        <div className="text-lg font-black text-blue-400">{publishedNews.length}</div>
                         <div className="text-[10px] font-medium text-[var(--text-secondary)]">Total Berita</div>
                     </div>
                     <div className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-center">

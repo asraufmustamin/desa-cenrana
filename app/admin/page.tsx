@@ -34,6 +34,7 @@ export default function AdminDashboard() {
         news,
         addNews,
         deleteNews,
+        updateNews,
         lapak,
         approveLapak,
         rejectLapak,
@@ -58,12 +59,21 @@ export default function AdminDashboard() {
     const [filterStatus, setFilterStatus] = useState<string>("Semua");
     const [filterDusun, setFilterDusun] = useState<string>("Semua");
 
-    // News form state
+    // News form state - PROFESSIONAL
+    const [newsSubTab, setNewsSubTab] = useState<"create" | "list">("list");
+    const [editingNewsId, setEditingNewsId] = useState<number | null>(null);
+    const [newsImagePreview, setNewsImagePreview] = useState<string>("");
+    const [newsSearchQuery, setNewsSearchQuery] = useState("");
     const [newsForm, setNewsForm] = useState({
         title: "",
         excerpt: "",
+        content: "",
         category: "Pengumuman",
-        image: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&q=80&w=800"
+        author: "Admin Desa Cenrana",
+        tags: "",
+        status: "published" as "published" | "draft",
+        date: new Date().toISOString().split('T')[0],
+        image: ""
     });
 
     // 🔥 Photo Modal States
@@ -110,25 +120,86 @@ export default function AdminDashboard() {
         }
     };
 
-    const handleAddNews = () => {
-        if (!newsForm.title || !newsForm.excerpt) {
-            alert("Harap isi semua field wajib.");
-            return;
+    // Handle Image Upload from Device
+    const handleNewsImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert("Ukuran file maksimal 5MB!");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64 = reader.result as string;
+                setNewsImagePreview(base64);
+                setNewsForm(prev => ({ ...prev, image: base64 }));
+            };
+            reader.readAsDataURL(file);
         }
+    };
 
-        addNews({
-            ...newsForm,
-            date: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
-        });
-
+    // Reset News Form
+    const resetNewsForm = () => {
         setNewsForm({
             title: "",
             excerpt: "",
+            content: "",
             category: "Pengumuman",
-            image: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&q=80&w=800"
+            author: "Admin Desa Cenrana",
+            tags: "",
+            status: "published",
+            date: new Date().toISOString().split('T')[0],
+            image: ""
+        });
+        setNewsImagePreview("");
+        setEditingNewsId(null);
+    };
+
+    // Handle Edit News
+    const handleEditNews = (item: any) => {
+        setEditingNewsId(item.id);
+        setNewsForm({
+            title: item.title || "",
+            excerpt: item.excerpt || "",
+            content: item.content || "",
+            category: item.category || "Pengumuman",
+            author: item.author || "Admin Desa Cenrana",
+            tags: item.tags || "",
+            status: item.status || "published",
+            date: item.date ? new Date().toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            image: item.image || ""
+        });
+        setNewsImagePreview(item.image || "");
+        setNewsSubTab("create");
+    };
+
+    const handleAddNews = () => {
+        if (!newsForm.title || !newsForm.excerpt) {
+            alert("Harap isi Judul dan Ringkasan!");
+            return;
+        }
+
+        const formattedDate = new Date(newsForm.date).toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
         });
 
-        alert("Berita berhasil ditambahkan!");
+        addNews({
+            title: newsForm.title,
+            excerpt: newsForm.excerpt,
+            category: newsForm.category,
+            image: newsForm.image || "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&q=80&w=800",
+            date: formattedDate,
+            author: newsForm.author,
+            tags: newsForm.tags,
+            content: newsForm.content,
+            status: newsForm.status  // ← FIX: Pass status from form
+        });
+
+        resetNewsForm();
+        setNewsSubTab("list");
+        alert("✅ Berita berhasil ditambahkan!");
     };
 
     const handleDeleteItem = (type: "news" | "lapak" | "aspirasi", id: number | string) => {
@@ -347,217 +418,366 @@ export default function AdminDashboard() {
                                         <p className="text-xl md:text-2xl font-bold text-[var(--text-primary)]">{isEditMode ? "AKTIF ✓" : "NON-AKTIF"}</p>
                                     </div>
                                 </div>
-
-                                {/* Lapak Warga Analytics */}
-                                <div className="glass-panel rounded-[2rem] p-8">
-                                    <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center">
-                                        <ShoppingBag className="w-6 h-6 mr-3 text-emerald-500" />
-                                        Analytics Lapak Warga
-                                    </h2>
-
-                                    {/* Analytics Stats */}
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                                        <div className="bg-gradient-to-br from-blue-500 to-cyan-500 p-6 rounded-2xl text-white shadow-lg">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="text-blue-100 text-sm font-bold mb-1">Total Views</p>
-                                                    <p className="text-4xl font-bold">
-                                                        {lapak.filter(p => p.status === 'Active').reduce((sum, p) => sum + (p.view_count || 0), 0)}
-                                                    </p>
-                                                </div>
-                                                <div className="bg-white/20 p-3 rounded-xl">
-                                                    <Eye className="w-8 h-8" />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="bg-gradient-to-br from-emerald-500 to-green-500 p-6 rounded-2xl text-white shadow-lg">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="text-emerald-100 text-sm font-bold mb-1">WA Clicks</p>
-                                                    <p className="text-4xl font-bold">
-                                                        {lapak.filter(p => p.status === 'Active').reduce((sum, p) => sum + (p.wa_click_count || 0), 0)}
-                                                    </p>
-                                                </div>
-                                                <div className="bg-white/20 p-3 rounded-xl">
-                                                    <MessageSquare className="w-8 h-8" />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="bg-gradient-to-br from-violet-500 to-purple-500 p-6 rounded-2xl text-white shadow-lg">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="text-violet-100 text-sm font-bold mb-1">Conversion Rate</p>
-                                                    <p className="text-4xl font-bold">
-                                                        {(() => {
-                                                            const activeProducts = lapak.filter(p => p.status === 'Active');
-                                                            const totalViews = activeProducts.reduce((sum, p) => sum + (p.view_count || 0), 0);
-                                                            const totalClicks = activeProducts.reduce((sum, p) => sum + (p.wa_click_count || 0), 0);
-                                                            return totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : '0.0';
-                                                        })()}%
-                                                    </p>
-                                                </div>
-                                                <div className="bg-white/20 p-3 rounded-xl">
-                                                    <Star className="w-8 h-8" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Top Products Table */}
-                                    <div className="overflow-x-auto">
-                                        <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4">Top 10 Produk Paling Dilihat</h3>
-                                        <table className="w-full">
-                                            <thead>
-                                                <tr className="border-b border-[var(--border-color)]">
-                                                    <th className="text-left py-3 px-4 text-[var(--text-secondary)] font-bold text-sm">Produk</th>
-                                                    <th className="text-left py-3 px-4 text-[var(--text-secondary)] font-bold text-sm">Kategori</th>
-                                                    <th className="text-center py-3 px-4 text-[var(--text-secondary)] font-bold text-sm">Views</th>
-                                                    <th className="text-center py-3 px-4 text-[var(--text-secondary)] font-bold text-sm">WA Clicks</th>
-                                                    <th className="text-center py-3 px-4 text-[var(--text-secondary)] font-bold text-sm">Conv. Rate</th>
-                                                    <th className="text-left py-3 px-4 text-[var(--text-secondary)] font-bold text-sm">Status</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {lapak
-                                                    .filter(p => p.status === 'Active')
-                                                    .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
-                                                    .slice(0, 10)
-                                                    .map((product, index) => (
-                                                        <tr key={product.id} className="border-b border-[var(--border-color)] hover:bg-[var(--bg-panel)] transition-colors">
-                                                            <td className="py-4 px-4">
-                                                                <div className="flex items-center space-x-3">
-                                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center text-white font-bold text-sm">
-                                                                        {index + 1}
-                                                                    </div>
-                                                                    <span className="font-bold text-[var(--text-primary)]">{product.title}</span>
-                                                                </div>
-                                                            </td>
-                                                            <td className="py-4 px-4 text-[var(--text-secondary)] text-sm">{product.category}</td>
-                                                            <td className="py-4 px-4 text-center">
-                                                                <span className="px-3 py-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg font-bold text-sm">
-                                                                    {product.view_count || 0}
-                                                                </span>
-                                                            </td>
-                                                            <td className="py-4 px-4 text-center">
-                                                                <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg font-bold text-sm">
-                                                                    {product.wa_click_count || 0}
-                                                                </span>
-                                                            </td>
-                                                            <td className="py-4 px-4 text-center">
-                                                                <span className="px-3 py-1 bg-violet-500/10 text-violet-600 dark:text-violet-400 rounded-lg font-bold text-sm">
-                                                                    {product.view_count ? ((product.wa_click_count || 0) / product.view_count * 100).toFixed(1) : '0.0'}%
-                                                                </span>
-                                                            </td>
-                                                            <td className="py-4 px-4">
-                                                                <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg text-xs font-bold">
-                                                                    {product.status}
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                    ))
-                                                }
-                                            </tbody>
-                                        </table>
-                                        {lapak.filter(p => p.status === 'Active').length === 0 && (
-                                            <p className="text-center py-8 text-[var(--text-secondary)]">Belum ada produk aktif untuk ditampilkan.</p>
-                                        )}
-                                    </div>
-                                </div>
                             </div>
                         )}
 
                         {activeTab === "news" && (
-                            <div className="glass-panel rounded-[2rem] p-8 animate-fade-in">
-                                <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Manajemen Berita</h2>
-
-                                {/* Add News Form */}
-                                <div className="bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border-color)] mb-8">
-                                    <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center">
-                                        <Plus className="w-5 h-5 mr-2" />
-                                        Tambah Berita Baru
-                                    </h3>
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Judul</label>
-                                            <input
-                                                type="text"
-                                                value={newsForm.title}
-                                                onChange={(e) => setNewsForm({ ...newsForm, title: e.target.value })}
-                                                className="w-full p-3 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:border-blue-500"
-                                                placeholder="Judul berita..."
-                                            />
+                            <motion.div
+                                className="max-w-4xl mx-auto"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                {/* Header with Tabs */}
+                                <div className="glass-panel rounded-2xl p-6 mb-6">
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg">
+                                                <Newspaper className="w-6 h-6 text-white" />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-xl font-bold text-[var(--text-primary)]">Manajemen Berita</h2>
+                                                <p className="text-xs text-[var(--text-secondary)]">{news.length} berita tersedia</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Kategori</label>
-                                            <select
-                                                value={newsForm.category}
-                                                onChange={(e) => setNewsForm({ ...newsForm, category: e.target.value })}
-                                                className="w-full p-3 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:border-blue-500"
+                                        <div className="flex gap-2 bg-[var(--bg-card)] p-1 rounded-xl border border-[var(--border-color)]">
+                                            <button
+                                                onClick={() => { setNewsSubTab("create"); resetNewsForm(); }}
+                                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 flex items-center gap-2 ${newsSubTab === "create"
+                                                    ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg"
+                                                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                                                    }`}
                                             >
-                                                <option>Pengumuman</option>
-                                                <option>Kegiatan</option>
-                                                <option>Pembangunan</option>
-                                                <option>Lainnya</option>
-                                            </select>
+                                                <Plus className="w-4 h-4" />
+                                                Buat Berita
+                                            </button>
+                                            <button
+                                                onClick={() => setNewsSubTab("list")}
+                                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 flex items-center gap-2 ${newsSubTab === "list"
+                                                    ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg"
+                                                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                                                    }`}
+                                            >
+                                                <Newspaper className="w-4 h-4" />
+                                                Daftar Berita
+                                            </button>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Deskripsi</label>
-                                            <textarea
-                                                value={newsForm.excerpt}
-                                                onChange={(e) => setNewsForm({ ...newsForm, excerpt: e.target.value })}
-                                                className="w-full p-3 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:border-blue-500 min-h-[100px]"
-                                                placeholder="Deskripsi berita..."
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">URL Gambar</label>
-                                            <input
-                                                type="text"
-                                                value={newsForm.image}
-                                                onChange={(e) => setNewsForm({ ...newsForm, image: e.target.value })}
-                                                className="w-full p-3 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:border-blue-500"
-                                                placeholder="https://..."
-                                            />
-                                        </div>
-                                        <button
-                                            onClick={handleAddNews}
-                                            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
-                                        >
-                                            <Plus className="w-5 h-5 inline mr-2" />
-                                            Tambah Berita
-                                        </button>
                                     </div>
                                 </div>
 
-                                {/* News List */}
-                                <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4">Daftar Berita ({news.length})</h3>
-                                <div className="space-y-4">
-                                    {news.map((item) => (
-                                        <div key={item.id} className="bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border-color)] flex items-center justify-between">
-                                            <div className="flex items-center space-x-4 flex-1">
-                                                <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-200 flex-shrink-0">
-                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <h4 className="font-bold text-[var(--text-primary)]">{item.title}</h4>
-                                                    <p className="text-sm text-[var(--text-secondary)]">{item.date} • {item.category}</p>
-                                                    <p className="text-xs text-[var(--text-secondary)] mt-1 line-clamp-2">{item.excerpt}</p>
-                                                </div>
-                                            </div>
+                                {/* CREATE TAB */}
+                                {newsSubTab === "create" && (
+                                    <motion.div
+                                        className="glass-panel rounded-2xl p-6"
+                                        initial={{ opacity: 0, scale: 0.98 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <div className="flex items-center justify-between mb-6">
+                                            <h3 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
+                                                {editingNewsId ? (
+                                                    <>
+                                                        <Edit3 className="w-5 h-5 text-amber-500" />
+                                                        Edit Berita
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Plus className="w-5 h-5 text-blue-500" />
+                                                        Buat Berita Baru
+                                                    </>
+                                                )}
+                                            </h3>
                                             <button
-                                                onClick={() => handleDeleteItem("news", item.id)}
-                                                className="ml-4 p-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors"
-                                                title="Hapus"
+                                                onClick={() => { resetNewsForm(); setNewsSubTab("list"); }}
+                                                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                                             >
-                                                <Trash2 className="w-5 h-5" />
+                                                <XCircle className="w-5 h-5" />
                                             </button>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
+
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                            {/* Left Column - Image Upload */}
+                                            <div className="lg:col-span-1">
+                                                <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Gambar Berita</label>
+                                                <div className="relative aspect-video rounded-xl overflow-hidden bg-[var(--bg-panel)] border-2 border-dashed border-[var(--border-color)] hover:border-blue-500/50 transition-colors group">
+                                                    {newsImagePreview ? (
+                                                        <>
+                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                            <img src={newsImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                <label className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg cursor-pointer hover:bg-white/30 transition-colors text-sm font-bold">
+                                                                    Ganti Gambar
+                                                                    <input type="file" accept="image/*" onChange={handleNewsImageUpload} className="hidden" />
+                                                                </label>
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer">
+                                                            <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mb-2">
+                                                                <Plus className="w-6 h-6 text-blue-500" />
+                                                            </div>
+                                                            <span className="text-sm font-bold text-[var(--text-secondary)]">Pilih Gambar</span>
+                                                            <span className="text-xs text-[var(--text-secondary)]/60">Max 5MB</span>
+                                                            <input type="file" accept="image/*" onChange={handleNewsImageUpload} className="hidden" />
+                                                        </label>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Right Column - Form Fields */}
+                                            <div className="lg:col-span-2 space-y-4">
+                                                {/* Title */}
+                                                <div>
+                                                    <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">
+                                                        Judul Berita <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={newsForm.title}
+                                                        onChange={(e) => setNewsForm({ ...newsForm, title: e.target.value.slice(0, 100) })}
+                                                        className="w-full p-3 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                                        placeholder="Masukkan judul berita..."
+                                                    />
+                                                    <p className="text-xs text-[var(--text-secondary)] mt-1 text-right">{newsForm.title.length}/100</p>
+                                                </div>
+
+                                                {/* Row: Category, Date, Author */}
+                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                                    <div>
+                                                        <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Kategori</label>
+                                                        <select
+                                                            value={newsForm.category}
+                                                            onChange={(e) => setNewsForm({ ...newsForm, category: e.target.value })}
+                                                            className="w-full p-3 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:border-blue-500 transition-all"
+                                                        >
+                                                            <option>Pengumuman</option>
+                                                            <option>Kegiatan</option>
+                                                            <option>Pembangunan</option>
+                                                            <option>Kesehatan</option>
+                                                            <option>Pendidikan</option>
+                                                            <option>Lainnya</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">📅 Tanggal</label>
+                                                        <input
+                                                            type="date"
+                                                            value={newsForm.date}
+                                                            onChange={(e) => setNewsForm({ ...newsForm, date: e.target.value })}
+                                                            className="w-full p-3 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:border-blue-500 transition-all"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">✍️ Penulis</label>
+                                                        <input
+                                                            type="text"
+                                                            value={newsForm.author}
+                                                            onChange={(e) => setNewsForm({ ...newsForm, author: e.target.value })}
+                                                            className="w-full p-3 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:border-blue-500 transition-all"
+                                                            placeholder="Nama penulis..."
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Tags */}
+                                                <div>
+                                                    <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">🏷️ Tags (pisahkan dengan koma)</label>
+                                                    <input
+                                                        type="text"
+                                                        value={newsForm.tags}
+                                                        onChange={(e) => setNewsForm({ ...newsForm, tags: e.target.value })}
+                                                        className="w-full p-3 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:border-blue-500 transition-all"
+                                                        placeholder="desa, pembangunan, kegiatan..."
+                                                    />
+                                                </div>
+
+                                                {/* Excerpt */}
+                                                <div>
+                                                    <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">
+                                                        Ringkasan <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <textarea
+                                                        value={newsForm.excerpt}
+                                                        onChange={(e) => setNewsForm({ ...newsForm, excerpt: e.target.value.slice(0, 200) })}
+                                                        className="w-full p-3 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:border-blue-500 transition-all min-h-[80px] resize-none"
+                                                        placeholder="Ringkasan singkat untuk preview..."
+                                                    />
+                                                    <p className="text-xs text-[var(--text-secondary)] mt-1 text-right">{newsForm.excerpt.length}/200</p>
+                                                </div>
+
+                                                {/* Content */}
+                                                <div>
+                                                    <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">📝 Konten Lengkap</label>
+                                                    <textarea
+                                                        value={newsForm.content}
+                                                        onChange={(e) => setNewsForm({ ...newsForm, content: e.target.value })}
+                                                        className="w-full p-3 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:border-blue-500 transition-all min-h-[150px] resize-y"
+                                                        placeholder="Isi lengkap berita..."
+                                                    />
+                                                </div>
+
+                                                {/* Status */}
+                                                <div className="flex items-center gap-4 p-4 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)]">
+                                                    <span className="text-sm font-bold text-[var(--text-secondary)]">Status:</span>
+                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                        <input
+                                                            type="radio"
+                                                            name="status"
+                                                            checked={newsForm.status === "draft"}
+                                                            onChange={() => setNewsForm({ ...newsForm, status: "draft" })}
+                                                            className="w-4 h-4 text-gray-500"
+                                                        />
+                                                        <span className="text-sm text-[var(--text-secondary)]">Draft</span>
+                                                    </label>
+                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                        <input
+                                                            type="radio"
+                                                            name="status"
+                                                            checked={newsForm.status === "published"}
+                                                            onChange={() => setNewsForm({ ...newsForm, status: "published" })}
+                                                            className="w-4 h-4 text-emerald-500"
+                                                        />
+                                                        <span className="text-sm text-emerald-500 font-bold">Publish</span>
+                                                    </label>
+                                                </div>
+
+                                                {/* Submit Button */}
+                                                <button
+                                                    onClick={handleAddNews}
+                                                    className="w-full py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:from-blue-600 hover:to-cyan-600 transition-all flex items-center justify-center gap-2"
+                                                >
+                                                    {editingNewsId ? (
+                                                        <>
+                                                            <CheckCircle className="w-5 h-5" />
+                                                            Update Berita
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Plus className="w-5 h-5" />
+                                                            Publikasikan Berita
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+
+                                {/* LIST TAB */}
+                                {newsSubTab === "list" && (
+                                    <motion.div
+                                        className="glass-panel rounded-2xl p-6"
+                                        initial={{ opacity: 0, scale: 0.98 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        {/* Search */}
+                                        <div className="flex items-center gap-4 mb-6">
+                                            <div className="flex-1 relative">
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+                                                <input
+                                                    type="text"
+                                                    value={newsSearchQuery}
+                                                    onChange={(e) => setNewsSearchQuery(e.target.value)}
+                                                    placeholder="Cari berita..."
+                                                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:border-blue-500 transition-all text-sm"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* News List */}
+                                        <div className="space-y-3">
+                                            {news
+                                                .filter(item =>
+                                                    newsSearchQuery === "" ||
+                                                    item.title.toLowerCase().includes(newsSearchQuery.toLowerCase()) ||
+                                                    item.category?.toLowerCase().includes(newsSearchQuery.toLowerCase())
+                                                )
+                                                .map((item, index) => (
+                                                    <motion.div
+                                                        key={item.id}
+                                                        className="flex items-center gap-4 p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-blue-500/30 hover:shadow-lg transition-all group"
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{ delay: index * 0.05 }}
+                                                    >
+                                                        {/* Thumbnail */}
+                                                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                            <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                                                        </div>
+
+                                                        {/* Content */}
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="font-bold text-[var(--text-primary)] truncate group-hover:text-blue-400 transition-colors">{item.title}</h4>
+                                                            <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] mt-1 flex-wrap">
+                                                                <span className="flex items-center gap-1">
+                                                                    <Clock className="w-3 h-3" />
+                                                                    {item.date}
+                                                                </span>
+                                                                <span>•</span>
+                                                                <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 font-bold">{item.category}</span>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        const newStatus = item.status === 'draft' ? 'published' : 'draft';
+                                                                        updateNews(item.id, { status: newStatus });
+                                                                    }}
+                                                                    className={`px-2 py-0.5 rounded-full font-bold cursor-pointer hover:scale-105 transition-all ${item.status === 'draft'
+                                                                        ? 'bg-amber-500/10 text-amber-500 hover:bg-amber-500/20'
+                                                                        : 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20'
+                                                                        }`}
+                                                                    title="Klik untuk toggle status"
+                                                                >
+                                                                    {item.status === 'draft' ? '📝 Draft' : '✅ Published'}
+                                                                </button>
+                                                            </div>
+                                                            <p className="text-xs text-[var(--text-secondary)] mt-1 line-clamp-1">{item.excerpt}</p>
+                                                        </div>
+
+                                                        {/* Actions - Always Visible */}
+                                                        <div className="flex items-center gap-2 flex-shrink-0 z-10">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleEditNews(item)}
+                                                                className="p-2 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-colors cursor-pointer"
+                                                                title="Edit"
+                                                            >
+                                                                <Edit3 className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={async () => {
+                                                                    if (window.confirm("Apakah Anda yakin ingin menghapus berita ini?")) {
+                                                                        await deleteNews(item.id);
+                                                                    }
+                                                                }}
+                                                                className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
+                                                                title="Hapus"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </motion.div>
+                                                ))
+                                            }
+                                            {news.length === 0 && (
+                                                <div className="text-center py-12">
+                                                    <div className="w-16 h-16 rounded-full bg-[var(--bg-panel)] flex items-center justify-center mx-auto mb-4">
+                                                        <Newspaper className="w-8 h-8 text-[var(--text-secondary)]/40" />
+                                                    </div>
+                                                    <p className="text-[var(--text-secondary)]">Belum ada berita</p>
+                                                    <button
+                                                        onClick={() => setNewsSubTab("create")}
+                                                        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg font-bold text-sm hover:bg-blue-600 transition-colors"
+                                                    >
+                                                        + Buat Berita Pertama
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </motion.div>
                         )}
 
                         {/* KELOLA LAPAK WARGA - REDESIGNED WITH TABS */}
