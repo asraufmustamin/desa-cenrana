@@ -10,6 +10,7 @@ export default function Navbar() {
     const [scrolled, setScrolled] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
     const { isLoggedIn, theme, toggleTheme, kepalaDesaStatus } = useAppContext();
+    const [showStatusPopup, setShowStatusPopup] = useState(false);
 
     const [mounted, setMounted] = useState(false);
 
@@ -202,8 +203,34 @@ export default function Navbar() {
                             return (
                                 <div
                                     className="relative w-10 h-10 flex items-center justify-center cursor-pointer"
-                                    title={`Status Kepala Desa: ${config.label}`}
+                                    onClick={() => setShowStatusPopup(!showStatusPopup)}
                                 >
+                                    {/* Popup Text */}
+                                    {showStatusPopup && (
+                                        <div
+                                            className="absolute top-12 left-1/2 -translate-x-1/2 px-3 py-2 rounded-lg text-[11px] font-bold whitespace-nowrap z-50 shadow-lg animate-fade-in-up"
+                                            style={{
+                                                backgroundColor: config.bgColor,
+                                                border: `2px solid ${config.ringColor}`,
+                                                color: config.ringColor,
+                                                boxShadow: `0 4px 15px ${config.ringColor}30`
+                                            }}
+                                        >
+                                            <div className="flex items-center gap-1.5">
+                                                <span>👤</span>
+                                                <span>Kepala Desa: {config.label}</span>
+                                            </div>
+                                            {/* Arrow pointer */}
+                                            <div
+                                                className="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0"
+                                                style={{
+                                                    borderLeft: '6px solid transparent',
+                                                    borderRight: '6px solid transparent',
+                                                    borderBottom: `6px solid ${config.ringColor}`
+                                                }}
+                                            />
+                                        </div>
+                                    )}
                                     {/* Outer animated ping */}
                                     <div
                                         className="absolute inset-0 rounded-full animate-ping opacity-20"
