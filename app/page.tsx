@@ -98,9 +98,29 @@ export default function Home() {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
+  // Light Mode Live Wallpaper - Documentary photos for hero section
+  const [currentWallpaperIndex, setCurrentWallpaperIndex] = useState(0);
+  const documentaryPhotos = [
+    'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1920&q=80', // Rice field
+    'https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1920&q=80', // Rural landscape
+    'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=1920&q=80', // Village life
+    'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1920&q=80', // Nature scenery
+    'https://images.unsplash.com/photo-1559827260-dc66d52bef19?auto=format&fit=crop&w=1920&q=80', // Community farming
+  ];
+
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Light mode wallpaper rotation effect
+  useEffect(() => {
+    if (mounted && resolvedTheme === 'light') {
+      const interval = setInterval(() => {
+        setCurrentWallpaperIndex((prev) => (prev + 1) % documentaryPhotos.length);
+      }, 8000); // Change every 8 seconds
+      return () => clearInterval(interval);
+    }
+  }, [mounted, resolvedTheme, documentaryPhotos.length]);
 
   const isDark = mounted ? resolvedTheme === "dark" : true; // Default to dark during SSR
   const bgColor = isDark ? "#0A0F1A" : "#FFFFFF";
@@ -122,21 +142,58 @@ export default function Home() {
             : 'linear-gradient(to bottom, #F8FAFC, #FFFFFF)'
         }}
       >
-        {/* Animated Background Orbs - Hidden on mobile for performance */}
-        <div className="absolute inset-0 overflow-hidden hidden sm:block">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-neon-blue/20 rounded-full blur-[120px] animate-float"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-neon-purple/20 rounded-full blur-[100px] animate-float" style={{ animationDelay: '-2s' }}></div>
-          <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-neon-emerald/15 rounded-full blur-[80px] animate-float" style={{ animationDelay: '-4s' }}></div>
-        </div>
+        {/* Light Mode Live Wallpaper - Documentary Photos */}
+        {mounted && !isDark && (
+          <>
+            {/* Current Image */}
+            <div
+              className="absolute inset-0 transition-opacity duration-1000"
+              style={{
+                backgroundImage: `url(${documentaryPhotos[currentWallpaperIndex]})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                opacity: 0.15,
+                filter: 'blur(4px)',
+              }}
+            />
+            {/* Preload next image */}
+            <div
+              className="absolute inset-0 opacity-0"
+              style={{
+                backgroundImage: `url(${documentaryPhotos[(currentWallpaperIndex + 1) % documentaryPhotos.length]})`,
+              }}
+            />
+            {/* Light overlay for better text readability */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(to bottom, rgba(248,250,252,0.85) 0%, rgba(255,255,255,0.9) 50%, rgba(248,250,252,0.95) 100%)'
+              }}
+            />
+          </>
+        )}
 
-        {/* Simpler background for mobile */}
-        <div className="absolute inset-0 sm:hidden bg-gradient-to-b from-neon-blue/5 via-transparent to-neon-emerald/5"></div>
+        {/* Animated Background Orbs - Hidden on mobile for performance (Dark mode only) */}
+        {isDark && (
+          <div className="absolute inset-0 overflow-hidden hidden sm:block">
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-neon-blue/20 rounded-full blur-[120px] animate-float"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-neon-purple/20 rounded-full blur-[100px] animate-float" style={{ animationDelay: '-2s' }}></div>
+            <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-neon-emerald/15 rounded-full blur-[80px] animate-float" style={{ animationDelay: '-4s' }}></div>
+          </div>
+        )}
 
-        {/* Grid Pattern Overlay */}
-        <div className="absolute inset-0 opacity-[0.015] hidden sm:block" style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-          backgroundSize: '60px 60px'
-        }}></div>
+        {/* Simpler background for mobile (Dark mode) */}
+        {isDark && (
+          <div className="absolute inset-0 sm:hidden bg-gradient-to-b from-neon-blue/5 via-transparent to-neon-emerald/5"></div>
+        )}
+
+        {/* Grid Pattern Overlay - Dark mode only */}
+        {isDark && (
+          <div className="absolute inset-0 opacity-[0.015] hidden sm:block" style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+            backgroundSize: '60px 60px'
+          }}></div>
+        )}
 
         {/* Content */}
         <motion.div
