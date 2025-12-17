@@ -9,7 +9,7 @@ export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-    const { isLoggedIn, theme, toggleTheme } = useAppContext();
+    const { isLoggedIn, theme, toggleTheme, kepalaDesaStatus } = useAppContext();
 
     const [mounted, setMounted] = useState(false);
 
@@ -177,7 +177,58 @@ export default function Navbar() {
                     </div>
 
                     {/* Mobile Menu Button */}
-                    <div className="md:hidden flex items-center space-x-3">
+                    <div className="md:hidden flex items-center space-x-2">
+                        {/* Status Kehadiran Ring Indicator - Mobile Only */}
+                        {(() => {
+                            const statusConfig = {
+                                'di_kantor': {
+                                    label: 'Di Kantor',
+                                    ringColor: '#10B981',
+                                    bgColor: 'rgba(16, 185, 129, 0.15)'
+                                },
+                                'rapat': {
+                                    label: 'Sedang Rapat',
+                                    ringColor: '#F59E0B',
+                                    bgColor: 'rgba(245, 158, 11, 0.15)'
+                                },
+                                'tidak_hadir': {
+                                    label: 'Tidak Hadir',
+                                    ringColor: '#EF4444',
+                                    bgColor: 'rgba(239, 68, 68, 0.15)'
+                                }
+                            };
+                            const config = statusConfig[kepalaDesaStatus] || statusConfig['di_kantor'];
+
+                            return (
+                                <div
+                                    className="relative w-10 h-10 flex items-center justify-center cursor-pointer"
+                                    title={`Status Kepala Desa: ${config.label}`}
+                                >
+                                    {/* Outer animated ping */}
+                                    <div
+                                        className="absolute inset-0 rounded-full animate-ping opacity-20"
+                                        style={{ backgroundColor: config.ringColor }}
+                                    />
+                                    {/* Ring border */}
+                                    <div
+                                        className="absolute inset-1 rounded-full"
+                                        style={{
+                                            border: `2px solid ${config.ringColor}`,
+                                            backgroundColor: config.bgColor
+                                        }}
+                                    />
+                                    {/* Center dot */}
+                                    <div
+                                        className="relative w-3 h-3 rounded-full animate-pulse"
+                                        style={{
+                                            backgroundColor: config.ringColor,
+                                            boxShadow: `0 0 10px ${config.ringColor}`
+                                        }}
+                                    />
+                                </div>
+                            );
+                        })()}
+
                         {/* Mobile Theme Toggle - Animated */}
                         <button
                             onClick={toggleTheme}

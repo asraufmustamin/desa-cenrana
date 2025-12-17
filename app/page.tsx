@@ -145,105 +145,49 @@ export default function Home() {
           animate="visible"
           variants={staggerContainer}
         >
-          {/* Status Kehadiran Kepala Desa Badge */}
+          {/* Status Kehadiran Kepala Desa Badge - Desktop/Tablet Only (Mobile is in Navbar) */}
           {(() => {
             const statusConfig = {
               'di_kantor': {
                 label: 'Kepala Desa di Kantor',
-                shortLabel: 'Di Kantor',
                 color: '#10B981',
                 bgColor: 'rgba(16, 185, 129, 0.1)',
                 borderColor: 'rgba(16, 185, 129, 0.5)',
-                ringColor: '#10B981',
                 icon: '🟢'
               },
               'rapat': {
                 label: 'Kepala Desa Sedang Rapat',
-                shortLabel: 'Rapat',
                 color: '#F59E0B',
                 bgColor: 'rgba(245, 158, 11, 0.1)',
                 borderColor: 'rgba(245, 158, 11, 0.5)',
-                ringColor: '#F59E0B',
                 icon: '🟡'
               },
               'tidak_hadir': {
                 label: 'Kepala Desa Tidak di Kantor',
-                shortLabel: 'Tidak Hadir',
                 color: '#EF4444',
                 bgColor: 'rgba(239, 68, 68, 0.1)',
                 borderColor: 'rgba(239, 68, 68, 0.5)',
-                ringColor: '#EF4444',
                 icon: '🔴'
               }
             };
             const config = statusConfig[kepalaDesaStatus] || statusConfig['di_kantor'];
 
             return (
-              <>
-                {/* Mobile: Circular Ring Indicator */}
-                <motion.div
-                  variants={fadeInUp}
-                  className="sm:hidden flex flex-col items-center gap-2 mb-6"
-                  title={`Status: ${config.label}`}
-                >
-                  <div
-                    className="relative w-14 h-14 flex items-center justify-center"
-                  >
-                    {/* Outer animated ring */}
-                    <div
-                      className="absolute inset-0 rounded-full animate-ping opacity-30"
-                      style={{ backgroundColor: config.ringColor }}
-                    />
-                    {/* Inner ring with gradient */}
-                    <div
-                      className="absolute inset-1 rounded-full"
-                      style={{
-                        background: `conic-gradient(${config.ringColor} 0deg, ${config.ringColor} 270deg, transparent 270deg, transparent 360deg)`,
-                        opacity: 0.6
-                      }}
-                    />
-                    {/* Center circle */}
-                    <div
-                      className="relative w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm"
-                      style={{
-                        backgroundColor: config.bgColor,
-                        border: `3px solid ${config.ringColor}`,
-                        boxShadow: `0 0 20px ${config.ringColor}40`
-                      }}
-                    >
-                      {/* Inner dot - pulsing */}
-                      <div
-                        className="w-4 h-4 rounded-full animate-pulse"
-                        style={{ backgroundColor: config.ringColor }}
-                      />
-                    </div>
-                  </div>
-                  {/* Short label below */}
-                  <span
-                    className="text-[10px] font-bold uppercase tracking-wider"
-                    style={{ color: config.color }}
-                  >
-                    {config.shortLabel}
-                  </span>
-                </motion.div>
-
-                {/* Desktop/Tablet: Full Badge */}
-                <motion.div
-                  variants={fadeInUp}
-                  className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide mb-6 cursor-default transition-all duration-300 hover:scale-105"
-                  style={{
-                    backgroundColor: config.bgColor,
-                    border: `2px solid ${config.borderColor}`,
-                    color: config.color,
-                    boxShadow: `0 0 20px ${config.bgColor}`
-                  }}
-                  title={`Status: ${config.label}`}
-                >
-                  <span className="text-sm animate-pulse">{config.icon}</span>
-                  <span>Status Kehadiran</span>
-                  <span>• {config.label}</span>
-                </motion.div>
-              </>
+              <motion.div
+                variants={fadeInUp}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide mb-6 cursor-default transition-all duration-300 hover:scale-105"
+                style={{
+                  backgroundColor: config.bgColor,
+                  border: `2px solid ${config.borderColor}`,
+                  color: config.color,
+                  boxShadow: `0 0 20px ${config.bgColor}`
+                }}
+                title={`Status: ${config.label}`}
+              >
+                <span className="text-sm animate-pulse">{config.icon}</span>
+                <span>Status Kehadiran</span>
+                <span>• {config.label}</span>
+              </motion.div>
             );
           })()}
 
