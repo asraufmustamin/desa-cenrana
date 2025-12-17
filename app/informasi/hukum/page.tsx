@@ -177,72 +177,79 @@ export default function HukumPage() {
                             className="group relative"
                             whileHover={{ x: 5 }}
                         >
-                            <div className="p-4 rounded-2xl flex flex-col md:flex-row items-start md:items-center gap-4 bg-[var(--bg-card)]/90 backdrop-blur-xl border border-[var(--border-color)] shadow-lg hover:shadow-xl hover:border-slate-500/30 transition-all">
-                                {/* Delete button for admin */}
-                                {isLoggedIn && (
-                                    <button
-                                        onClick={async () => {
-                                            if (window.confirm("Apakah Anda yakin ingin menghapus produk hukum ini?")) {
-                                                await deleteHukum(item.id);
-                                            }
-                                        }}
-                                        className="absolute top-2 right-2 p-1.5 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
-                                    >
-                                        <Trash2 className="w-3 h-3" />
-                                    </button>
-                                )}
+                            <div className="p-4 rounded-2xl bg-[var(--bg-card)]/90 backdrop-blur-xl border border-[var(--border-color)] shadow-lg hover:shadow-xl hover:border-slate-500/30 transition-all">
+                                {/* Top Row: Icon + Content */}
+                                <div className="flex items-start gap-3 w-full">
+                                    {/* Icon */}
+                                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-slate-500 to-gray-600 flex items-center justify-center shadow-lg shrink-0">
+                                        <Scale className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                                    </div>
 
-                                {/* Icon */}
-                                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-slate-500 to-gray-600 flex items-center justify-center shadow-lg">
-                                    <Scale className="w-5 h-5 text-white" />
+                                    {/* Content */}
+                                    <div className="flex-grow space-y-1 min-w-0">
+                                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
+                                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-500/10 text-slate-400 border border-slate-500/30">
+                                                {isLoggedIn ? (
+                                                    <Editable value={item.jenis} onSave={(val) => updateHukum(item.id, { jenis: val as any })} />
+                                                ) : (
+                                                    item.jenis
+                                                )}
+                                            </span>
+                                            <span className="text-[10px] sm:text-xs font-mono text-[var(--text-secondary)]">
+                                                No. {isLoggedIn ? (
+                                                    <Editable value={item.nomor} onSave={(val) => updateHukum(item.id, { nomor: val })} />
+                                                ) : (
+                                                    item.nomor
+                                                )} /
+                                                {isLoggedIn ? (
+                                                    <Editable value={item.tahun} onSave={(val) => updateHukum(item.id, { tahun: val })} />
+                                                ) : (
+                                                    item.tahun
+                                                )}
+                                            </span>
+                                        </div>
+                                        <h3 className="text-xs sm:text-sm font-bold text-[var(--text-primary)] line-clamp-2 sm:truncate">
+                                            {isLoggedIn ? (
+                                                <Editable value={item.judul} onSave={(val) => updateHukum(item.id, { judul: val })} />
+                                            ) : (
+                                                item.judul
+                                            )}
+                                        </h3>
+                                    </div>
                                 </div>
 
-                                {/* Content */}
-                                <div className="flex-grow space-y-1 min-w-0">
-                                    <div className="flex flex-wrap items-center gap-2 mb-1">
-                                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-500/10 text-slate-400 border border-slate-500/30">
-                                            {isLoggedIn ? (
-                                                <Editable value={item.jenis} onSave={(val) => updateHukum(item.id, { jenis: val as any })} />
-                                            ) : (
-                                                item.jenis
-                                            )}
-                                        </span>
-                                        <span className="text-xs font-mono text-[var(--text-secondary)]">
-                                            No. {isLoggedIn ? (
-                                                <Editable value={item.nomor} onSave={(val) => updateHukum(item.id, { nomor: val })} />
-                                            ) : (
-                                                item.nomor
-                                            )} /
-                                            {isLoggedIn ? (
-                                                <Editable value={item.tahun} onSave={(val) => updateHukum(item.id, { tahun: val })} />
-                                            ) : (
-                                                item.tahun
-                                            )}
-                                        </span>
-                                    </div>
-                                    <h3 className="text-sm font-bold text-[var(--text-primary)] truncate">
-                                        {isLoggedIn ? (
-                                            <Editable value={item.judul} onSave={(val) => updateHukum(item.id, { judul: val })} />
-                                        ) : (
-                                            item.judul
-                                        )}
-                                    </h3>
-                                </div>
+                                {/* Bottom Row: PDF Button + Delete (Mobile) */}
+                                <div className="flex items-center justify-between w-full gap-2 mt-3 sm:mt-0 sm:w-auto sm:justify-end">
+                                    {/* PDF Download Button */}
+                                    {item.downloadUrl && item.downloadUrl !== "#" ? (
+                                        <a
+                                            href={item.downloadUrl}
+                                            download={`${item.jenis}-${item.nomor}-${item.tahun}.pdf`}
+                                            className="flex items-center px-3 py-1.5 rounded-lg font-semibold text-xs transition-all bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-lg"
+                                        >
+                                            <Download className="w-3 h-3 mr-1.5" /> PDF
+                                        </a>
+                                    ) : (
+                                        <div className="flex items-center px-3 py-1.5 rounded-lg font-semibold text-xs bg-gray-500/20 text-gray-400 cursor-not-allowed">
+                                            <FileText className="w-3 h-3 mr-1.5" /> Belum Ada PDF
+                                        </div>
+                                    )}
 
-                                {/* PDF Download Button */}
-                                {item.downloadUrl && item.downloadUrl !== "#" ? (
-                                    <a
-                                        href={item.downloadUrl}
-                                        download={`${item.jenis}-${item.nomor}-${item.tahun}.pdf`}
-                                        className="shrink-0 flex items-center px-3 py-1.5 rounded-lg font-semibold text-xs transition-all bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-lg"
-                                    >
-                                        <Download className="w-3 h-3 mr-1.5" /> PDF
-                                    </a>
-                                ) : (
-                                    <div className="shrink-0 flex items-center px-3 py-1.5 rounded-lg font-semibold text-xs bg-gray-500/20 text-gray-400 cursor-not-allowed">
-                                        <FileText className="w-3 h-3 mr-1.5" /> Belum Ada PDF
-                                    </div>
-                                )}
+                                    {/* Delete button for admin */}
+                                    {isLoggedIn && (
+                                        <button
+                                            onClick={async () => {
+                                                if (window.confirm("Apakah Anda yakin ingin menghapus produk hukum ini?")) {
+                                                    await deleteHukum(item.id);
+                                                }
+                                            }}
+                                            className="flex items-center gap-1 px-3 py-1.5 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors text-xs font-semibold"
+                                        >
+                                            <Trash2 className="w-3 h-3" />
+                                            <span className="sm:hidden">Hapus</span>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </motion.div>
                     ))}

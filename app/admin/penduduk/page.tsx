@@ -201,41 +201,41 @@ export default function PendudukPage() {
     return (
         <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-[var(--bg-primary)]">
             <div className="max-w-7xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
                     <div className="flex items-center">
-                        <Users className="w-8 h-8 text-blue-600 mr-3" />
-                        <h1 className="text-4xl font-bold text-[var(--text-primary)]">Data Penduduk</h1>
+                        <Users className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 mr-2 sm:mr-3" />
+                        <h1 className="text-2xl sm:text-4xl font-bold text-[var(--text-primary)]">Data Penduduk</h1>
                     </div>
                     <button
                         onClick={() => setShowModal(true)}
-                        className="flex items-center px-6 py-3 bg-gradient-to-r from-cyan-500 to-emerald-500 text-white rounded-xl font-bold hover:from-cyan-600 hover:to-emerald-600 transition-colors shadow-lg"
+                        className="w-full sm:w-auto flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-cyan-500 to-emerald-500 text-white rounded-xl font-bold text-sm sm:text-base hover:from-cyan-600 hover:to-emerald-600 transition-colors shadow-lg"
                     >
-                        <Plus className="w-5 h-5 mr-2" />
+                        <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                         Tambah Penduduk
                     </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-4 mb-6">
+                <div className="flex gap-2 sm:gap-4 mb-4 sm:mb-6 overflow-x-auto pb-2">
                     <button
                         onClick={() => setActiveTab('list')}
-                        className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'list'
+                        className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base transition-all whitespace-nowrap ${activeTab === 'list'
                             ? 'bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-lg'
                             : 'bg-[var(--bg-panel)] text-[var(--text-secondary)] hover:bg-[var(--bg-card)]'
                             }`}
                     >
-                        <Users className="w-5 h-5 inline mr-2" />
-                        Daftar Penduduk
+                        <Users className="w-4 h-4 sm:w-5 sm:h-5 inline mr-1.5 sm:mr-2" />
+                        <span className="hidden xs:inline">Daftar</span> Penduduk
                     </button>
                     <button
                         onClick={() => setActiveTab('import')}
-                        className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'import'
+                        className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base transition-all whitespace-nowrap ${activeTab === 'import'
                             ? 'bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-lg'
                             : 'bg-[var(--bg-panel)] text-[var(--text-secondary)] hover:bg-[var(--bg-card)]'
                             }`}
                     >
-                        <Upload className="w-5 h-5 inline mr-2" />
-                        Import Excel
+                        <Upload className="w-4 h-4 sm:w-5 sm:h-5 inline mr-1.5 sm:mr-2" />
+                        Import <span className="hidden sm:inline">Excel</span>
                     </button>
                 </div>
 
