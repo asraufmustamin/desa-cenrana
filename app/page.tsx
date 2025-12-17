@@ -152,7 +152,7 @@ export default function Home() {
                 backgroundImage: `url(${documentaryPhotos[currentWallpaperIndex]})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                opacity: 0.35,
+                opacity: 0.5,
               }}
             />
             {/* Preload next image */}
@@ -166,7 +166,7 @@ export default function Home() {
             <div
               className="absolute inset-0"
               style={{
-                background: 'linear-gradient(to bottom, rgba(255,255,255,0.6) 0%, rgba(248,250,252,0.7) 50%, rgba(255,255,255,0.75) 100%)'
+                background: 'linear-gradient(to bottom, rgba(255,255,255,0.4) 0%, rgba(248,250,252,0.5) 50%, rgba(255,255,255,0.55) 100%)'
               }}
             />
           </>
