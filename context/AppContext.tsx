@@ -490,33 +490,42 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
         const fetchInitialData = async () => {
             setIsLoading(true);
+            console.log("🚀 Starting data fetch from Supabase...");
+
             try {
-                // ⚡ OPTIMIZATION: Fetch with LIMIT to reduce data transfer
-                // Fetch News (limit 50 latest)
-                const { data: newsData } = await supabase
+                // ⚡ Fetch News (limit 50 latest)
+                const { data: newsData, error: newsError } = await supabase
                     .from('berita')
                     .select('*')
                     .order('created_at', { ascending: false })
                     .limit(50);
-                if (newsData) setNews(newsData);
-                // No fallback - only use database data
+
+                console.log("📰 Berita fetch result:", { count: newsData?.length, error: newsError?.message });
+                if (newsData && !newsError) {
+                    setNews(newsData);
+                } else {
+                    console.error("❌ Berita fetch error:", newsError);
+                }
 
                 // Fetch Lapak (limit 100 products)
-                const { data: lapakData } = await supabase
+                const { data: lapakData, error: lapakError } = await supabase
                     .from('lapak')
                     .select('*')
                     .order('created_at', { ascending: false })
                     .limit(100);
-                if (lapakData) {
+
+                console.log("🏪 Lapak fetch result:", { count: lapakData?.length, error: lapakError?.message });
+                if (lapakData && !lapakError) {
                     // Map DB 'name' to 'title' if necessary
                     const mappedLapak = lapakData.map((item: any) => ({
                         ...item,
-                        title: item.title || item.name || "Produk Tanpa Nama", // Fallback
-                        status: item.status || "Active" // Ensure status exists
+                        title: item.title || item.name || "Produk Tanpa Nama",
+                        status: item.status || "Active"
                     }));
                     setLapak(mappedLapak);
+                } else {
+                    console.error("❌ Lapak fetch error:", lapakError);
                 }
-                // No fallback - only use database data
 
                 // ⚡ OPTIMIZED: Fetch aspirasi WITHOUT photo untuk fast initial load
                 // Photo akan di-load on-demand saat admin buka detail (lazy load)
