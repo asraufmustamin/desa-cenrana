@@ -113,31 +113,34 @@ export default function Home() {
     >
       <EditModeIndicator />
 
-      {/* 1. HERO SECTION - Futuristic */}
+      {/* 1. HERO SECTION - Mobile Optimized */}
       <section
-        className="relative min-h-screen flex items-center justify-center overflow-hidden"
+        className="relative flex flex-col items-center justify-start sm:justify-center overflow-hidden pt-28 pb-16 sm:pt-24 sm:pb-20 md:min-h-screen"
         style={{
           background: isDark
             ? 'linear-gradient(to bottom, #0A0F1A, #111827)'
             : 'linear-gradient(to bottom, #F8FAFC, #FFFFFF)'
         }}
       >
-        {/* Animated Background Orbs */}
-        <div className="absolute inset-0 overflow-hidden">
+        {/* Animated Background Orbs - Hidden on mobile for performance */}
+        <div className="absolute inset-0 overflow-hidden hidden sm:block">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-neon-blue/20 rounded-full blur-[120px] animate-float"></div>
           <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-neon-purple/20 rounded-full blur-[100px] animate-float" style={{ animationDelay: '-2s' }}></div>
           <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-neon-emerald/15 rounded-full blur-[80px] animate-float" style={{ animationDelay: '-4s' }}></div>
         </div>
 
+        {/* Simpler background for mobile */}
+        <div className="absolute inset-0 sm:hidden bg-gradient-to-b from-neon-blue/5 via-transparent to-neon-emerald/5"></div>
+
         {/* Grid Pattern Overlay */}
-        <div className="absolute inset-0 opacity-[0.015]" style={{
+        <div className="absolute inset-0 opacity-[0.015] hidden sm:block" style={{
           backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
           backgroundSize: '60px 60px'
         }}></div>
 
         {/* Content */}
         <motion.div
-          className="relative z-10 text-center px-4 max-w-4xl mx-auto"
+          className="relative z-10 text-center px-5 sm:px-4 max-w-4xl mx-auto w-full"
           initial="hidden"
           animate="visible"
           variants={staggerContainer}
@@ -188,41 +191,41 @@ export default function Home() {
             );
           })()}
 
-          {/* Main Headline - Extra Bold Sans-Serif */}
+          {/* Main Headline - Mobile First */}
           <motion.h1
             variants={fadeInUp}
-            className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 tracking-tight leading-tight"
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold mb-3 sm:mb-4 tracking-tight leading-snug sm:leading-tight"
             style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
           >
-            Selamat Datang di{" "}
+            <span className="block sm:inline">Selamat Datang di</span>{" "}
             <span
-              className="text-transparent bg-clip-text whitespace-nowrap"
+              className="text-transparent bg-clip-text block sm:inline"
               style={{
                 backgroundImage: isDark
-                  ? 'linear-gradient(to right, #0EA5E9, #10B981)' // Blue -> Emerald (Dark)
-                  : 'linear-gradient(to right, #059669, #10B981)' // Green futuristic (Light)
+                  ? 'linear-gradient(to right, #0EA5E9, #10B981)'
+                  : 'linear-gradient(to right, #059669, #10B981)'
               }}
             >
               Desa Cenrana
             </span>
           </motion.h1>
 
-          {/* Subtitle - Dark text in light mode */}
+          {/* Subtitle */}
           <motion.p
             variants={fadeInUp}
-            className="text-base md:text-lg mb-8 max-w-xl mx-auto leading-relaxed"
+            className="text-sm sm:text-base md:text-lg mb-6 sm:mb-8 max-w-md sm:max-w-xl mx-auto leading-relaxed px-2 sm:px-0"
             style={{ color: isDark ? '#D1D5DB' : '#4B5563' }}
           >
             Portal digital pemerintahan desa modern, transparan, dan inovatif.
             Melayani masyarakat dengan teknologi terkini.
           </motion.p>
 
-          {/* CTA Buttons - Reformed & Colorful */}
-          <motion.div variants={fadeInUp} className="flex flex-wrap justify-center gap-4 mb-10">
+          {/* CTA Buttons */}
+          <motion.div variants={fadeInUp} className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-4 mb-6 sm:mb-10">
             {/* Left: Layanan Informasi */}
             <Link
               href="/informasi"
-              className="group px-6 py-3 rounded-xl font-semibold text-white transition-all hover:scale-105 hover:shadow-lg flex items-center gap-2 relative overflow-hidden"
+              className="group w-full sm:w-auto px-5 sm:px-6 py-3 rounded-xl font-semibold text-white transition-all hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2 relative overflow-hidden text-sm sm:text-base"
               style={{ background: 'linear-gradient(135deg, #8B5CF6 0%, #D946EF 100%)', boxShadow: '0 4px 14px 0 rgba(139, 92, 246, 0.5)' }}
             >
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
@@ -233,7 +236,7 @@ export default function Home() {
             {/* Center: Buat Aspirasi (Primary) */}
             <Link
               href="/aspirasi"
-              className="group px-8 py-3.5 rounded-xl font-bold text-white transition-all hover:scale-105 hover:shadow-lg flex items-center gap-2 relative overflow-hidden ring-4 ring-white/10 dark:ring-black/10"
+              className="group w-full sm:w-auto px-6 sm:px-8 py-3.5 rounded-xl font-bold text-white transition-all hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2 relative overflow-hidden ring-4 ring-white/10 dark:ring-black/10 text-sm sm:text-base"
               style={{ background: 'linear-gradient(135deg, #0EA5E9 0%, #10B981 100%)', boxShadow: '0 0 20px rgba(14, 165, 233, 0.5)' }}
             >
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
@@ -244,7 +247,7 @@ export default function Home() {
             {/* Right: Lapak Warga */}
             <Link
               href="/lapak"
-              className="group px-6 py-3 rounded-xl font-semibold text-white transition-all hover:scale-105 hover:shadow-lg flex items-center gap-2 relative overflow-hidden"
+              className="group w-full sm:w-auto px-5 sm:px-6 py-3 rounded-xl font-semibold text-white transition-all hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2 relative overflow-hidden text-sm sm:text-base"
               style={{ background: 'linear-gradient(135deg, #F97316 0%, #F59E0B 100%)', boxShadow: '0 4px 14px 0 rgba(249, 115, 22, 0.5)' }}
             >
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
@@ -328,11 +331,11 @@ export default function Home() {
                 variants={scaleIn}
                 className="text-center group cursor-default"
               >
-                <div className={`inline-flex items-center justify-center w-16 h-16 mb-6 rounded-2xl icon-glow group-hover:scale-110 transition-transform duration-300`}>
-                  <item.icon className={`w-8 h-8 text-${item.color}`} />
+                <div className={`inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 mb-4 sm:mb-6 rounded-xl sm:rounded-2xl icon-glow group-hover:scale-110 transition-transform duration-300`}>
+                  <item.icon className={`w-6 h-6 sm:w-8 sm:h-8 text-${item.color}`} />
                 </div>
                 <h3
-                  className="text-4xl md:text-5xl font-black mb-2 tracking-tight"
+                  className="text-2xl sm:text-4xl md:text-5xl font-black mb-1 sm:mb-2 tracking-tight"
                   style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
                 >
                   <Editable section="home" field={item.valField} placeholder={item.placeholderVal} />
@@ -386,7 +389,7 @@ export default function Home() {
 
           {/* Equal 2x2 Grid */}
           <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 gap-5"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-50px" }}
@@ -395,10 +398,10 @@ export default function Home() {
             {/* Aspirasi */}
             <motion.div variants={scaleIn}>
               <Link href="/aspirasi" className="block h-full group">
-                <div className="glow-card h-full p-6 neon-border-blue">
+                <div className="glow-card h-full p-4 sm:p-6 neon-border-blue">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-neon-blue/20 to-neon-blue/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                      <MessageSquareText className="w-6 h-6 text-neon-blue" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-neon-blue/20 to-neon-blue/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <MessageSquareText className="w-5 h-5 sm:w-6 sm:h-6 text-neon-blue" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3
@@ -421,10 +424,10 @@ export default function Home() {
             {/* Lapak Warga */}
             <motion.div variants={scaleIn}>
               <Link href="/lapak" className="block h-full group">
-                <div className="glow-card h-full p-6 neon-border-orange">
+                <div className="glow-card h-full p-4 sm:p-6 neon-border-orange">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-neon-orange/20 to-neon-orange/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                      <Store className="w-6 h-6 text-neon-orange" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-neon-orange/20 to-neon-orange/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <Store className="w-5 h-5 sm:w-6 sm:h-6 text-neon-orange" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3
@@ -447,10 +450,10 @@ export default function Home() {
             {/* Peta Digital */}
             <motion.div variants={scaleIn}>
               <Link href="/informasi/peta" className="block h-full group">
-                <div className="glow-card h-full p-6 neon-border-emerald">
+                <div className="glow-card h-full p-4 sm:p-6 neon-border-emerald">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-neon-emerald/20 to-neon-emerald/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                      <Map className="w-6 h-6 text-neon-emerald" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-neon-emerald/20 to-neon-emerald/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <Map className="w-5 h-5 sm:w-6 sm:h-6 text-neon-emerald" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3
@@ -473,10 +476,10 @@ export default function Home() {
             {/* Transparansi */}
             <motion.div variants={scaleIn}>
               <Link href="/informasi/transparansi" className="block h-full group">
-                <div className="glow-card h-full p-6 neon-border-purple">
+                <div className="glow-card h-full p-4 sm:p-6 neon-border-purple">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-neon-purple/20 to-neon-purple/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                      <FileText className="w-6 h-6 text-neon-purple" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-neon-purple/20 to-neon-purple/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-neon-purple" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3
