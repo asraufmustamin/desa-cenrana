@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/lib/supabase";
-import { newsItems, lapakItems } from "@/data/mockData";
 
 // Define types (Keep existing interfaces)
 export interface NewsItem {
@@ -517,7 +516,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
                     }));
                     setLapak(mappedLapak);
                 }
-                else setLapak(lapakItems.map(item => ({ ...item, status: "Active" as const })));
+                // No fallback - only use database data
 
                 // ⚡ OPTIMIZED: Fetch aspirasi WITHOUT photo untuk fast initial load
                 // Photo akan di-load on-demand saat admin buka detail (lazy load)
