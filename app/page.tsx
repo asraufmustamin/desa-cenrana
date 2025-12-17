@@ -147,13 +147,12 @@ export default function Home() {
           <>
             {/* Current Image */}
             <div
-              className="absolute inset-0 transition-opacity duration-1000"
+              className="absolute inset-0 transition-opacity duration-1500"
               style={{
                 backgroundImage: `url(${documentaryPhotos[currentWallpaperIndex]})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                opacity: 0.15,
-                filter: 'blur(4px)',
+                opacity: 0.35,
               }}
             />
             {/* Preload next image */}
@@ -167,7 +166,7 @@ export default function Home() {
             <div
               className="absolute inset-0"
               style={{
-                background: 'linear-gradient(to bottom, rgba(248,250,252,0.85) 0%, rgba(255,255,255,0.9) 50%, rgba(248,250,252,0.95) 100%)'
+                background: 'linear-gradient(to bottom, rgba(255,255,255,0.6) 0%, rgba(248,250,252,0.7) 50%, rgba(255,255,255,0.75) 100%)'
               }}
             />
           </>
