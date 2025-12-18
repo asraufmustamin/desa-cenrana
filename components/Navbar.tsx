@@ -40,7 +40,7 @@ export default function Navbar() {
         },
         {
             name: "Informasi",
-            href: "#",
+            href: "/informasi",
             dropdown: [
                 { name: "Berita Desa", href: "/informasi/berita" },
                 { name: "Transparansi", href: "/informasi/transparansi" },
@@ -54,7 +54,7 @@ export default function Navbar() {
         },
         {
             name: "Layanan",
-            href: "#",
+            href: "/layanan",
             dropdown: [
                 { name: "Buat Aspirasi", href: "/aspirasi" },
                 { name: "Lacak Status Aspirasi", href: "/aspirasi/track" },
@@ -300,9 +300,19 @@ export default function Navbar() {
                         <div key={link.name}>
                             {link.dropdown ? (
                                 <div className="space-y-2">
-                                    <div className="px-4 py-3 text-slate-500 dark:text-slate-400 font-bold uppercase text-xs tracking-wider">
-                                        {link.name}
-                                    </div>
+                                    {link.href && link.href !== "#" ? (
+                                        <Link
+                                            href={link.href}
+                                            className="block px-4 py-3 text-slate-500 dark:text-slate-400 font-bold uppercase text-xs tracking-wider hover:text-blue-600 transition-colors"
+                                            onClick={() => setIsOpen(false)}
+                                        >
+                                            {link.name}
+                                        </Link>
+                                    ) : (
+                                        <div className="px-4 py-3 text-slate-500 dark:text-slate-400 font-bold uppercase text-xs tracking-wider">
+                                            {link.name}
+                                        </div>
+                                    )}
                                     {link.dropdown.map((item) => (
                                         <Link
                                             key={item.name}

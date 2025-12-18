@@ -85,9 +85,20 @@ export default function LayananPage() {
         pink: { bg: "from-neon-pink/20 to-neon-pink/5", text: "text-neon-pink", border: "border border-pink-500/30", glow: "" },
     };
 
+    const [searchQuery, setSearchQuery] = React.useState("");
+
+    // Filter services based on search
+    const filteredServices = services.map(section => ({
+        ...section,
+        items: section.items.filter(item =>
+            item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.desc.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+    })).filter(section => section.items.length > 0);
+
     return (
-        <div className="min-h-screen bg-dark-base pt-28 pb-20 px-4 md:px-8 mesh-bg">
-            {/* Decorative Orbs */}
+        <div className="min-h-screen bg-slate-50 dark:bg-[var(--bg-primary)] pt-28 pb-20 px-4 md:px-8 mesh-bg transition-colors duration-300">
+            {/* Decorative Orbs - Adjusted opacity for light mode */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-neon-blue/10 rounded-full blur-[150px]"></div>
                 <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-neon-purple/10 rounded-full blur-[120px]"></div>
@@ -102,19 +113,19 @@ export default function LayananPage() {
                     animate="visible"
                     variants={staggerContainer}
                 >
-                    <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/70 text-sm font-medium tracking-wide mb-6">
+                    <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 text-sm font-medium tracking-wide mb-6 backdrop-blur-sm">
                         <Zap className="w-4 h-4 text-neon-blue" />
                         Direktori Layanan Digital
                     </motion.div>
 
-                    <motion.h1 variants={fadeInUp} className="text-4xl md:text-6xl font-bold text-white mb-6">
+                    <motion.h1 variants={fadeInUp} className="text-4xl md:text-6xl font-bold text-slate-900 dark:text-white mb-6">
                         Layanan{" "}
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-blue to-neon-emerald">
                             Publik
                         </span>
                     </motion.h1>
 
-                    <motion.p variants={fadeInUp} className="text-lg text-gray-400 max-w-2xl mx-auto mb-10">
+                    <motion.p variants={fadeInUp} className="text-lg text-slate-600 dark:text-gray-400 max-w-2xl mx-auto mb-10">
                         Akses seluruh layanan digital dan informasi publik Desa Cenrana.
                         Cepat, mudah, dan transparan.
                     </motion.p>
@@ -124,11 +135,13 @@ export default function LayananPage() {
                         <div className="relative group">
                             <div className="absolute inset-0 bg-gradient-to-r from-neon-blue/20 to-neon-purple/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                             <div className="relative flex items-center">
-                                <Search className="absolute left-5 w-5 h-5 text-gray-500 group-focus-within:text-neon-blue transition-colors" />
+                                <Search className="absolute left-5 w-5 h-5 text-gray-400 dark:text-gray-500 group-focus-within:text-neon-blue transition-colors" />
                                 <input
                                     type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Cari layanan (misal: Aspirasi, Peta...)"
-                                    className="w-full pl-14 pr-6 py-4 rounded-2xl glass-input-futuristic text-white placeholder:text-gray-500"
+                                    className="w-full pl-14 pr-6 py-4 rounded-2xl bg-white/80 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-gray-400 backdrop-blur-xl focus:border-neon-blue focus:ring-1 focus:ring-neon-blue/50 transition-all shadow-lg shadow-slate-200/50 dark:shadow-none"
                                 />
                             </div>
                         </div>
@@ -137,57 +150,69 @@ export default function LayananPage() {
 
                 {/* Services Grid */}
                 <div className="space-y-16">
-                    {services.map((section, idx) => (
-                        <motion.div
-                            key={idx}
-                            initial="hidden"
-                            whileInView="visible"
-                            viewport={{ once: true, margin: "-50px" }}
-                            variants={staggerContainer}
-                        >
-                            <motion.h2
-                                variants={fadeInUp}
-                                className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-8 pb-3 border-b border-white/5"
-                            >
-                                {section.category}
-                            </motion.h2>
-
+                    {filteredServices.length > 0 ? (
+                        filteredServices.map((section, idx) => (
                             <motion.div
-                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                                key={idx}
+                                initial="hidden"
+                                whileInView="visible"
+                                viewport={{ once: true, margin: "-50px" }}
                                 variants={staggerContainer}
                             >
-                                {section.items.map((item, itemIdx) => {
-                                    const colors = colorMap[item.color] || colorMap.blue;
+                                <motion.h2
+                                    variants={fadeInUp}
+                                    className="text-sm font-bold text-slate-500 dark:text-gray-500 uppercase tracking-widest mb-8 pb-3 border-b border-slate-200 dark:border-white/5"
+                                >
+                                    {section.category}
+                                </motion.h2>
 
-                                    return (
-                                        <motion.div key={itemIdx} variants={scaleIn}>
-                                            <Link href={item.link} className="block group h-full">
-                                                <div className={`glow-card h-full p-6 ${colors.border} hover:${colors.glow} transition-all duration-300`}>
-                                                    {/* Icon */}
-                                                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${colors.bg} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}>
-                                                        <item.icon className={`w-7 h-7 ${colors.text}`} />
+                                <motion.div
+                                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                                    variants={staggerContainer}
+                                >
+                                    {section.items.map((item, itemIdx) => {
+                                        const colors = colorMap[item.color] || colorMap.blue;
+
+                                        return (
+                                            <motion.div key={itemIdx} variants={scaleIn}>
+                                                <Link href={item.link} className="block group h-full">
+                                                    <div className={`glow-card h-full p-6 ${colors.border} hover:${colors.glow} transition-all duration-300 relative overflow-hidden`}>
+                                                        {/* Icon */}
+                                                        <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${colors.bg} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
+                                                            <item.icon className={`w-7 h-7 ${colors.text}`} />
+                                                        </div>
+
+                                                        {/* Content */}
+                                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-neon-blue transition-colors">
+                                                            {item.title}
+                                                        </h3>
+                                                        <p className="text-slate-600 dark:text-gray-400 text-sm leading-relaxed mb-4">
+                                                            {item.desc}
+                                                        </p>
+
+                                                        {/* Link */}
+                                                        <div className={`inline-flex items-center text-sm font-medium ${colors.text} group-hover:translate-x-1 transition-transform`}>
+                                                            Buka Layanan <ChevronRight className="w-4 h-4 ml-1" />
+                                                        </div>
                                                     </div>
-
-                                                    {/* Content */}
-                                                    <h3 className="text-xl font-bold text-white mb-2 group-hover:text-neon-blue transition-colors">
-                                                        {item.title}
-                                                    </h3>
-                                                    <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                                                        {item.desc}
-                                                    </p>
-
-                                                    {/* Link */}
-                                                    <div className={`inline-flex items-center text-sm font-medium ${colors.text} group-hover:translate-x-1 transition-transform`}>
-                                                        Buka Layanan <ChevronRight className="w-4 h-4 ml-1" />
-                                                    </div>
-                                                </div>
-                                            </Link>
-                                        </motion.div>
-                                    );
-                                })}
+                                                </Link>
+                                            </motion.div>
+                                        );
+                                    })}
+                                </motion.div>
                             </motion.div>
-                        </motion.div>
-                    ))}
+                        ))
+                    ) : (
+                        <div className="text-center py-20">
+                            <p className="text-slate-500 dark:text-gray-500 text-lg">Tidak ditemukan layanan untuk "{searchQuery}"</p>
+                            <button
+                                onClick={() => setSearchQuery("")}
+                                className="mt-4 text-neon-blue hover:underline"
+                            >
+                                Reset Pencarian
+                            </button>
+                        </div>
+                    )}
                 </div>
 
             </div>
