@@ -57,6 +57,7 @@ export default function Navbar() {
             href: "/layanan",
             dropdown: [
                 { name: "Buat Aspirasi", href: "/aspirasi" },
+                { name: "Buat Surat Online", href: "/layanan/surat" },
                 { name: "Lacak Status Aspirasi", href: "/aspirasi/track" },
                 ...(isLoggedIn ? [{ name: "Data Penduduk", href: "/admin/penduduk" }] : []),
             ],

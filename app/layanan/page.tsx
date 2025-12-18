@@ -49,6 +49,14 @@ export default function LayananPage() {
                     featured: true
                 },
                 {
+                    title: "Buat Surat Online",
+                    desc: "Buat surat keterangan usaha, domisili, dll.",
+                    icon: FileText,
+                    color: "purple",
+                    link: "/layanan/surat",
+                    featured: true
+                },
+                {
                     title: "Lacak Status",
                     desc: "Pantau progress aspirasi Anda.",
                     icon: Search,

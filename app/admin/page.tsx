@@ -29,7 +29,8 @@ import {
     MessageCircle,
     ExternalLink,
     Copy,
-    Phone
+    Phone,
+    FileText
 } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -492,6 +493,15 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                             </span>
                                         )}
                                     </motion.button>
+                                    <motion.button
+                                        onClick={() => router.push('/admin/surat')}
+                                        whileHover={{ x: 3 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className="w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all mb-1 mt-1 border border-blue-200 dark:border-blue-800"
+                                    >
+                                        <FileText className="w-4 h-4 mr-2" />
+                                        Manajemen Surat
+                                    </motion.button>
 
                                     <div className="pt-2 mt-2 border-t border-[var(--border-color)] space-y-1">
                                         <motion.button
@@ -565,6 +575,20 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                     <div className="glass-card p-6 md:p-8 rounded-2xl md:rounded-[2rem] border-l-4 border-pink-500">
                                         <h3 className="text-[var(--text-secondary)] font-bold text-xs md:text-sm mb-2">Mode CMS</h3>
                                         <p className="text-xl md:text-2xl font-bold text-[var(--text-primary)]">{isEditMode ? "AKTIF ✓" : "NON-AKTIF"}</p>
+                                    </div>
+                                    <div
+                                        onClick={() => router.push('/admin/surat')}
+                                        className="glass-card p-6 md:p-8 rounded-2xl md:rounded-[2rem] border-l-4 border-indigo-500 cursor-pointer hover:scale-[1.02] transition-transform shadow-lg hover:shadow-indigo-500/20"
+                                    >
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <h3 className="text-[var(--text-secondary)] font-bold text-xs md:text-sm mb-2">Layanan Surat</h3>
+                                                <p className="text-xl md:text-2xl font-bold text-[var(--text-primary)]">Kelola Request</p>
+                                            </div>
+                                            <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600">
+                                                <FileText className="w-6 h-6" />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

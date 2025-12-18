@@ -295,15 +295,15 @@ export default function Home() {
 
           {/* CTA Buttons */}
           <motion.div variants={fadeInUp} className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-4 mb-6 sm:mb-10">
-            {/* Left: Layanan Informasi */}
+            {/* Left: Buat Surat (New Feature) */}
             <Link
-              href="/informasi"
+              href="/layanan/surat"
               className="group w-full sm:w-auto px-5 sm:px-6 py-3 rounded-xl font-semibold text-white transition-all hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2 relative overflow-hidden text-sm sm:text-base"
-              style={{ background: 'linear-gradient(135deg, #8B5CF6 0%, #D946EF 100%)', boxShadow: '0 4px 14px 0 rgba(139, 92, 246, 0.5)' }}
+              style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.5)' }}
             >
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
               <FileText className="w-5 h-5 relative z-10" />
-              <span className="relative z-10">Layanan Informasi</span>
+              <span className="relative z-10">Buat Surat Online</span>
             </Link>
 
             {/* Center: Buat Aspirasi (Primary) */}
@@ -551,9 +551,9 @@ export default function Home() {
               </Link>
             </motion.div>
 
-            {/* Transparansi */}
+            {/* Layanan Surat (Replaces Transparansi) */}
             <motion.div variants={scaleIn}>
-              <Link href="/informasi/transparansi" className="block h-full group">
+              <Link href="/layanan/surat" className="block h-full group">
                 <div className="glow-card h-full p-4 sm:p-6 neon-border-purple">
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-neon-purple/20 to-neon-purple/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
@@ -563,13 +563,13 @@ export default function Home() {
                       <h3
                         className="text-lg font-bold mb-1"
                         style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
-                      >Transparansi</h3>
+                      >Surat Online</h3>
                       <p
                         className="text-sm mb-3 line-clamp-2"
                         style={{ color: isDark ? '#9CA3AF' : '#6B7280' }}
-                      >Laporan keuangan dan realisasi APBDes.</p>
+                      >Buat surat keterangan usaha, domisili, dan lainnya secara online.</p>
                       <div className="inline-flex items-center text-neon-purple text-sm font-medium group-hover:translate-x-1 transition-transform">
-                        Lihat Laporan <ChevronRight className="w-4 h-4 ml-1" />
+                        Buat Surat <ChevronRight className="w-4 h-4 ml-1" />
                       </div>
                     </div>
                   </div>
