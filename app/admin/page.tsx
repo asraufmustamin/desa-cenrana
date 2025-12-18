@@ -1292,32 +1292,34 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                         </div>
                                     ) : (
                                         filteredAspirasi.map((item, index) => (
-                                            <div key={`aspirasi-${item.id}-${index}`} className="bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border-color)]">
-                                                <div className="flex justify-between items-start mb-4">
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center space-x-3 mb-1">
-                                                            <span className="font-mono font-bold text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded text-sm">{item.id}</span>
+                                            <div key={`aspirasi-${item.id}-${index}`} className="bg-[var(--bg-card)] p-4 md:p-6 rounded-2xl border border-[var(--border-color)]">
+                                                {/* Header - Stack on mobile, side-by-side on desktop */}
+                                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                                                            <span className="font-mono font-bold text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded text-xs sm:text-sm">{item.id}</span>
                                                             {item.is_anonymous && (
-                                                                <span className="flex items-center text-xs px-2 py-0.5 rounded-full font-bold bg-blue-500/20 text-blue-500">
+                                                                <span className="flex items-center text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-bold bg-blue-500/20 text-blue-500 whitespace-nowrap">
                                                                     <Shield className="w-3 h-3 mr-1" /> Anonim
                                                                 </span>
                                                             )}
-                                                            <h3 className="font-bold text-[var(--text-primary)]">
-                                                                {item.is_anonymous
-                                                                    ? <span className="text-blue-500 flex items-center"><Shield className="w-4 h-4 mr-2" />Pelapor Anonim</span>
-                                                                    : item.nama
-                                                                }
-                                                            </h3>
                                                         </div>
-                                                        <p className="text-xs text-[var(--text-secondary)]">
+                                                        <h3 className="font-bold text-[var(--text-primary)] text-sm sm:text-base truncate">
+                                                            {item.is_anonymous
+                                                                ? <span className="text-blue-500 flex items-center"><Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-1 shrink-0" />Pelapor Anonim</span>
+                                                                : item.nama
+                                                            }
+                                                        </h3>
+                                                        <p className="text-[10px] sm:text-xs text-[var(--text-secondary)] mt-1">
                                                             {item.date} • {item.kategori} • {item.is_anonymous ? "Dusun Dirahasiakan" : item.dusun}
                                                         </p>
                                                     </div>
-                                                    <div className="flex items-center space-x-2">
-                                                        <div className={`px-3 py-1 rounded-full text-xs font-bold flex items-center ${item.status === "Selesai" ? "bg-emerald-500/20 text-emerald-500" :
+                                                    {/* Status & Actions */}
+                                                    <div className="flex items-center gap-2 shrink-0">
+                                                        <div className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold flex items-center whitespace-nowrap ${item.status === "Selesai" ? "bg-emerald-500/20 text-emerald-500" :
                                                             item.status === "Diproses" ? "bg-blue-500/20 text-blue-500" :
                                                                 item.status === "Rejected" ? "bg-red-500/20 text-red-500" :
-                                                                    "bg-amber-500/20 text-amber-500"  // Pending
+                                                                    "bg-amber-500/20 text-amber-500"
                                                             }`}>
                                                             {item.status === "Selesai" && <CheckCircle className="w-3 h-3 mr-1" />}
                                                             {item.status === "Diproses" && <Clock className="w-3 h-3 mr-1 text-blue-500" />}
@@ -1327,10 +1329,10 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                                         </div>
                                                         <button
                                                             onClick={() => handleDeleteItem("aspirasi", item.id)}
-                                                            className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors"
+                                                            className="p-1.5 sm:p-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors"
                                                             title="Hapus"
                                                         >
-                                                            <Trash2 className="w-4 h-4" />
+                                                            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                                         </button>
                                                     </div>
                                                 </div>
@@ -1654,41 +1656,43 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                             {waSubscribers.map((subscriber, index) => (
                                                 <div
                                                     key={subscriber.id}
-                                                    className="flex items-center justify-between p-3 md:p-4 bg-[var(--bg-panel)] rounded-xl border border-[var(--border-color)] hover:border-green-500/30 transition-all"
+                                                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 md:p-4 bg-[var(--bg-panel)] rounded-xl border border-[var(--border-color)] hover:border-green-500/30 transition-all"
                                                 >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center text-white font-bold">
+                                                    {/* User Info */}
+                                                    <div className="flex items-center gap-3 min-w-0">
+                                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center text-white font-bold text-sm sm:text-base shrink-0">
                                                             {index + 1}
                                                         </div>
-                                                        <div>
-                                                            <p className="font-bold text-[var(--text-primary)]">{subscriber.name}</p>
-                                                            <p className="text-sm text-[var(--text-secondary)] flex items-center gap-1">
-                                                                <Phone className="w-3 h-3" />
-                                                                +{subscriber.whatsapp}
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="font-bold text-[var(--text-primary)] text-sm sm:text-base truncate">{subscriber.name}</p>
+                                                            <p className="text-xs sm:text-sm text-[var(--text-secondary)] flex items-center gap-1">
+                                                                <Phone className="w-3 h-3 shrink-0" />
+                                                                <span className="truncate">+{subscriber.whatsapp}</span>
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    <div className="flex items-center gap-2">
+                                                    {/* Action Buttons */}
+                                                    <div className="flex items-center justify-end gap-2 shrink-0">
                                                         {/* Copy Number */}
                                                         <button
                                                             onClick={() => {
                                                                 navigator.clipboard.writeText(subscriber.whatsapp);
                                                                 alert('Nomor disalin!');
                                                             }}
-                                                            className="p-2 rounded-lg bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 transition-all"
+                                                            className="p-1.5 sm:p-2 rounded-lg bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 transition-all"
                                                             title="Salin Nomor"
                                                         >
-                                                            <Copy className="w-4 h-4" />
+                                                            <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                                         </button>
                                                         {/* Chat WA */}
                                                         <a
                                                             href={`https://wa.me/${subscriber.whatsapp}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="p-2 rounded-lg bg-green-500/20 text-green-500 hover:bg-green-500/30 transition-all"
+                                                            className="p-1.5 sm:p-2 rounded-lg bg-green-500/20 text-green-500 hover:bg-green-500/30 transition-all"
                                                             title="Chat WhatsApp"
                                                         >
-                                                            <ExternalLink className="w-4 h-4" />
+                                                            <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                                         </a>
                                                         {/* Delete */}
                                                         <button
@@ -1697,10 +1701,10 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                                                     deleteWASubscriber(subscriber.id);
                                                                 }
                                                             }}
-                                                            className="p-2 rounded-lg bg-red-500/20 text-red-500 hover:bg-red-500/30 transition-all"
+                                                            className="p-1.5 sm:p-2 rounded-lg bg-red-500/20 text-red-500 hover:bg-red-500/30 transition-all"
                                                             title="Hapus"
                                                         >
-                                                            <Trash2 className="w-4 h-4" />
+                                                            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                                         </button>
                                                     </div>
                                                 </div>

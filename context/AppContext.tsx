@@ -409,7 +409,17 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     const [aspirasi, setAspirasi] = useState<AspirasiItem[]>([]);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const [kepalaDesaStatus, setKepalaDesaStatusState] = useState<KepalaDesaStatus>('di_kantor');
+
+    // Initialize from localStorage for instant hydration (no flash)
+    const [kepalaDesaStatus, setKepalaDesaStatusState] = useState<KepalaDesaStatus>(() => {
+        if (typeof window !== 'undefined') {
+            const cached = localStorage.getItem('kepalaDesaStatus');
+            if (cached && ['di_kantor', 'dinas_luar', 'cuti', 'sakit'].includes(cached)) {
+                return cached as KepalaDesaStatus;
+            }
+        }
+        return 'di_kantor';
+    });
     const [waSubscribers, setWaSubscribers] = useState<WASubscriber[]>([]);
 
     const { theme, setTheme, resolvedTheme } = useTheme();
@@ -982,25 +992,50 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Lapak Management
     const submitLapak = async (item: Omit<LapakItem, "id" | "status">) => {
-        const newItem = { ...item, id: Date.now(), status: "Pending" as const };
-        setLapak(prev => [newItem, ...prev]);
-
-        // Map to DB columns: { name, price, category, description, phone, image, seller_name, status }
+        // Map to DB columns: { title, price, category, description, phone, image, seller, status }
+        // Note: DB likely uses 'title' not 'name', and 'seller' not 'seller_name'
         const dbPayload = {
-            name: item.title,
+            title: item.title,
             price: item.price,
             category: item.category,
             description: item.description || "",
             phone: item.phone,
             image: item.image,
-            seller_name: item.seller,
+            seller: item.seller, // Changed from seller_name
             status: "Pending"
         };
 
-        const { data } = await supabase.from('lapak').insert([dbPayload]).select();
-        if (data) {
-            // Update with real ID if needed, but for now just keeping local sync
-            // setLapak(prev => prev.map(n => n.id === newItem.id ? { ...n, id: data[0].id } : n));
+        try {
+            const { data, error } = await supabase.from('lapak').insert([dbPayload]).select();
+
+            if (error) {
+                console.error('Error inserting lapak:', error);
+                throw error;
+            }
+
+            if (data && data[0]) {
+                // Create local item with database ID
+                const newItem: LapakItem = {
+                    id: data[0].id,
+                    title: item.title,
+                    price: item.price,
+                    category: item.category,
+                    description: item.description || "",
+                    phone: item.phone,
+                    image: item.image,
+                    seller: item.seller,
+                    status: "Pending",
+                    view_count: 0,
+                    wa_click_count: 0
+                };
+                setLapak(prev => [newItem, ...prev]);
+                console.log('✅ Lapak submitted successfully:', newItem);
+            }
+
+            setLastActivity(Date.now());
+        } catch (err) {
+            console.error('Failed to submit lapak:', err);
+            throw err;
         }
     };
 
@@ -1223,14 +1258,21 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         setLastActivity(Date.now());
     };
 
-    // Set Kepala Desa Status (with optional Supabase persistence)
+    // Set Kepala Desa Status (with Supabase + localStorage persistence)
     const setKepalaDesaStatus = async (status: KepalaDesaStatus) => {
         setKepalaDesaStatusState(status);
-        // Persist to Supabase CMS table
+
+        // Save to localStorage for instant hydration (no flash on refresh)
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('kepalaDesaStatus', status);
+        }
+
+        // Persist to Supabase site_settings table
         try {
-            await supabase.from('cms_content').upsert({
-                key: 'settings',
-                data: { ...cmsContent, kepalaDesaStatus: status }
+            await supabase.from('site_settings').upsert({
+                id: 1,
+                kepala_desa_status: status,
+                updated_at: new Date().toISOString()
             });
         } catch (error) {
             console.error('Error saving kepala desa status:', error);
@@ -1279,6 +1321,28 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             if (data) setWaSubscribers(data);
         };
         fetchWASubscribers();
+    }, []);
+
+    // Fetch Kepala Desa Status on mount
+    useEffect(() => {
+        const fetchKepalaDesaStatus = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('site_settings')
+                    .select('kepala_desa_status')
+                    .eq('id', 1)
+                    .single();
+
+                if (data?.kepala_desa_status) {
+                    setKepalaDesaStatusState(data.kepala_desa_status as KepalaDesaStatus);
+                    console.log('Status loaded:', data.kepala_desa_status);
+                }
+                if (error) console.log('Settings fetch error:', error);
+            } catch (error) {
+                console.log('No settings found, using default status');
+            }
+        };
+        fetchKepalaDesaStatus();
     }, []);
 
     // Determine theme for wrapper (fallback to dark)
