@@ -98,6 +98,13 @@ export interface AgendaItem {
     description: string;
 }
 
+export interface WASubscriber {
+    id: number;
+    name: string;
+    whatsapp: string;
+    subscribed_at: string;
+}
+
 export interface CMSContent {
     home: {
         heroTitle: string;
@@ -215,12 +222,20 @@ interface AppContextType {
     addAgenda: () => Promise<void>;
     deleteAgenda: (id: number) => Promise<void>;
     updateAgenda: (id: number, updates: Partial<AgendaItem>) => Promise<void>;
+    // Pengumuman CRUD
+    addPengumuman: (text: string) => Promise<void>;
+    deletePengumuman: (id: number) => Promise<void>;
+    updatePengumuman: (id: number, text: string, active: boolean) => Promise<void>;
     // Analytics tracking functions
     trackProductView: (productId: number) => Promise<void>;
     trackWAClick: (productId: number) => Promise<void>;
     // Kepala Desa Status
     kepalaDesaStatus: KepalaDesaStatus;
     setKepalaDesaStatus: (status: KepalaDesaStatus) => Promise<void>;
+    // WhatsApp Subscriber
+    subscribeWhatsApp: (name: string, whatsapp: string) => Promise<void>;
+    waSubscribers: WASubscriber[];
+    deleteWASubscriber: (id: number) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -395,6 +410,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [kepalaDesaStatus, setKepalaDesaStatusState] = useState<KepalaDesaStatus>('di_kantor');
+    const [waSubscribers, setWaSubscribers] = useState<WASubscriber[]>([]);
 
     const { theme, setTheme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
@@ -1174,6 +1190,39 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         setLastActivity(Date.now());
     };
 
+    // Pengumuman Management
+    const addPengumuman = async (text: string) => {
+        const newItem = {
+            id: Date.now(),
+            text: text,
+            active: true
+        };
+        setCmsContent(prev => {
+            const updated = { ...prev, pengumuman: [newItem, ...prev.pengumuman] };
+            supabase.from('cms_content').upsert({ id: 1, data: updated });
+            return updated;
+        });
+        setLastActivity(Date.now());
+    };
+
+    const deletePengumuman = async (id: number) => {
+        setCmsContent(prev => {
+            const updated = { ...prev, pengumuman: prev.pengumuman.filter(i => i.id !== id) };
+            supabase.from('cms_content').upsert({ id: 1, data: updated });
+            return updated;
+        });
+        setLastActivity(Date.now());
+    };
+
+    const updatePengumuman = async (id: number, text: string, active: boolean) => {
+        setCmsContent(prev => {
+            const updated = { ...prev, pengumuman: prev.pengumuman.map(i => i.id === id ? { ...i, text, active } : i) };
+            supabase.from('cms_content').upsert({ id: 1, data: updated });
+            return updated;
+        });
+        setLastActivity(Date.now());
+    };
+
     // Set Kepala Desa Status (with optional Supabase persistence)
     const setKepalaDesaStatus = async (status: KepalaDesaStatus) => {
         setKepalaDesaStatusState(status);
@@ -1188,6 +1237,49 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         }
         setLastActivity(Date.now());
     };
+
+    // WhatsApp Subscriber Functions
+    const subscribeWhatsApp = async (name: string, whatsapp: string) => {
+        // Check for duplicate
+        const { data: existing } = await supabase
+            .from('wa_subscribers')
+            .select('id')
+            .eq('whatsapp', whatsapp)
+            .single();
+
+        if (existing) {
+            throw new Error('Nomor sudah terdaftar');
+        }
+
+        const { data, error } = await supabase
+            .from('wa_subscribers')
+            .insert({ name, whatsapp })
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        if (data) {
+            setWaSubscribers(prev => [data, ...prev]);
+        }
+    };
+
+    const deleteWASubscriber = async (id: number) => {
+        await supabase.from('wa_subscribers').delete().eq('id', id);
+        setWaSubscribers(prev => prev.filter(s => s.id !== id));
+    };
+
+    // Fetch WA subscribers on mount
+    useEffect(() => {
+        const fetchWASubscribers = async () => {
+            const { data } = await supabase
+                .from('wa_subscribers')
+                .select('*')
+                .order('subscribed_at', { ascending: false });
+            if (data) setWaSubscribers(data);
+        };
+        fetchWASubscribers();
+    }, []);
 
     // Determine theme for wrapper (fallback to dark)
     const currentTheme = mounted ? resolvedTheme : 'dark';
@@ -1206,8 +1298,10 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             addProgram, deleteProgram, updateProgram,
             addHukum, deleteHukum, updateHukum,
             addAgenda, deleteAgenda, updateAgenda,
+            addPengumuman, deletePengumuman, updatePengumuman,
             trackProductView, trackWAClick,
-            kepalaDesaStatus, setKepalaDesaStatus
+            kepalaDesaStatus, setKepalaDesaStatus,
+            subscribeWhatsApp, waSubscribers, deleteWASubscriber
         }}>
             <div
                 id="theme-root"

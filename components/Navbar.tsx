@@ -65,12 +65,20 @@ export default function Navbar() {
     ];
 
     // Futuristic Smart Village 2030 Navbar
+    // In light mode when scrolled: use white bg with dark text
+    // In light mode not scrolled: use dark text (overlay on hero)
+    // In dark mode: always use light text
+    const isLightMode = mounted && theme === 'light';
+
     const navBgClass = scrolled
-        ? "nav-futuristic border-b border-white/5"
+        ? isLightMode
+            ? "bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-lg"
+            : "nav-futuristic border-b border-white/5"
         : "bg-transparent";
 
     // Theme-aware text color for nav links
-    const textColorClass = mounted && theme === 'light' ? "text-slate-700" : "text-white";
+    // Light mode: always use dark text (whether scrolled or not)
+    const textColorClass = isLightMode ? "text-slate-800" : "text-white";
 
     return (
         <nav className={`fixed w-full z-50 transition-all duration-300 ${navBgClass}`}>
@@ -104,7 +112,10 @@ export default function Navbar() {
                             >
                                 <Link
                                     href={link.href}
-                                    className={`flex items-center font-bold text-sm lg:text-base transition-colors py-2 md:text-shadow-sm ${textColorClass} hover:text-blue-500`}
+                                    className={`flex items-center font-bold text-sm lg:text-base transition-colors py-2 ${textColorClass} hover:text-emerald-500`}
+                                    style={{
+                                        textShadow: isLightMode ? 'none' : '0 1px 2px rgba(0,0,0,0.3)'
+                                    }}
                                 >
                                     {link.name}
                                     {link.dropdown && (

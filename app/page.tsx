@@ -206,23 +206,23 @@ export default function Home() {
             const statusConfig = {
               'di_kantor': {
                 label: 'Kepala Desa di Kantor',
-                color: '#10B981',
-                bgColor: 'rgba(16, 185, 129, 0.1)',
-                borderColor: 'rgba(16, 185, 129, 0.5)',
+                color: isDark ? '#10B981' : '#047857',
+                bgColor: isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.2)',
+                borderColor: isDark ? 'rgba(16, 185, 129, 0.5)' : 'rgba(16, 185, 129, 0.8)',
                 icon: '🟢'
               },
               'rapat': {
                 label: 'Kepala Desa Sedang Rapat',
-                color: '#F59E0B',
-                bgColor: 'rgba(245, 158, 11, 0.1)',
-                borderColor: 'rgba(245, 158, 11, 0.5)',
+                color: isDark ? '#F59E0B' : '#B45309',
+                bgColor: isDark ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 158, 11, 0.2)',
+                borderColor: isDark ? 'rgba(245, 158, 11, 0.5)' : 'rgba(245, 158, 11, 0.8)',
                 icon: '🟡'
               },
               'tidak_hadir': {
                 label: 'Kepala Desa Tidak di Kantor',
-                color: '#EF4444',
-                bgColor: 'rgba(239, 68, 68, 0.1)',
-                borderColor: 'rgba(239, 68, 68, 0.5)',
+                color: isDark ? '#EF4444' : '#B91C1C',
+                bgColor: isDark ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.2)',
+                borderColor: isDark ? 'rgba(239, 68, 68, 0.5)' : 'rgba(239, 68, 68, 0.8)',
                 icon: '🔴'
               }
             };
@@ -231,35 +231,49 @@ export default function Home() {
             return (
               <motion.div
                 variants={fadeInUp}
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide mb-6 cursor-default transition-all duration-300 hover:scale-105"
+                className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold tracking-wide mb-6 cursor-default transition-all duration-300 hover:scale-105"
                 style={{
-                  backgroundColor: config.bgColor,
+                  backgroundColor: isDark ? config.bgColor : 'rgba(255,255,255,0.95)',
                   border: `2px solid ${config.borderColor}`,
                   color: config.color,
-                  boxShadow: `0 0 20px ${config.bgColor}`
+                  boxShadow: isDark ? `0 0 20px ${config.bgColor}` : `0 4px 20px rgba(0,0,0,0.15)`,
+                  backdropFilter: 'blur(10px)'
                 }}
                 title={`Status: ${config.label}`}
               >
-                <span className="text-sm animate-pulse">{config.icon}</span>
+                <span className="text-base animate-pulse">{config.icon}</span>
                 <span>Status Kehadiran</span>
                 <span>• {config.label}</span>
               </motion.div>
             );
           })()}
 
-          {/* Main Headline - Mobile First */}
+          {/* Main Headline - Mobile First with Wave Animation */}
           <motion.h1
             variants={fadeInUp}
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold mb-3 sm:mb-4 tracking-tight leading-snug sm:leading-tight"
-            style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl mb-3 sm:mb-4 tracking-tight leading-snug sm:leading-tight hero-title-animate"
+            style={{ fontWeight: 900 }}
           >
-            <span className="block sm:inline">Selamat Datang di</span>{" "}
             <span
-              className="text-transparent bg-clip-text block sm:inline"
+              className="inline-block text-transparent bg-clip-text bg-[length:200%_auto] animate-shimmer"
               style={{
                 backgroundImage: isDark
-                  ? 'linear-gradient(to right, #0EA5E9, #10B981)'
-                  : 'linear-gradient(to right, #059669, #10B981)'
+                  ? 'linear-gradient(90deg, #FFFFFF 0%, #0EA5E9 25%, #10B981 50%, #0EA5E9 75%, #FFFFFF 100%)'
+                  : 'linear-gradient(90deg, #1E293B 0%, #059669 25%, #0EA5E9 50%, #059669 75%, #1E293B 100%)',
+                fontWeight: 900,
+                WebkitTextStroke: isDark ? '0.5px rgba(255,255,255,0.3)' : '0.5px rgba(0,0,0,0.2)'
+              }}
+            >
+              Selamat Datang di Website{" "}
+            </span>
+            <span
+              className="inline-block whitespace-nowrap text-transparent bg-clip-text bg-[length:200%_auto] animate-shimmer-delay"
+              style={{
+                backgroundImage: isDark
+                  ? 'linear-gradient(90deg, #0EA5E9 0%, #10B981 25%, #22D3EE 50%, #10B981 75%, #0EA5E9 100%)'
+                  : 'linear-gradient(90deg, #059669 0%, #0EA5E9 25%, #10B981 50%, #0EA5E9 75%, #059669 100%)',
+                fontWeight: 900,
+                WebkitTextStroke: isDark ? '0.5px rgba(14,165,233,0.5)' : '0.5px rgba(5,150,105,0.3)'
               }}
             >
               Desa Cenrana
@@ -269,8 +283,11 @@ export default function Home() {
           {/* Subtitle */}
           <motion.p
             variants={fadeInUp}
-            className="text-sm sm:text-base md:text-lg mb-6 sm:mb-8 max-w-md sm:max-w-xl mx-auto leading-relaxed px-2 sm:px-0"
-            style={{ color: isDark ? '#D1D5DB' : '#4B5563' }}
+            className="text-sm sm:text-base md:text-lg mb-6 sm:mb-8 max-w-md sm:max-w-xl mx-auto leading-relaxed px-2 sm:px-0 font-medium"
+            style={{
+              color: isDark ? '#E5E7EB' : '#1F2937',
+              textShadow: isDark ? 'none' : '0 1px 2px rgba(0,0,0,0.1)'
+            }}
           >
             Portal digital pemerintahan desa modern, transparan, dan inovatif.
             Melayani masyarakat dengan teknologi terkini.
@@ -329,24 +346,29 @@ export default function Home() {
                 <div className="overflow-hidden flex-1 mask-linear-fade">
                   <div
                     className="animate-marquee whitespace-nowrap flex items-center"
-                    style={{ animationDuration: '45s' }}
+                    style={{ animationDuration: '120s' }}
                   >
                     {/* Dynamic Pengumuman from CMS */}
                     {cmsContent.pengumuman?.filter(p => p.active).map((item) => (
-                      <span key={item.id} className="text-sm mx-12 font-medium" style={{ color: isDark ? '#D1D5DB' : '#475569' }}>
+                      <span key={item.id} className="text-sm mx-16 font-medium" style={{ color: isDark ? '#D1D5DB' : '#475569' }}>
                         📢 {item.text}
                       </span>
                     ))}
-                    {/* Upcoming Agenda Items */}
-                    {cmsContent.agenda?.slice(0, 2).map((item) => (
-                      <span key={`agenda-${item.id}`} className="text-sm mx-12 font-medium" style={{ color: isDark ? '#D1D5DB' : '#475569' }}>
-                        📅 {item.title} - {item.date}
+                    {/* Upcoming Agenda Items - Auto from Agenda Kegiatan */}
+                    {cmsContent.agenda?.slice(0, 3).map((item) => (
+                      <span key={`agenda-${item.id}`} className="text-sm mx-16 font-medium" style={{ color: isDark ? '#D1D5DB' : '#475569' }}>
+                        📅 <strong>{item.title}</strong> — {new Date(item.date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })} pukul {item.time}
                       </span>
                     ))}
                     {/* Duplicate for seamless loop */}
                     {cmsContent.pengumuman?.filter(p => p.active).map((item) => (
-                      <span key={`dup-${item.id}`} className="text-sm mx-12 font-medium" style={{ color: isDark ? '#D1D5DB' : '#475569' }}>
+                      <span key={`dup-${item.id}`} className="text-sm mx-16 font-medium" style={{ color: isDark ? '#D1D5DB' : '#475569' }}>
                         📢 {item.text}
+                      </span>
+                    ))}
+                    {cmsContent.agenda?.slice(0, 3).map((item) => (
+                      <span key={`dup-agenda-${item.id}`} className="text-sm mx-16 font-medium" style={{ color: isDark ? '#D1D5DB' : '#475569' }}>
+                        📅 <strong>{item.title}</strong> — {new Date(item.date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })} pukul {item.time}
                       </span>
                     ))}
                   </div>

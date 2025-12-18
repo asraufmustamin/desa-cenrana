@@ -24,7 +24,12 @@ import {
     Search,
     AlertTriangle,
     Trophy,
-    Users
+    Users,
+    Megaphone,
+    MessageCircle,
+    ExternalLink,
+    Copy,
+    Phone
 } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -45,7 +50,13 @@ export default function AdminDashboard() {
         deleteAspirasi,
         fetchPhotoById, // 🔥 For lazy loading photo
         isEditMode,
-        toggleEditMode
+        toggleEditMode,
+        cmsContent,
+        addPengumuman,
+        deletePengumuman,
+        updatePengumuman,
+        waSubscribers,
+        deleteWASubscriber
     } = useAppContext();
 
     const router = useRouter();
@@ -81,6 +92,117 @@ export default function AdminDashboard() {
     const [modalPhoto, setModalPhoto] = useState("");
     const [modalTicketCode, setModalTicketCode] = useState("");
     const [isLoadingPhoto, setIsLoadingPhoto] = useState(false);
+
+    // Pengumuman Form State
+    const [newPengumumanText, setNewPengumumanText] = useState("");
+    const [editingPengumumanId, setEditingPengumumanId] = useState<number | null>(null);
+    const [editPengumumanText, setEditPengumumanText] = useState("");
+
+    // Broadcast WA State
+    const [broadcastMessage, setBroadcastMessage] = useState("");
+    const [broadcastSentIndex, setBroadcastSentIndex] = useState(0);
+    const [isBroadcasting, setIsBroadcasting] = useState(false);
+
+    // Message Templates
+    const messageTemplates = [
+        {
+            name: "📢 Pengumuman Umum",
+            template: `🏘️ *PENGUMUMAN DESA CENRANA*
+
+Assalamu'alaikum Wr. Wb.
+
+Bapak/Ibu Warga Desa Cenrana yang terhormat,
+
+Dengan hormat kami sampaikan bahwa:
+
+[ISI PENGUMUMAN ANDA DI SINI]
+
+Demikian informasi ini kami sampaikan. Mohon untuk disebarluaskan.
+
+Wassalamu'alaikum Wr. Wb.
+
+_Pemerintah Desa Cenrana_`
+        },
+        {
+            name: "📅 Undangan Rapat/Kegiatan",
+            template: `🏘️ *UNDANGAN KEGIATAN DESA*
+
+Assalamu'alaikum Wr. Wb.
+
+Kepada Yth. Warga Desa Cenrana,
+
+Dengan hormat mengundang Bapak/Ibu untuk hadir pada:
+
+📋 *Kegiatan:* [Nama Kegiatan]
+📆 *Hari/Tanggal:* [Hari, Tanggal]
+⏰ *Waktu:* [Jam] WITA
+📍 *Tempat:* [Lokasi]
+
+Kehadiran Bapak/Ibu sangat kami harapkan.
+
+Wassalamu'alaikum Wr. Wb.
+
+_Pemerintah Desa Cenrana_`
+        },
+        {
+            name: "🏥 Info Kesehatan/Posyandu",
+            template: `🏥 *INFO KESEHATAN DESA CENRANA*
+
+Kepada Warga Desa Cenrana,
+
+Diinformasikan bahwa akan dilaksanakan:
+
+📋 *Kegiatan:* Posyandu Balita & Lansia
+📆 *Tanggal:* [Tanggal]
+⏰ *Waktu:* 08:00 - 12:00 WITA
+📍 *Tempat:* [Lokasi Posyandu]
+
+Mohon membawa:
+✅ Buku KIA/KMS
+✅ Kartu Identitas
+
+Gratis untuk seluruh warga!
+
+_Puskesmas & Pemerintah Desa Cenrana_`
+        },
+        {
+            name: "💰 Info Bantuan/BLT",
+            template: `💰 *INFORMASI BANTUAN DESA*
+
+Kepada Warga Desa Cenrana,
+
+Diberitahukan bahwa pencairan bantuan [Nama Bantuan] akan dilaksanakan:
+
+📆 *Tanggal:* [Tanggal]
+⏰ *Waktu:* [Jam] WITA
+📍 *Tempat:* Kantor Desa Cenrana
+
+Syarat yang harus dibawa:
+✅ KTP Asli
+✅ Kartu Keluarga
+✅ Buku Rekening (jika ada)
+
+Harap hadir tepat waktu.
+
+_Pemerintah Desa Cenrana_`
+        },
+        {
+            name: "🎉 Ucapan/Hari Besar",
+            template: `🎉 *SELAMAT HARI [NAMA HARI]*
+
+Pemerintah Desa Cenrana mengucapkan:
+
+✨ *Selamat [Nama Perayaan]* ✨
+
+Semoga [doa/harapan yang relevan].
+
+Terima kasih atas partisipasi seluruh warga dalam memeriahkan perayaan ini.
+
+Salam hangat,
+_Kepala Desa & Perangkat Desa Cenrana_`
+        }
+    ];
+
 
     useEffect(() => {
         if (!isLoggedIn) {
@@ -340,6 +462,33 @@ export default function AdminDashboard() {
                                         {pendingAspirasi.length > 0 && (
                                             <span className="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
                                                 {pendingAspirasi.length}
+                                            </span>
+                                        )}
+                                    </motion.button>
+                                    <motion.button
+                                        onClick={() => setActiveTab("pengumuman")}
+                                        whileHover={{ x: 3 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "pengumuman"
+                                            ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30"
+                                            : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
+                                    >
+                                        <Megaphone className="w-4 h-4 mr-2" />
+                                        Pengumuman
+                                    </motion.button>
+                                    <motion.button
+                                        onClick={() => setActiveTab("subscriber")}
+                                        whileHover={{ x: 3 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "subscriber"
+                                            ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/30"
+                                            : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
+                                    >
+                                        <MessageCircle className="w-4 h-4 mr-2" />
+                                        Subscriber WA
+                                        {waSubscribers.length > 0 && (
+                                            <span className="ml-auto bg-green-600 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                                                {waSubscribers.length}
                                             </span>
                                         )}
                                     </motion.button>
@@ -1300,6 +1449,428 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
                         )}
+
+                        {/* PENGUMUMAN TAB - Inside Content Area */}
+                        {activeTab === "pengumuman" && (
+                            <motion.div
+                                className="space-y-4 md:space-y-6 animate-fade-in"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                {/* Header */}
+                                <div className="glass-panel rounded-xl md:rounded-2xl p-4 md:p-6">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-gradient-to-r from-amber-500 to-orange-500">
+                                            <Megaphone className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-lg md:text-xl font-black text-[var(--text-primary)]">Kelola Pengumuman</h2>
+                                            <p className="text-xs md:text-sm text-[var(--text-secondary)]">Muncul di running text homepage</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Add New Pengumuman - Responsive */}
+                                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                                        <input
+                                            type="text"
+                                            value={newPengumumanText}
+                                            onChange={(e) => setNewPengumumanText(e.target.value)}
+                                            placeholder="Tulis pengumuman baru..."
+                                            className="flex-1 px-3 md:px-4 py-2.5 md:py-3 rounded-lg md:rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] text-sm md:text-base focus:outline-none focus:border-amber-500 transition-all"
+                                        />
+                                        <button
+                                            onClick={() => {
+                                                if (newPengumumanText.trim()) {
+                                                    addPengumuman(newPengumumanText.trim());
+                                                    setNewPengumumanText("");
+                                                }
+                                            }}
+                                            className="px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-lg md:rounded-xl hover:shadow-lg hover:shadow-amber-500/30 transition-all flex items-center justify-center gap-2 text-sm md:text-base"
+                                        >
+                                            <Plus className="w-4 h-4 md:w-5 md:h-5" />
+                                            Tambah
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Pengumuman List */}
+                                <div className="glass-panel rounded-xl md:rounded-2xl p-4 md:p-6">
+                                    <h3 className="font-bold text-[var(--text-primary)] mb-3 md:mb-4 flex items-center gap-2 text-sm md:text-base">
+                                        <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                                        Daftar Pengumuman ({cmsContent.pengumuman?.length || 0})
+                                    </h3>
+
+                                    {cmsContent.pengumuman?.length === 0 ? (
+                                        <div className="text-center py-8 md:py-12 text-[var(--text-secondary)]">
+                                            <Megaphone className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-3 opacity-30" />
+                                            <p className="text-sm md:text-base">Belum ada pengumuman</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-2 md:space-y-3">
+                                            {cmsContent.pengumuman?.map((item) => (
+                                                <div
+                                                    key={item.id}
+                                                    className={`p-3 md:p-4 rounded-lg md:rounded-xl border transition-all ${item.active
+                                                        ? 'bg-green-500/10 border-green-500/30'
+                                                        : 'bg-gray-500/10 border-gray-500/30 opacity-60'}`}
+                                                >
+                                                    {editingPengumumanId === item.id ? (
+                                                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                                                            <input
+                                                                type="text"
+                                                                value={editPengumumanText}
+                                                                onChange={(e) => setEditPengumumanText(e.target.value)}
+                                                                className="flex-1 px-3 py-2 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] text-sm focus:outline-none focus:border-blue-500"
+                                                            />
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    onClick={() => {
+                                                                        updatePengumuman(item.id, editPengumumanText, item.active);
+                                                                        setEditingPengumumanId(null);
+                                                                    }}
+                                                                    className="flex-1 sm:flex-none px-3 py-2 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 text-sm"
+                                                                >
+                                                                    Simpan
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setEditingPengumumanId(null)}
+                                                                    className="flex-1 sm:flex-none px-3 py-2 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-600 text-sm"
+                                                                >
+                                                                    Batal
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-[var(--text-primary)] font-medium text-sm md:text-base break-words">
+                                                                    📢 {item.text}
+                                                                </p>
+                                                                <span className={`text-xs font-bold ${item.active ? 'text-green-500' : 'text-gray-500'}`}>
+                                                                    {item.active ? '✅ Aktif' : '⚪ Non-aktif'}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2 shrink-0">
+                                                                <button
+                                                                    onClick={() => updatePengumuman(item.id, item.text, !item.active)}
+                                                                    className={`px-2 md:px-3 py-1 md:py-1.5 text-xs font-bold rounded-lg transition-all ${item.active
+                                                                        ? 'bg-gray-500/20 text-gray-600 dark:text-gray-400 hover:bg-gray-500/30'
+                                                                        : 'bg-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-500/30'
+                                                                        }`}
+                                                                >
+                                                                    <span className="hidden sm:inline">{item.active ? 'Nonaktifkan' : 'Aktifkan'}</span>
+                                                                    <span className="sm:hidden">{item.active ? 'Off' : 'On'}</span>
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setEditingPengumumanId(item.id);
+                                                                        setEditPengumumanText(item.text);
+                                                                    }}
+                                                                    className="p-1.5 md:p-2 rounded-lg bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 transition-all"
+                                                                >
+                                                                    <Edit3 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        if (confirm('Hapus pengumuman ini?')) {
+                                                                            deletePengumuman(item.id);
+                                                                        }
+                                                                    }}
+                                                                    className="p-1.5 md:p-2 rounded-lg bg-red-500/20 text-red-500 hover:bg-red-500/30 transition-all"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Info Box */}
+                                <div className="glass-panel rounded-xl md:rounded-2xl p-4 md:p-6 border-l-4 border-blue-500">
+                                    <h4 className="font-bold text-[var(--text-primary)] mb-2 text-sm md:text-base">💡 Tips</h4>
+                                    <ul className="text-xs md:text-sm text-[var(--text-secondary)] space-y-1">
+                                        <li>• Pengumuman aktif muncul di running text homepage</li>
+                                        <li>• Agenda Kegiatan otomatis tampil di running text</li>
+                                        <li>• Gunakan emoji untuk lebih menarik 🎉</li>
+                                    </ul>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* SUBSCRIBER WA TAB */}
+                        {activeTab === "subscriber" && (
+                            <motion.div
+                                className="space-y-4 md:space-y-6 animate-fade-in"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                {/* Header */}
+                                <div className="glass-panel rounded-xl md:rounded-2xl p-4 md:p-6">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="p-2 md:p-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500">
+                                            <MessageCircle className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-lg md:text-xl font-black text-[var(--text-primary)]">Subscriber WhatsApp</h2>
+                                            <p className="text-xs md:text-sm text-[var(--text-secondary)]">Daftar warga yang ingin dapat info via WA</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Stats */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 text-center">
+                                            <p className="text-2xl md:text-3xl font-black text-green-500">{waSubscribers.length}</p>
+                                            <p className="text-xs text-[var(--text-secondary)]">Total Subscriber</p>
+                                        </div>
+                                        <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 text-center">
+                                            <p className="text-2xl md:text-3xl font-black text-blue-500">{waSubscribers.filter(s => {
+                                                const date = new Date(s.subscribed_at);
+                                                const now = new Date();
+                                                return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+                                            }).length}</p>
+                                            <p className="text-xs text-[var(--text-secondary)]">Bulan Ini</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Subscriber List */}
+                                <div className="glass-panel rounded-xl md:rounded-2xl p-4 md:p-6">
+                                    <h3 className="font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                                        <Users className="w-5 h-5" />
+                                        Daftar Subscriber ({waSubscribers.length})
+                                    </h3>
+
+                                    {waSubscribers.length === 0 ? (
+                                        <div className="text-center py-8 text-[var(--text-secondary)]">
+                                            <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                                            <p>Belum ada subscriber</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                                            {waSubscribers.map((subscriber, index) => (
+                                                <div
+                                                    key={subscriber.id}
+                                                    className="flex items-center justify-between p-3 md:p-4 bg-[var(--bg-panel)] rounded-xl border border-[var(--border-color)] hover:border-green-500/30 transition-all"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center text-white font-bold">
+                                                            {index + 1}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-bold text-[var(--text-primary)]">{subscriber.name}</p>
+                                                            <p className="text-sm text-[var(--text-secondary)] flex items-center gap-1">
+                                                                <Phone className="w-3 h-3" />
+                                                                +{subscriber.whatsapp}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        {/* Copy Number */}
+                                                        <button
+                                                            onClick={() => {
+                                                                navigator.clipboard.writeText(subscriber.whatsapp);
+                                                                alert('Nomor disalin!');
+                                                            }}
+                                                            className="p-2 rounded-lg bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 transition-all"
+                                                            title="Salin Nomor"
+                                                        >
+                                                            <Copy className="w-4 h-4" />
+                                                        </button>
+                                                        {/* Chat WA */}
+                                                        <a
+                                                            href={`https://wa.me/${subscriber.whatsapp}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="p-2 rounded-lg bg-green-500/20 text-green-500 hover:bg-green-500/30 transition-all"
+                                                            title="Chat WhatsApp"
+                                                        >
+                                                            <ExternalLink className="w-4 h-4" />
+                                                        </a>
+                                                        {/* Delete */}
+                                                        <button
+                                                            onClick={() => {
+                                                                if (confirm(`Hapus ${subscriber.name} dari subscriber?`)) {
+                                                                    deleteWASubscriber(subscriber.id);
+                                                                }
+                                                            }}
+                                                            className="p-2 rounded-lg bg-red-500/20 text-red-500 hover:bg-red-500/30 transition-all"
+                                                            title="Hapus"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Quick Tools */}
+                                <div className="glass-panel rounded-xl md:rounded-2xl p-4 md:p-6">
+                                    <h3 className="font-bold text-[var(--text-primary)] mb-4">🛠️ Tools Cepat</h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <button
+                                            onClick={() => {
+                                                const numbers = waSubscribers.map(s => s.whatsapp).join(', ');
+                                                navigator.clipboard.writeText(numbers);
+                                                alert('Semua nomor disalin ke clipboard!');
+                                            }}
+                                            className="flex items-center justify-center gap-2 p-3 bg-blue-500/20 text-blue-500 rounded-xl font-bold hover:bg-blue-500/30 transition-all"
+                                        >
+                                            <Copy className="w-5 h-5" />
+                                            Salin Semua Nomor
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                const csv = waSubscribers.map(s => `${s.name},${s.whatsapp}`).join('\n');
+                                                const blob = new Blob([`Nama,WhatsApp\n${csv}`], { type: 'text/csv' });
+                                                const url = URL.createObjectURL(blob);
+                                                const a = document.createElement('a');
+                                                a.href = url;
+                                                a.download = 'subscriber-wa.csv';
+                                                a.click();
+                                            }}
+                                            className="flex items-center justify-center gap-2 p-3 bg-green-500/20 text-green-500 rounded-xl font-bold hover:bg-green-500/30 transition-all"
+                                        >
+                                            <ExternalLink className="w-5 h-5" />
+                                            Export CSV
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* 📢 Broadcast Panel */}
+                                <div className="glass-panel rounded-xl md:rounded-2xl p-4 md:p-6 border-2 border-green-500/30">
+                                    <h3 className="font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                                        <Send className="w-5 h-5 text-green-500" />
+                                        Kirim Broadcast WhatsApp
+                                    </h3>
+
+                                    {/* Template Selection */}
+                                    <div className="mb-4">
+                                        <label className="text-sm font-bold text-[var(--text-secondary)] mb-2 block">Pilih Template:</label>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                            {messageTemplates.map((template, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    onClick={() => setBroadcastMessage(template.template)}
+                                                    className="p-2 text-xs font-bold bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-lg hover:border-green-500/50 hover:bg-green-500/10 transition-all text-left"
+                                                >
+                                                    {template.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Message Textarea */}
+                                    <div className="mb-4">
+                                        <label className="text-sm font-bold text-[var(--text-secondary)] mb-2 block">Pesan Broadcast:</label>
+                                        <textarea
+                                            value={broadcastMessage}
+                                            onChange={(e) => setBroadcastMessage(e.target.value)}
+                                            placeholder="Tulis pesan broadcast Anda di sini... atau pilih template di atas"
+                                            className="w-full h-48 bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-xl px-4 py-3 text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-green-500 resize-none text-sm"
+                                        />
+                                        <p className="text-xs text-[var(--text-secondary)] mt-1">
+                                            💡 Teks dalam [kurung] adalah placeholder - ganti dengan info sebenarnya
+                                        </p>
+                                    </div>
+
+                                    {/* Broadcast Progress */}
+                                    {isBroadcasting && (
+                                        <div className="mb-4 p-3 bg-green-500/10 border border-green-500/30 rounded-xl">
+                                            <p className="text-sm font-bold text-green-500">
+                                                📤 Progress: {broadcastSentIndex}/{waSubscribers.length} terkirim
+                                            </p>
+                                            <div className="w-full bg-[var(--bg-panel)] rounded-full h-2 mt-2">
+                                                <div
+                                                    className="bg-green-500 h-2 rounded-full transition-all"
+                                                    style={{ width: `${(broadcastSentIndex / waSubscribers.length) * 100}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Send Buttons */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <button
+                                            onClick={() => {
+                                                if (!broadcastMessage.trim()) {
+                                                    alert('Tulis pesan dulu!');
+                                                    return;
+                                                }
+                                                if (waSubscribers.length === 0) {
+                                                    alert('Tidak ada subscriber!');
+                                                    return;
+                                                }
+                                                setIsBroadcasting(true);
+                                                setBroadcastSentIndex(0);
+
+                                                // Open first subscriber
+                                                const encoded = encodeURIComponent(broadcastMessage);
+                                                window.open(`https://wa.me/${waSubscribers[0].whatsapp}?text=${encoded}`, '_blank');
+                                                setBroadcastSentIndex(1);
+                                            }}
+                                            disabled={!broadcastMessage.trim() || waSubscribers.length === 0}
+                                            className="flex items-center justify-center gap-2 p-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-green-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <MessageCircle className="w-5 h-5" />
+                                            Mulai Kirim Broadcast
+                                        </button>
+
+                                        {isBroadcasting && broadcastSentIndex < waSubscribers.length && (
+                                            <button
+                                                onClick={() => {
+                                                    const nextIndex = broadcastSentIndex;
+                                                    if (nextIndex < waSubscribers.length) {
+                                                        const encoded = encodeURIComponent(broadcastMessage);
+                                                        window.open(`https://wa.me/${waSubscribers[nextIndex].whatsapp}?text=${encoded}`, '_blank');
+                                                        setBroadcastSentIndex(nextIndex + 1);
+                                                    }
+                                                    if (broadcastSentIndex + 1 >= waSubscribers.length) {
+                                                        setIsBroadcasting(false);
+                                                        alert('✅ Broadcast selesai!');
+                                                    }
+                                                }}
+                                                className="flex items-center justify-center gap-2 p-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-all"
+                                            >
+                                                <Send className="w-5 h-5" />
+                                                Kirim ke {waSubscribers[broadcastSentIndex]?.name || 'Selanjutnya'}
+                                            </button>
+                                        )}
+
+                                        {isBroadcasting && (
+                                            <button
+                                                onClick={() => {
+                                                    setIsBroadcasting(false);
+                                                    setBroadcastSentIndex(0);
+                                                }}
+                                                className="flex items-center justify-center gap-2 p-3 bg-gray-500/20 text-gray-500 rounded-xl font-bold hover:bg-gray-500/30 transition-all"
+                                            >
+                                                <XCircle className="w-5 h-5" />
+                                                Batal
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Tips */}
+                                <div className="glass-panel rounded-xl p-4 border-l-4 border-green-500">
+                                    <h4 className="font-bold text-[var(--text-primary)] mb-2">📖 Cara Pakai Broadcast</h4>
+                                    <ol className="text-xs md:text-sm text-[var(--text-secondary)] space-y-1 list-decimal list-inside">
+                                        <li>Pilih template atau tulis pesan sendiri</li>
+                                        <li>Edit placeholder [dalam kurung] sesuai kebutuhan</li>
+                                        <li>Klik <strong>"Mulai Kirim Broadcast"</strong></li>
+                                        <li>WhatsApp akan terbuka - tekan <strong>Send</strong></li>
+                                        <li>Kembali ke sini, klik <strong>"Selanjutnya"</strong></li>
+                                        <li>Ulangi sampai selesai</li>
+                                    </ol>
+                                </div>
+                            </motion.div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -1326,28 +1897,24 @@ export default function AdminDashboard() {
                                     <XCircle className="w-6 h-6" />
                                 </button>
                             </div>
-
-                            {/* Photo Display */}
-                            <div className="rounded-xl overflow-hidden border border-[var(--border-color)] bg-[var(--bg-panel)]">
-                                {isLoadingPhoto ? (
-                                    <div className="flex flex-col items-center justify-center p-12">
-                                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-                                        <p className="text-[var(--text-secondary)]">Memuat foto...</p>
-                                    </div>
-                                ) : modalPhoto ? (
-                                    /* eslint-disable-next-line @next/next/no-img-element */
-                                    <img
-                                        src={modalPhoto}
-                                        alt="Foto Aspirasi"
-                                        className="w-full max-h-[600px] object-contain"
-                                    />
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center p-12">
-                                        <AlertTriangle className="w-16 h-16 text-amber-500 mb-4" />
-                                        <p className="text-[var(--text-secondary)]">Tidak ada foto atau gagal memuat</p>
-                                    </div>
-                                )}
-                            </div>
+                            {isLoadingPhoto ? (
+                                <div className="flex flex-col items-center justify-center p-12">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+                                    <p className="text-[var(--text-secondary)]">Memuat foto...</p>
+                                </div>
+                            ) : modalPhoto ? (
+                                /* eslint-disable-next-line @next/next/no-img-element */
+                                <img
+                                    src={modalPhoto}
+                                    alt="Foto Aspirasi"
+                                    className="w-full max-h-[600px] object-contain"
+                                />
+                            ) : (
+                                <div className="flex flex-col items-center justify-center p-12">
+                                    <AlertTriangle className="w-16 h-16 text-amber-500 mb-4" />
+                                    <p className="text-[var(--text-secondary)]">Tidak ada foto atau gagal memuat</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -1356,16 +1923,3 @@ export default function AdminDashboard() {
     );
 }
 
-{/* Global Styles for Animations */ }
-<style jsx global>{`
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-`}</style>
