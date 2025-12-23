@@ -10,6 +10,7 @@ import { useAppContext } from "@/context/AppContext";
 import Cropper from 'react-easy-crop';
 import type { Area, Point } from 'react-easy-crop';
 import { canSubmit, recordSubmit, getRemainingTime } from "@/lib/rateLimit";
+import { ProductCardSkeleton } from "@/components/skeletons";
 
 export default function LapakWarga() {
     const { lapak, submitLapak, isLoading } = useAppContext();
@@ -356,7 +357,13 @@ export default function LapakWarga() {
                 </motion.div>
 
                 {/* Products Grid */}
-                {filteredLapak.length > 0 ? (
+                {isLoading ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {Array.from({ length: 10 }).map((_, i) => (
+                            <ProductCardSkeleton key={i} />
+                        ))}
+                    </div>
+                ) : filteredLapak.length > 0 ? (
                     <motion.div
                         className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
                         initial={{ opacity: 0 }}
@@ -378,7 +385,14 @@ export default function LapakWarga() {
                                 >
                                     <div className="rounded-2xl overflow-hidden bg-[var(--bg-card)]/90 backdrop-blur-xl border border-[var(--border-color)] shadow-lg hover:shadow-xl hover:border-emerald-500/30 transition-all duration-300">
                                         <div className="relative aspect-square overflow-hidden bg-[var(--bg-panel)]">
-                                            <Image src={safeImage || '/placeholder.jpg'} alt={item.title} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                                            <Image
+                                                src={safeImage || '/placeholder.jpg'}
+                                                alt={item.title}
+                                                fill
+                                                className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                                placeholder="blur"
+                                                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAUH/8QAIhAAAgEDAwUBAAAAAAAAAAAAAQIDAAQRBRIhBhMxQVFh/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAZEQACAwEAAAAAAAAAAAAAAAABAgADESH/2gAMAwEAAhEDEEA/ALWk6lPbW0MN1eSXE8caoWcklmAx7+1ooor0FlNwBouf/9k="
+                                            />
                                             <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md text-[9px] font-bold flex items-center gap-1 bg-black/60 text-white backdrop-blur-sm">
                                                 <Tag className="w-2.5 h-2.5" />{item.category}
                                             </div>

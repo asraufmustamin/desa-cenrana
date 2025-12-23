@@ -567,3 +567,63 @@ body {
     animation: blink 1s infinite;
     margin-left: 2px;
 }
+
+/* ========================================
+   ACCESSIBILITY - FOCUS STATES
+   ======================================== */
+
+/* Clear focus ring for keyboard navigation */
+:focus-visible {
+    outline: 2px solid var(--neon-blue);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Remove outline on mouse click, keep for keyboard */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Focus ring for buttons */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+    outline: 2px solid var(--neon-emerald);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+}
+
+/* Focus ring for inputs */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 2px solid var(--neon-blue);
+    outline-offset: 0;
+    border-color: var(--neon-blue);
+}
+
+/* Skip to main content link (for screen readers) */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--neon-blue);
+    color: white;
+    padding: 8px 16px;
+    z-index: 100;
+    transition: top 0.3s;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+/* High contrast focus for dark mode */
+html.dark :focus-visible {
+    outline-color: #00D4FF;
+}
+
+/* High contrast focus for light mode */
+html:not(.dark) :focus-visible {
+    outline-color: #0284C7;
+}

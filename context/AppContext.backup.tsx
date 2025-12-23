@@ -1,29 +1,10 @@
-/**
- * AppContext.tsx - Global State Management
- * ==========================================
- * 
- * FILE STRUCTURE:
- * - Line 1-180:    Type Definitions (Interfaces)
- * - Line 181-240:  AppContextType Interface
- * - Line 241-404:  Default CMS Content
- * - Line 405-700:  Provider State & Effects
- * - Line 700+:     CRUD Functions (News, Lapak, Aspirasi, etc.)
- * 
- * @module AppContext
- * @description Provides global state for the entire Desa Cenrana website
- * @author Desa Cenrana Development Team
- */
-
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/lib/supabase";
 
-// ============================================
-// SECTION 1: TYPE DEFINITIONS
-// ============================================
-
+// Define types (Keep existing interfaces)
 export interface NewsItem {
     id: number;
     title: string;

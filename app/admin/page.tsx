@@ -32,6 +32,8 @@ import {
     Phone,
     FileText
 } from "lucide-react";
+import DashboardTab from "./components/DashboardTab";
+import LapakTab from "./components/LapakTab";
 
 export default function AdminDashboard() {
     const {

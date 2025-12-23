@@ -5,9 +5,10 @@ import { useAppContext } from "@/context/AppContext";
 import Image from "next/image";
 import Link from "next/link";
 import { Calendar, ChevronRight, User } from "lucide-react";
+import { NewsCardSkeleton } from "@/components/skeletons";
 
 export default function BeritaPage() {
-    const { news } = useAppContext();
+    const { news, isLoading } = useAppContext();
 
     return (
         <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
@@ -20,7 +21,11 @@ export default function BeritaPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {news.map((item) => {
+                    {isLoading ? (
+                        Array.from({ length: 6 }).map((_, i) => (
+                            <NewsCardSkeleton key={i} />
+                        ))
+                    ) : news.map((item) => {
                         // Defensive coding: Check for invalid WhatsApp URLs in image field
                         const isInvalidImage = item.image.includes("whatsapp") || item.image.includes("wa.me");
                         const safeImage = isInvalidImage

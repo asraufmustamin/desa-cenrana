@@ -82,7 +82,11 @@ export default function Navbar() {
     const textColorClass = isLightMode ? "text-slate-800" : "text-white";
 
     return (
-        <nav className={`fixed w-full z-50 transition-all duration-300 ${navBgClass}`}>
+        <nav
+            className={`fixed w-full z-50 transition-all duration-300 ${navBgClass}`}
+            role="navigation"
+            aria-label="Navigasi Utama"
+        >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     {/* Logo */}
@@ -284,6 +288,9 @@ export default function Navbar() {
                         <button
                             onClick={() => setIsOpen(!isOpen)}
                             className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-800 dark:text-white"
+                            aria-label={isOpen ? "Tutup Menu" : "Buka Menu"}
+                            aria-expanded={isOpen}
+                            aria-controls="mobile-menu"
                         >
                             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                         </button>
@@ -293,8 +300,10 @@ export default function Navbar() {
 
             {/* Mobile Menu - Only on mobile, hidden on tablet+ */}
             <div
+                id="mobile-menu"
                 className={`md:hidden absolute w-full bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 transition-all duration-300 ${isOpen ? "max-h-[calc(100vh-5rem)] opacity-100" : "max-h-0 opacity-0"
                     } overflow-y-auto overflow-x-hidden`}
+                aria-hidden={!isOpen}
             >
                 <div className="px-4 pt-4 pb-8 space-y-2">
                     {navLinks.map((link) => (

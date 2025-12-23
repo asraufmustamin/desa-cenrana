@@ -1,0 +1,12 @@
+# Robots.txt untuk Desa Cenrana
+# https://www.robotstxt.org/
+
+User-agent: *
+Allow: /
+
+# Halaman yang tidak perlu diindeks
+Disallow: /admin/
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://desacenrana.id/sitemap.xml
