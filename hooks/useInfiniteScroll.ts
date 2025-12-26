@@ -59,7 +59,7 @@ export function useInfiniteScroll({
  */
 export function useIntersectionObserver(
     options: IntersectionObserverInit = {}
-): [React.RefObject<HTMLDivElement>, boolean] {
+) {
     const ref = useRef<HTMLDivElement>(null);
     const [isIntersecting, setIsIntersecting] = useState(false);
 
@@ -78,7 +78,7 @@ export function useIntersectionObserver(
         return () => observer.disconnect();
     }, [options]);
 
-    return [ref, isIntersecting];
+    return [ref, isIntersecting] as const;
 }
 
 /**

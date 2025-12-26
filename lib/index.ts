@@ -2,36 +2,15 @@
  * Lib Index
  * =========
  * 
- * Export semua utility functions dari satu tempat
+ * This file is intentionally simplified to avoid naming conflicts.
+ * Import individual files directly for specific functions:
+ * 
+ * import { formatCurrency } from "@/lib/format";
+ * import { formatDate } from "@/lib/date";
+ * import { encryptData } from "@/lib/encryption";
  */
 
-// Analytics & SEO
+// Re-export only non-conflicting modules
 export * from "./analytics";
 export * from "./seo";
-
-// Data Processing
-export * from "./cache";
-export * from "./encryption";
-export * from "./exportData";
-
-// Formatting
-export * from "./date";
-export * from "./format";
-export * from "./sanitize";
-export * from "./validation";
-
-// Communication
-export * from "./share";
-export * from "./whatsapp";
-
-// Storage & Logging
 export * from "./storage";
-export * from "./auditLog";
-export * from "./errorLogger";
-
-// Other
-export * from "./auth";
-export * from "./imageCompression";
-export * from "./print";
-export * from "./qrcode";
-export * from "./rateLimit";

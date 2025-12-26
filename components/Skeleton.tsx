@@ -13,13 +13,14 @@ interface SkeletonProps {
     className?: string;
     width?: string | number;
     height?: string | number;
+    style?: React.CSSProperties;
 }
 
 /**
  * Base Skeleton component
  */
-export function Skeleton({ className = "", width, height }: SkeletonProps) {
-    const style: React.CSSProperties = {};
+export function Skeleton({ className = "", width, height, style: customStyle }: SkeletonProps) {
+    const style: React.CSSProperties = { ...customStyle };
     if (width) style.width = typeof width === "number" ? `${width}px` : width;
     if (height) style.height = typeof height === "number" ? `${height}px` : height;
 
