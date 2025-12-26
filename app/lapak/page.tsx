@@ -10,6 +10,7 @@ import { useAppContext } from "@/context/AppContext";
 import Cropper from 'react-easy-crop';
 import type { Area, Point } from 'react-easy-crop';
 import { canSubmit, recordSubmit, getRemainingTime } from "@/lib/rateLimit";
+import { compressImageFromSrc, formatFileSize, getBase64Size } from "@/lib/imageCompression";
 import { ProductCardSkeleton } from "@/components/skeletons";
 
 export default function LapakWarga() {
@@ -159,7 +160,30 @@ export default function LapakWarga() {
 
     const confirmImage = async () => {
         if (tempImagePreview && croppedAreaPixels) {
-            try { const croppedImage = await getCroppedImg(tempImagePreview, croppedAreaPixels, imageRotation); setImagePreview(croppedImage); setForm({ ...form, image: croppedImage }); setShowImagePreviewModal(false); setTempImagePreview(null); setImageRotation(0); setCrop({ x: 0, y: 0 }); setZoom(1); setCroppedAreaPixels(null); }
+            try {
+                const croppedImage = await getCroppedImg(tempImagePreview, croppedAreaPixels, imageRotation);
+
+                // Kompresi gambar otomatis untuk menghemat storage
+                const compressedImage = await compressImageFromSrc(croppedImage, {
+                    maxWidth: 800,
+                    maxHeight: 800,
+                    quality: 0.75,
+                    format: "webp"
+                });
+
+                const originalSize = getBase64Size(croppedImage);
+                const compressedSize = getBase64Size(compressedImage);
+                console.log(`📷 Gambar dikompresi: ${formatFileSize(originalSize)} → ${formatFileSize(compressedSize)}`);
+
+                setImagePreview(compressedImage);
+                setForm({ ...form, image: compressedImage });
+                setShowImagePreviewModal(false);
+                setTempImagePreview(null);
+                setImageRotation(0);
+                setCrop({ x: 0, y: 0 });
+                setZoom(1);
+                setCroppedAreaPixels(null);
+            }
             catch (e) { console.error(e); setUploadError("Gagal memotong gambar"); }
         }
     };

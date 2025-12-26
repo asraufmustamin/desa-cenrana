@@ -8,6 +8,7 @@ import { useAppContext } from "@/context/AppContext";
 import Image from "next/image";
 import Link from "next/link";
 import { canSubmit, recordSubmit, getRemainingTime } from "@/lib/rateLimit";
+import { compressImage, formatFileSize, getBase64Size } from "@/lib/imageCompression";
 
 const fadeInUp = {
     hidden: { opacity: 0, y: 30 },
@@ -84,16 +85,35 @@ export default function Aspirasi() {
         }
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const result = reader.result as string;
-                setImagePreview(result);
-                setForm({ ...form, image: result });
-            };
-            reader.readAsDataURL(file);
+            try {
+                // Kompresi gambar otomatis untuk menghemat storage
+                const compressedImage = await compressImage(file, {
+                    maxWidth: 1024,
+                    maxHeight: 1024,
+                    quality: 0.75,
+                    format: "webp"
+                });
+
+                const originalSize = file.size;
+                const compressedSize = getBase64Size(compressedImage);
+                console.log(`📷 Gambar dikompresi: ${formatFileSize(originalSize)} → ${formatFileSize(compressedSize)}`);
+
+                setImagePreview(compressedImage);
+                setForm({ ...form, image: compressedImage });
+            } catch (error) {
+                console.error('Gagal mengompresi gambar:', error);
+                // Fallback ke cara lama jika kompresi gagal
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const result = reader.result as string;
+                    setImagePreview(result);
+                    setForm({ ...form, image: result });
+                };
+                reader.readAsDataURL(file);
+            }
         }
     };
 

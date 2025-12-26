@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import DashboardTab from "./components/DashboardTab";
 import LapakTab from "./components/LapakTab";
+import AdminStats from "@/components/AdminStats";
 
 export default function AdminDashboard() {
     const {
@@ -551,46 +552,62 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                     {/* Content Area */}
                     <div className="lg:col-span-4">
                         {activeTab === "dashboard" && (
-                            <div className="space-y-8 animate-fade-in">
-                                {/* Stats Grid */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                                    <div className="glass-card p-6 md:p-8 rounded-2xl md:rounded-[2rem] border-l-4 border-cyan-500">
-                                        <h3 className="text-[var(--text-secondary)] font-bold text-xs md:text-sm mb-2">Total Berita</h3>
-                                        <p className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]">{news.length}</p>
-                                    </div>
-                                    <div className="glass-card p-6 md:p-8 rounded-2xl md:rounded-[2rem] border-l-4 border-blue-500">
-                                        <h3 className="text-[var(--text-secondary)] font-bold text-xs md:text-sm mb-2">Total Aspirasi</h3>
-                                        <p className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]">{aspirasi.length}</p>
-                                    </div>
-                                    <div className="glass-card p-6 md:p-8 rounded-2xl md:rounded-[2rem] border-l-4 border-emerald-500">
-                                        <h3 className="text-[var(--text-secondary)] font-bold text-xs md:text-sm mb-2">Lapak Aktif</h3>
-                                        <p className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]">{lapak.filter(l => l.status === "Active").length}</p>
-                                    </div>
-                                    <div className="glass-card p-6 md:p-8 rounded-2xl md:rounded-[2rem] border-l-4 border-amber-500">
-                                        <h3 className="text-[var(--text-secondary)] font-bold text-xs md:text-sm mb-2">Menunggu (Aspirasi)</h3>
-                                        <p className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]">{pendingAspirasi.length}</p>
-                                    </div>
-                                    <div className="glass-card p-6 md:p-8 rounded-2xl md:rounded-[2rem] border-l-4 border-purple-500">
-                                        <h3 className="text-[var(--text-secondary)] font-bold text-xs md:text-sm mb-2">Menunggu (Produk)</h3>
-                                        <p className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]">{pendingLapak.length}</p>
-                                    </div>
-                                    <div className="glass-card p-6 md:p-8 rounded-2xl md:rounded-[2rem] border-l-4 border-pink-500">
-                                        <h3 className="text-[var(--text-secondary)] font-bold text-xs md:text-sm mb-2">Mode CMS</h3>
-                                        <p className="text-xl md:text-2xl font-bold text-[var(--text-primary)]">{isEditMode ? "AKTIF ✓" : "NON-AKTIF"}</p>
-                                    </div>
+                            <div className="space-y-6 animate-fade-in">
+                                {/* Real-time Stats from API */}
+                                <AdminStats />
+
+                                {/* Quick Actions */}
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                     <div
                                         onClick={() => router.push('/admin/surat')}
-                                        className="glass-card p-6 md:p-8 rounded-2xl md:rounded-[2rem] border-l-4 border-indigo-500 cursor-pointer hover:scale-[1.02] transition-transform shadow-lg hover:shadow-indigo-500/20"
+                                        className="group p-5 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 cursor-pointer hover:border-indigo-500/50 hover:scale-[1.02] transition-all"
                                     >
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <h3 className="text-[var(--text-secondary)] font-bold text-xs md:text-sm mb-2">Layanan Surat</h3>
-                                                <p className="text-xl md:text-2xl font-bold text-[var(--text-primary)]">Kelola Request</p>
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-400 group-hover:bg-indigo-500/30 transition-colors">
+                                                <FileText className="w-5 h-5" />
                                             </div>
-                                            <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600">
-                                                <FileText className="w-6 h-6" />
-                                            </div>
+                                            <span className="font-bold text-[var(--text-primary)]">Layanan Surat</span>
                                         </div>
+                                        <p className="text-sm text-[var(--text-secondary)]">Kelola permohonan surat</p>
+                                    </div>
+
+                                    <div
+                                        onClick={() => setActiveTab("aspirasi")}
+                                        className="group p-5 rounded-2xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 cursor-pointer hover:border-blue-500/50 hover:scale-[1.02] transition-all"
+                                    >
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400 group-hover:bg-blue-500/30 transition-colors">
+                                                <MessageSquare className="w-5 h-5" />
+                                            </div>
+                                            <span className="font-bold text-[var(--text-primary)]">Aspirasi</span>
+                                        </div>
+                                        <p className="text-sm text-[var(--text-secondary)]">Kelola laporan warga</p>
+                                    </div>
+
+                                    <div
+                                        onClick={() => setActiveTab("lapak")}
+                                        className="group p-5 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 cursor-pointer hover:border-emerald-500/50 hover:scale-[1.02] transition-all"
+                                    >
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 group-hover:bg-emerald-500/30 transition-colors">
+                                                <ShoppingBag className="w-5 h-5" />
+                                            </div>
+                                            <span className="font-bold text-[var(--text-primary)]">Lapak Warga</span>
+                                        </div>
+                                        <p className="text-sm text-[var(--text-secondary)]">Kelola produk UMKM</p>
+                                    </div>
+                                </div>
+
+                                {/* CMS Mode Indicator */}
+                                <div className={`p-4 rounded-2xl border ${isEditMode ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-slate-500/10 border-slate-500/30'}`}>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-3 h-3 rounded-full ${isEditMode ? 'bg-emerald-400 animate-pulse' : 'bg-slate-400'}`} />
+                                            <span className="font-bold text-[var(--text-primary)]">Mode CMS</span>
+                                        </div>
+                                        <span className={`px-3 py-1 rounded-full text-sm font-bold ${isEditMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}`}>
+                                            {isEditMode ? "AKTIF" : "NON-AKTIF"}
+                                        </span>
                                     </div>
                                 </div>
                             </div>

@@ -11,19 +11,42 @@ export default function AdminLogin() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
     const { login } = useAppContext();
     const router = useRouter();
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Updated Credentials
-        if (username === "desacenranaadmin" && password === "digitaldesacenrana") {
+        setError("");
+        setIsLoading(true);
+
+        try {
+            // Call API untuk login yang aman
+            const response = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setError(data.error || "Login gagal");
+                setIsLoading(false);
+                return;
+            }
+
+            // Login berhasil - update context dan redirect
             login();
             router.push("/admin");
-        } else {
-            setError("Akses Ditolak, periksa kembali data Anda");
+            router.refresh();
+        } catch (err) {
+            console.error("Login error:", err);
+            setError("Terjadi kesalahan. Coba lagi.");
+            setIsLoading(false);
         }
     };
+
 
     return (
         <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-[var(--bg-primary)]">

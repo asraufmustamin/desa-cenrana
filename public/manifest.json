@@ -25,5 +25,22 @@
             "type": "image/svg+xml",
             "purpose": "any"
         }
+    ],
+    "shortcuts": [
+        {
+            "name": "Buat Aspirasi",
+            "short_name": "Aspirasi",
+            "url": "/aspirasi"
+        },
+        {
+            "name": "Lapak Warga",
+            "short_name": "Lapak",
+            "url": "/lapak"
+        },
+        {
+            "name": "Berita Desa",
+            "short_name": "Berita",
+            "url": "/informasi/berita"
+        }
     ]
 }
