@@ -53,9 +53,12 @@ function base64ToBytes(base64: string): Uint8Array {
  * Generate key dari string menggunakan PBKDF2
  */
 async function getKey(): Promise<CryptoKey> {
+    const keyBytes = stringToBytes(ENCRYPTION_KEY);
+    const saltBytes = stringToBytes("desa-cenrana-salt");
+
     const keyMaterial = await crypto.subtle.importKey(
         "raw",
-        stringToBytes(ENCRYPTION_KEY),
+        keyBytes.buffer as ArrayBuffer,
         "PBKDF2",
         false,
         ["deriveKey"]
@@ -64,7 +67,7 @@ async function getKey(): Promise<CryptoKey> {
     return crypto.subtle.deriveKey(
         {
             name: "PBKDF2",
-            salt: stringToBytes("desa-cenrana-salt"),
+            salt: saltBytes.buffer as ArrayBuffer,
             iterations: 100000,
             hash: "SHA-256",
         },
@@ -84,11 +87,12 @@ export async function encryptData(plaintext: string): Promise<string> {
     try {
         const key = await getKey();
         const iv = crypto.getRandomValues(new Uint8Array(12)); // 96-bit IV for GCM
+        const plaintextBytes = stringToBytes(plaintext);
 
         const encrypted = await crypto.subtle.encrypt(
-            { name: "AES-GCM", iv },
+            { name: "AES-GCM", iv: iv.buffer as ArrayBuffer },
             key,
-            stringToBytes(plaintext)
+            plaintextBytes.buffer as ArrayBuffer
         );
 
         // Combine IV + encrypted data
@@ -118,9 +122,9 @@ export async function decryptData(ciphertext: string): Promise<string> {
         const encrypted = combined.slice(12);
 
         const decrypted = await crypto.subtle.decrypt(
-            { name: "AES-GCM", iv },
+            { name: "AES-GCM", iv: iv.buffer as ArrayBuffer },
             key,
-            encrypted
+            encrypted.buffer as ArrayBuffer
         );
 
         return bytesToString(new Uint8Array(decrypted));
