@@ -239,12 +239,14 @@ _Kepala Desa & Perangkat Desa Cenrana_`
         return matchesSearch && matchesStatus && matchesDusun;
     });
 
-    if (replyText.trim()) {
-        replyAspirasi(id, replyText);
-        setReplyText("");
-        setSelectedTicketId(null);
-        addToast("Tanggapan berhasil dikirim.", "success");
-    }
+    const handleReplySubmit = (id: string) => {
+        if (replyText.trim()) {
+            replyAspirasi(id, replyText);
+            setReplyText("");
+            setSelectedTicketId(null);
+            addToast("Tanggapan berhasil dikirim.", "success");
+        }
+    };
 
     // Handle Image Upload from Device
     const handleNewsImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
