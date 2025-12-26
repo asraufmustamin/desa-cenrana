@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "@/context/AppContext";
+import { useToast } from "@/components/Toast";
 import { motion } from "framer-motion";
 import {
     LayoutDashboard,
@@ -64,6 +65,7 @@ export default function AdminDashboard() {
     } = useAppContext();
 
     const router = useRouter();
+    const { addToast } = useToast();
     const [activeTab, setActiveTab] = useState("dashboard");
     const [lapakSubTab, setLapakSubTab] = useState<"management" | "analytics">("management"); // NEW: Sub-tabs for Lapak
     const [replyText, setReplyText] = useState("");
@@ -237,21 +239,19 @@ _Kepala Desa & Perangkat Desa Cenrana_`
         return matchesSearch && matchesStatus && matchesDusun;
     });
 
-    const handleReplySubmit = (id: string) => {
-        if (replyText.trim()) {
-            replyAspirasi(id, replyText);
-            setReplyText("");
-            setSelectedTicketId(null);
-            alert("Tanggapan berhasil dikirim.");
-        }
-    };
+    if (replyText.trim()) {
+        replyAspirasi(id, replyText);
+        setReplyText("");
+        setSelectedTicketId(null);
+        addToast("Tanggapan berhasil dikirim.", "success");
+    }
 
     // Handle Image Upload from Device
     const handleNewsImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
             if (file.size > 5 * 1024 * 1024) {
-                alert("Ukuran file maksimal 5MB!");
+                addToast("Ukuran file maksimal 5MB!", "error");
                 return;
             }
             const reader = new FileReader();
@@ -301,7 +301,7 @@ _Kepala Desa & Perangkat Desa Cenrana_`
 
     const handleAddNews = () => {
         if (!newsForm.title || !newsForm.excerpt) {
-            alert("Harap isi Judul dan Ringkasan!");
+            addToast("Harap isi Judul dan Ringkasan!", "warning");
             return;
         }
 
@@ -325,7 +325,7 @@ _Kepala Desa & Perangkat Desa Cenrana_`
 
         resetNewsForm();
         setNewsSubTab("list");
-        alert("✅ Berita berhasil ditambahkan!");
+        addToast("✅ Berita berhasil ditambahkan!", "success");
     };
 
     const handleDeleteItem = (type: "news" | "lapak" | "aspirasi", id: number | string) => {
@@ -1720,7 +1720,7 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                                         <button
                                                             onClick={() => {
                                                                 navigator.clipboard.writeText(subscriber.whatsapp);
-                                                                alert('Nomor disalin!');
+                                                                addToast('Nomor disalin!', 'success');
                                                             }}
                                                             className="p-1.5 sm:p-2 rounded-lg bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 transition-all"
                                                             title="Salin Nomor"
@@ -1764,7 +1764,7 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                             onClick={() => {
                                                 const numbers = waSubscribers.map(s => s.whatsapp).join(', ');
                                                 navigator.clipboard.writeText(numbers);
-                                                alert('Semua nomor disalin ke clipboard!');
+                                                addToast('Semua nomor disalin ke clipboard!', 'success');
                                             }}
                                             className="flex items-center justify-center gap-2 p-3 bg-blue-500/20 text-blue-500 rounded-xl font-bold hover:bg-blue-500/30 transition-all"
                                         >
@@ -1846,11 +1846,11 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                         <button
                                             onClick={() => {
                                                 if (!broadcastMessage.trim()) {
-                                                    alert('Tulis pesan dulu!');
+                                                    addToast('Tulis pesan dulu!', 'warning');
                                                     return;
                                                 }
                                                 if (waSubscribers.length === 0) {
-                                                    alert('Tidak ada subscriber!');
+                                                    addToast('Tidak ada subscriber!', 'warning');
                                                     return;
                                                 }
                                                 setIsBroadcasting(true);
@@ -1879,7 +1879,7 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                                     }
                                                     if (broadcastSentIndex + 1 >= waSubscribers.length) {
                                                         setIsBroadcasting(false);
-                                                        alert('✅ Broadcast selesai!');
+                                                        addToast('✅ Broadcast selesai!', 'success');
                                                     }
                                                 }}
                                                 className="flex items-center justify-center gap-2 p-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-all"

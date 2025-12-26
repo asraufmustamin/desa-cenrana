@@ -7,13 +7,21 @@
 
 // Core UI Components
 export { default as Badge, STATUS_BADGES, getStatusBadge } from "./Badge";
+export { default as Breadcrumb, BreadcrumbContainer } from "./Breadcrumb";
 export { default as Card, CardHeader, CardBody, CardFooter, FeatureCard, StatCard, LinkCard } from "./Card";
 export { default as ConfirmModal } from "./ConfirmModal";
+export { default as DataList } from "./DataList";
 export { default as EmptyState, EMPTY_STATES } from "./EmptyState";
 export { ErrorBoundary, withErrorHandler } from "./ErrorBoundary";
+export { default as FilterBar } from "./FilterBar";
+export { default as FloatingActionButton, ScrollToTop, WhatsAppFAB } from "./FloatingActionButton";
 export { Input, Textarea, Select, Button } from "./Form";
 export { default as LazyImage, Avatar } from "./LazyImage";
+export { default as LoadingPage, LoadingOverlay, LoadingButton, LoadingDots, LoadingShimmer } from "./LoadingPage";
 export { default as Modal, Drawer } from "./Modal";
+export { default as PageHeader, SectionHeader, AdminHeader } from "./PageHeader";
+export { default as Pagination, SimplePagination } from "./Pagination";
+export { default as ShareButton } from "./ShareButton";
 export {
     Skeleton, SkeletonText, SkeletonCard, SkeletonListItem, SkeletonTableRow,
     SkeletonAvatar, SkeletonImage, SkeletonStats, SkeletonProductCard, SkeletonWrapper

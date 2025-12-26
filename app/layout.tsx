@@ -7,6 +7,8 @@ import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AppProvider } from "@/context/AppContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ToastProvider } from "@/components/Toast";
+import { ScrollToTop } from "@/components/FloatingActionButton";
 import PWAProvider from "@/components/PWAProvider";
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
@@ -78,14 +80,17 @@ export default function RootLayout({
                     enableSystem={false}
                     storageKey="desa-cenrana-theme-v2"
                 >
-                    <AppProvider>
-                        <PWAProvider />
-                        <Navbar />
-                        <ErrorBoundary>
-                            <main className="flex-grow w-full max-w-[100vw] overflow-x-hidden">{children}</main>
-                        </ErrorBoundary>
-                        <Footer />
-                    </AppProvider>
+                    <ToastProvider>
+                        <AppProvider>
+                            <PWAProvider />
+                            <Navbar />
+                            <ErrorBoundary>
+                                <main className="flex-grow w-full max-w-[100vw] overflow-x-hidden">{children}</main>
+                            </ErrorBoundary>
+                            <ScrollToTop />
+                            <Footer />
+                        </AppProvider>
+                    </ToastProvider>
                 </ThemeProvider>
             </body>
         </html>

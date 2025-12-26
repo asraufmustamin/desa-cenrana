@@ -28,6 +28,7 @@ interface ToastContextType {
     error: (message: string) => void;
     warning: (message: string) => void;
     info: (message: string) => void;
+    addToast: (message: string, type?: ToastType, duration?: number) => void;
 }
 
 const ToastContext = createContext<ToastContextType | null>(null);
@@ -66,8 +67,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     const warning = useCallback((message: string) => showToast("warning", message), [showToast]);
     const info = useCallback((message: string) => showToast("info", message), [showToast]);
 
+    // Adapter for compatibility with Admin Dashboard usage: addToast(message, type)
+    const addToast = useCallback((message: string, type: ToastType = "info", duration?: number) => {
+        showToast(type, message, duration);
+    }, [showToast]);
+
     return (
-        <ToastContext.Provider value={{ toasts, showToast, removeToast, success, error, warning, info }}>
+        <ToastContext.Provider value={{ toasts, showToast, removeToast, success, error, warning, info, addToast }}>
             {children}
             <ToastContainer toasts={toasts} removeToast={removeToast} />
         </ToastContext.Provider>
