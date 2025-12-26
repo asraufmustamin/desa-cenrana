@@ -1,118 +1,80 @@
 "use client";
 
-import { Component, ReactNode } from "react";
-import { AlertTriangle, RefreshCw, Home } from "lucide-react";
-
-interface Props {
-    children: ReactNode;
-    fallback?: ReactNode;
-}
-
-interface State {
-    hasError: boolean;
-    error?: Error;
-    errorInfo?: React.ErrorInfo;
-}
+import { Component, ReactNode, ErrorInfo } from "react";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 
 /**
  * Error Boundary Component
- * Menangkap error JavaScript di child components dan menampilkan fallback UI
- * yang ramah pengguna daripada crash seluruh aplikasi.
+ * ========================
+ * 
+ * Catch JavaScript errors di child components
  */
-export class ErrorBoundary extends Component<Props, State> {
-    constructor(props: Props) {
+
+interface ErrorBoundaryProps {
+    children: ReactNode;
+    fallback?: ReactNode;
+    onError?: (error: Error, errorInfo: ErrorInfo) => void;
+}
+
+interface ErrorBoundaryState {
+    hasError: boolean;
+    error: Error | null;
+}
+
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+    constructor(props: ErrorBoundaryProps) {
         super(props);
-        this.state = { hasError: false };
+        this.state = { hasError: false, error: null };
     }
 
-    static getDerivedStateFromError(error: Error): Partial<State> {
-        // Update state sehingga render berikutnya menampilkan fallback UI
+    static getDerivedStateFromError(error: Error): ErrorBoundaryState {
         return { hasError: true, error };
     }
 
-    componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-        // Log error ke console untuk debugging
-        console.error("ErrorBoundary caught an error:", error, errorInfo);
-        this.setState({ errorInfo });
+    componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+        // Log error
+        console.error("Error caught by ErrorBoundary:", error, errorInfo);
+
+        // Call custom error handler
+        this.props.onError?.(error, errorInfo);
     }
 
-    handleReset = () => {
-        this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+    handleRetry = (): void => {
+        this.setState({ hasError: false, error: null });
     };
 
-    handleRefresh = () => {
-        window.location.reload();
-    };
-
-    handleGoHome = () => {
-        window.location.href = "/";
-    };
-
-    render() {
+    render(): ReactNode {
         if (this.state.hasError) {
-            // Custom fallback jika disediakan
+            // Custom fallback
             if (this.props.fallback) {
                 return this.props.fallback;
             }
 
             // Default fallback UI
             return (
-                <div className="min-h-screen flex items-center justify-center px-4 bg-[var(--bg-primary)]">
-                    <div className="max-w-md w-full text-center">
-                        {/* Glowing Effect */}
-                        <div className="relative">
-                            <div className="absolute -inset-4 bg-gradient-to-r from-red-500/20 via-orange-500/20 to-red-500/20 rounded-3xl blur-xl animate-pulse" />
-
-                            <div className="relative p-8 rounded-2xl bg-[var(--bg-card)] border border-red-500/30 shadow-2xl">
-                                {/* Icon */}
-                                <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-500/20 to-orange-500/20 flex items-center justify-center border border-red-500/30">
-                                    <AlertTriangle className="w-10 h-10 text-red-400" />
-                                </div>
-
-                                {/* Title */}
-                                <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-3">
-                                    Oops! Terjadi Kesalahan
-                                </h1>
-
-                                {/* Description */}
-                                <p className="text-[var(--text-secondary)] mb-6 leading-relaxed">
-                                    Maaf, terjadi kesalahan tak terduga. Tim kami telah diberitahu dan sedang memperbaikinya.
-                                </p>
-
-                                {/* Error Details (Development Only) */}
-                                {process.env.NODE_ENV === "development" && this.state.error && (
-                                    <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-left">
-                                        <p className="text-xs font-mono text-red-400 break-all">
-                                            {this.state.error.message}
-                                        </p>
-                                    </div>
-                                )}
-
-                                {/* Action Buttons */}
-                                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                                    <button
-                                        onClick={this.handleRefresh}
-                                        className="px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <RefreshCw className="w-4 h-4" />
-                                        Refresh Halaman
-                                    </button>
-                                    <button
-                                        onClick={this.handleGoHome}
-                                        className="px-6 py-3 rounded-xl font-bold text-[var(--text-primary)] bg-[var(--bg-panel)] border border-[var(--border-color)] hover:border-emerald-500/50 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <Home className="w-4 h-4" />
-                                        Ke Beranda
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Help Text */}
-                        <p className="mt-6 text-sm text-[var(--text-secondary)]">
-                            Jika masalah berlanjut, silakan hubungi admin desa.
-                        </p>
+                <div className="flex flex-col items-center justify-center min-h-[300px] p-8 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-red-500/20 flex items-center justify-center mb-4">
+                        <AlertTriangle className="w-8 h-8 text-red-400" />
                     </div>
+                    <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">
+                        Terjadi Kesalahan
+                    </h2>
+                    <p className="text-[var(--text-secondary)] mb-4 max-w-sm">
+                        Maaf, terjadi kesalahan saat memuat halaman ini.
+                        Silakan coba lagi atau hubungi admin jika masalah berlanjut.
+                    </p>
+                    {process.env.NODE_ENV === "development" && this.state.error && (
+                        <pre className="text-xs text-red-400 bg-red-500/10 p-4 rounded-lg mb-4 max-w-full overflow-x-auto">
+                            {this.state.error.message}
+                        </pre>
+                    )}
+                    <button
+                        onClick={this.handleRetry}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white font-bold hover:bg-emerald-600 transition-colors"
+                    >
+                        <RefreshCw className="w-4 h-4" />
+                        Coba Lagi
+                    </button>
                 </div>
             );
         }
@@ -121,20 +83,18 @@ export class ErrorBoundary extends Component<Props, State> {
     }
 }
 
-/**
- * HOC untuk membungkus komponen dengan Error Boundary
- */
-export function withErrorBoundary<P extends object>(
-    WrappedComponent: React.ComponentType<P>,
-    fallback?: ReactNode
-) {
-    return function WithErrorBoundaryWrapper(props: P) {
-        return (
-            <ErrorBoundary fallback={fallback}>
-                <WrappedComponent {...props} />
-            </ErrorBoundary>
-        );
-    };
-}
-
 export default ErrorBoundary;
+
+/**
+ * Hook untuk error handling dalam async functions
+ */
+export function withErrorHandler<T>(
+    fn: () => Promise<T>,
+    onError?: (error: Error) => void
+): Promise<T | null> {
+    return fn().catch((error: Error) => {
+        console.error("Async error:", error);
+        onError?.(error);
+        return null;
+    });
+}
