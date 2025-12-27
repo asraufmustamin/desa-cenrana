@@ -1257,6 +1257,23 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             return updated;
         });
         setLastActivity(Date.now());
+
+        // Auto-send push notification to all subscribers
+        try {
+            await fetch('/api/push/broadcast', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: '📢 Pengumuman Baru!',
+                    message: text.length > 100 ? text.substring(0, 100) + '...' : text,
+                    url: '/',
+                    tag: 'pengumuman-' + newItem.id
+                })
+            });
+            console.log('✅ Push notification sent for new pengumuman');
+        } catch (error) {
+            console.warn('⚠️ Failed to send push notification:', error);
+        }
     };
 
     const deletePengumuman = async (id: number) => {
