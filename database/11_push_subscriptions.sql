@@ -20,6 +20,11 @@ CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions
 -- Enable RLS
 ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Allow public insert push_subscriptions" ON push_subscriptions;
+DROP POLICY IF EXISTS "Allow authenticated read push_subscriptions" ON push_subscriptions;
+DROP POLICY IF EXISTS "Allow public delete push_subscriptions" ON push_subscriptions;
+
 -- Policy: Anyone can insert (subscribe)
 CREATE POLICY "Allow public insert push_subscriptions" ON push_subscriptions
     FOR INSERT WITH CHECK (true);
