@@ -10,6 +10,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ToastProvider } from "@/components/Toast";
 import { ScrollToTop, WhatsAppFAB } from "@/components/FloatingActionButton";
 import PWAProvider from "@/components/PWAProvider";
+import PushNotificationPrompt from "@/components/PushNotificationPrompt";
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
 const playfair = Playfair_Display({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800", "900"], variable: "--font-playfair" });
@@ -89,6 +90,7 @@ export default function RootLayout({
                             </ErrorBoundary>
                             <ScrollToTop />
                             <WhatsAppFAB phone="6285123456789" message="Halo Admin Desa Cenrana, saya ingin bertanya tentang..." />
+                            <PushNotificationPrompt />
                             <Footer />
                         </AppProvider>
                     </ToastProvider>

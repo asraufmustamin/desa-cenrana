@@ -91,3 +91,86 @@ self.addEventListener("fetch", (event) => {
             })
     );
 });
+
+// ========================================
+// PUSH NOTIFICATION HANDLERS
+// ========================================
+
+// Handle incoming push notifications
+self.addEventListener("push", (event) => {
+    console.log("📩 Push notification received");
+
+    let data = {
+        title: "Desa Cenrana",
+        body: "Ada informasi baru dari Desa Cenrana",
+        icon: "/logo-maros.png",
+        badge: "/logo-maros.png",
+        url: "/"
+    };
+
+    // Try to parse push data
+    if (event.data) {
+        try {
+            data = event.data.json();
+        } catch (e) {
+            data.body = event.data.text();
+        }
+    }
+
+    const options = {
+        body: data.body,
+        icon: data.icon || "/logo-maros.png",
+        badge: data.badge || "/logo-maros.png",
+        vibrate: [200, 100, 200],
+        tag: data.tag || "desa-cenrana-notification",
+        renotify: true,
+        requireInteraction: false,
+        data: {
+            url: data.url || "/",
+            timestamp: Date.now()
+        },
+        actions: [
+            { action: "open", title: "Buka" },
+            { action: "close", title: "Tutup" }
+        ]
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(data.title, options)
+    );
+});
+
+// Handle notification click
+self.addEventListener("notificationclick", (event) => {
+    console.log("🔔 Notification clicked");
+
+    event.notification.close();
+
+    const url = event.notification.data?.url || "/";
+
+    // Handle action buttons
+    if (event.action === "close") {
+        return;
+    }
+
+    // Open the URL or focus existing tab
+    event.waitUntil(
+        clients.matchAll({ type: "window", includeUncontrolled: true })
+            .then((windowClients) => {
+                // Check if there's already a tab open with our site
+                for (const client of windowClients) {
+                    if (client.url.includes(self.location.origin)) {
+                        client.navigate(url);
+                        return client.focus();
+                    }
+                }
+                // If no tab found, open a new one
+                return clients.openWindow(url);
+            })
+    );
+});
+
+// Handle notification close
+self.addEventListener("notificationclose", (event) => {
+    console.log("🔕 Notification closed");
+});
