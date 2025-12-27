@@ -36,8 +36,9 @@ import {
 import DashboardTab from "./components/DashboardTab";
 import LapakTab from "./components/LapakTab";
 import BukuTamuTab from "./components/BukuTamuTab";
+import PollingTab from "./components/PollingTab";
 import AdminStats from "@/components/AdminStats";
-import { ClipboardList, Download } from "lucide-react";
+import { ClipboardList, Download, Vote } from "lucide-react";
 
 export default function AdminDashboard() {
     const {
@@ -510,6 +511,17 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                     >
                                         <ClipboardList className="w-4 h-4 mr-2" />
                                         Buku Tamu
+                                    </motion.button>
+                                    <motion.button
+                                        onClick={() => setActiveTab("polling")}
+                                        whileHover={{ x: 3 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "polling"
+                                            ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/30"
+                                            : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
+                                    >
+                                        <Vote className="w-4 h-4 mr-2" />
+                                        Polling
                                     </motion.button>
                                     <motion.button
                                         onClick={() => router.push('/admin/surat')}
@@ -1990,6 +2002,17 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                 transition={{ duration: 0.3 }}
                             >
                                 <BukuTamuTab />
+                            </motion.div>
+                        )}
+
+                        {/* Polling Tab */}
+                        {activeTab === "polling" && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                <PollingTab />
                             </motion.div>
                         )}
                     </div>
