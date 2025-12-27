@@ -25,6 +25,13 @@ CREATE INDEX IF NOT EXISTS idx_buku_tamu_waktu ON buku_tamu(waktu_datang DESC);
 -- Enable RLS
 ALTER TABLE buku_tamu ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies
+DROP POLICY IF EXISTS "Allow public insert buku_tamu" ON buku_tamu;
+DROP POLICY IF EXISTS "Allow public read buku_tamu" ON buku_tamu;
+DROP POLICY IF EXISTS "Allow authenticated update buku_tamu" ON buku_tamu;
+DROP POLICY IF EXISTS "Allow public update buku_tamu" ON buku_tamu;
+DROP POLICY IF EXISTS "Allow public delete buku_tamu" ON buku_tamu;
+
 -- Policy: Anyone can insert (public registration)
 CREATE POLICY "Allow public insert buku_tamu" ON buku_tamu
     FOR INSERT WITH CHECK (true);
@@ -33,6 +40,10 @@ CREATE POLICY "Allow public insert buku_tamu" ON buku_tamu
 CREATE POLICY "Allow public read buku_tamu" ON buku_tamu
     FOR SELECT USING (true);
 
--- Policy: Only authenticated can update
-CREATE POLICY "Allow authenticated update buku_tamu" ON buku_tamu
-    FOR UPDATE USING (auth.role() = 'authenticated');
+-- Policy: Anyone can update (admin handles auth in frontend)
+CREATE POLICY "Allow public update buku_tamu" ON buku_tamu
+    FOR UPDATE USING (true);
+
+-- Policy: Anyone can delete (admin handles auth in frontend)
+CREATE POLICY "Allow public delete buku_tamu" ON buku_tamu
+    FOR DELETE USING (true);
