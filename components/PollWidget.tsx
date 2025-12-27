@@ -220,10 +220,7 @@ export default function PollWidget() {
                                 </span>
                                 {/* Show percentage: always for voted, or for selected option before voting */}
                                 {(hasVoted || selectedOption === option.id) && (
-                                    <div className="flex items-center gap-1">
-                                        <span className="text-xs text-blue-400 font-bold">{option.percentage}%</span>
-                                        <span className="text-xs text-[var(--text-secondary)]">({option.votes} suara)</span>
-                                    </div>
+                                    <span className="text-xs text-blue-400 font-bold">{option.percentage}%</span>
                                 )}
                             </div>
                         </div>

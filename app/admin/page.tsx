@@ -1599,10 +1599,19 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                             className="flex-1 px-3 md:px-4 py-2.5 md:py-3 rounded-lg md:rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] text-sm md:text-base focus:outline-none focus:border-amber-500 transition-all"
                                         />
                                         <button
-                                            onClick={() => {
+                                            onClick={async () => {
+                                                console.log("Tambah button clicked, text:", newPengumumanText);
                                                 if (newPengumumanText.trim()) {
-                                                    addPengumuman(newPengumumanText.trim());
-                                                    setNewPengumumanText("");
+                                                    try {
+                                                        await addPengumuman(newPengumumanText.trim());
+                                                        setNewPengumumanText("");
+                                                        addToast("✅ Pengumuman berhasil ditambahkan!", "success");
+                                                    } catch (error) {
+                                                        console.error("Error adding pengumuman:", error);
+                                                        addToast("❌ Gagal menambahkan pengumuman", "error");
+                                                    }
+                                                } else {
+                                                    addToast("⚠️ Tulis pengumuman terlebih dahulu", "warning");
                                                 }
                                             }}
                                             className="px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-lg md:rounded-xl hover:shadow-lg hover:shadow-amber-500/30 transition-all flex items-center justify-center gap-2 text-sm md:text-base"
