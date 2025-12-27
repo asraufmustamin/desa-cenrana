@@ -182,29 +182,32 @@ export default function PollWidget() {
                         whileHover={!hasVoted ? { scale: 1.02 } : {}}
                         whileTap={!hasVoted ? { scale: 0.98 } : {}}
                         className={`relative p-3 rounded-xl border transition-all text-left overflow-hidden ${hasVoted
-                                ? "bg-white/5 border-[var(--border-color)] cursor-default"
-                                : selectedOption === option.id
-                                    ? "bg-blue-500/20 border-blue-500/50 ring-1 ring-blue-500/30"
-                                    : "bg-white/5 border-[var(--border-color)] hover:border-blue-500/30"
+                            ? "bg-white/5 border-[var(--border-color)] cursor-default"
+                            : selectedOption === option.id
+                                ? "bg-blue-500/20 border-blue-500/50 ring-1 ring-blue-500/30"
+                                : "bg-white/5 border-[var(--border-color)] hover:border-blue-500/30"
                             }`}
                     >
-                        {/* Progress bar background */}
-                        {hasVoted && (
+                        {/* Progress bar background - show for selected option OR after voting */}
+                        {(hasVoted || selectedOption === option.id) && (
                             <motion.div
                                 initial={{ width: 0 }}
                                 animate={{ width: `${option.percentage}%` }}
-                                transition={{ duration: 0.5, delay: 0.1 }}
-                                className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500/20 to-purple-500/10"
+                                transition={{ duration: 0.3 }}
+                                className={`absolute inset-y-0 left-0 ${hasVoted
+                                    ? "bg-gradient-to-r from-blue-500/20 to-purple-500/10"
+                                    : "bg-blue-500/10"
+                                    }`}
                             />
                         )}
 
                         <div className="relative flex items-center gap-2">
                             {/* Radio/Check */}
                             <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${selectedOption === option.id
-                                    ? hasVoted
-                                        ? "bg-blue-500 border-blue-500"
-                                        : "border-blue-500 bg-blue-500/20"
-                                    : "border-[var(--border-color)]"
+                                ? hasVoted
+                                    ? "bg-blue-500 border-blue-500"
+                                    : "border-blue-500 bg-blue-500/20"
+                                : "border-[var(--border-color)]"
                                 }`}>
                                 {selectedOption === option.id && hasVoted && (
                                     <Check className="w-2.5 h-2.5 text-white" />
@@ -215,8 +218,12 @@ export default function PollWidget() {
                                 <span className="text-xs md:text-sm font-medium text-[var(--text-primary)] block truncate">
                                     {option.text}
                                 </span>
-                                {hasVoted && (
-                                    <span className="text-xs text-blue-400 font-bold">{option.percentage}%</span>
+                                {/* Show percentage: always for voted, or for selected option before voting */}
+                                {(hasVoted || selectedOption === option.id) && (
+                                    <div className="flex items-center gap-1">
+                                        <span className="text-xs text-blue-400 font-bold">{option.percentage}%</span>
+                                        <span className="text-xs text-[var(--text-secondary)]">({option.votes} suara)</span>
+                                    </div>
                                 )}
                             </div>
                         </div>

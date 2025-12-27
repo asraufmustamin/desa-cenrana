@@ -43,6 +43,12 @@ export default function PollingTab() {
     const [newOptions, setNewOptions] = useState(["", "", "", "Lainnya"]);
     const [newEndDate, setNewEndDate] = useState("");
 
+    // Edit state
+    const [editingPoll, setEditingPoll] = useState<Poll | null>(null);
+    const [editQuestion, setEditQuestion] = useState("");
+    const [editOptions, setEditOptions] = useState<string[]>([]);
+    const [editEndDate, setEditEndDate] = useState("");
+
     useEffect(() => {
         fetchPolls();
     }, []);
@@ -135,6 +141,47 @@ export default function PollingTab() {
             fetchPolls();
         } catch (error) {
             console.error("Error deleting poll:", error);
+        }
+    };
+
+    const startEdit = (poll: Poll) => {
+        setEditingPoll(poll);
+        setEditQuestion(poll.question);
+        setEditOptions(poll.options.map(o => o.text));
+        setEditEndDate(poll.end_date ? poll.end_date.split('T')[0] : "");
+    };
+
+    const updatePoll = async () => {
+        if (!editingPoll || !editQuestion.trim() || editOptions.filter(o => o.trim()).length < 2) {
+            alert("Isi pertanyaan dan minimal 2 opsi!");
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const options = editOptions
+                .filter(o => o.trim())
+                .map((text, i) => ({ id: i + 1, text: text.trim() }));
+
+            const res = await fetch("/api/polling/admin", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    pollId: editingPoll.id,
+                    question: editQuestion.trim(),
+                    options,
+                    end_date: editEndDate || null
+                })
+            });
+
+            if (res.ok) {
+                setEditingPoll(null);
+                fetchPolls();
+            }
+        } catch (error) {
+            console.error("Error updating poll:", error);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -312,6 +359,106 @@ export default function PollingTab() {
                 )}
             </AnimatePresence>
 
+            {/* Edit Poll Modal */}
+            <AnimatePresence>
+                {editingPoll && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        onClick={() => setEditingPoll(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 w-full max-w-lg"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
+                                    <Edit2 className="w-5 h-5 text-blue-400" />
+                                    Edit Polling
+                                </h3>
+                                <button onClick={() => setEditingPoll(null)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Pertanyaan</label>
+                                    <input
+                                        type="text"
+                                        value={editQuestion}
+                                        onChange={(e) => setEditQuestion(e.target.value)}
+                                        placeholder="Pertanyaan polling"
+                                        className="w-full px-4 py-2 bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] focus:border-blue-500 outline-none"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Opsi Jawaban</label>
+                                    <div className="space-y-2">
+                                        {editOptions.map((opt, i) => (
+                                            <div key={i} className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={opt}
+                                                    onChange={(e) => {
+                                                        const updated = [...editOptions];
+                                                        updated[i] = e.target.value;
+                                                        setEditOptions(updated);
+                                                    }}
+                                                    placeholder={`Opsi ${i + 1}`}
+                                                    className="flex-1 px-3 py-2 bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] text-sm focus:border-blue-500 outline-none"
+                                                />
+                                                {i > 1 && (
+                                                    <button
+                                                        onClick={() => setEditOptions(editOptions.filter((_, j) => j !== i))}
+                                                        className="px-2 text-red-400 hover:text-red-300"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
+                                        {editOptions.length < 6 && (
+                                            <button
+                                                onClick={() => setEditOptions([...editOptions, ""])}
+                                                className="text-sm text-blue-400 hover:text-blue-300"
+                                            >
+                                                + Tambah opsi
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Tanggal Berakhir</label>
+                                    <input
+                                        type="date"
+                                        value={editEndDate}
+                                        onChange={(e) => setEditEndDate(e.target.value)}
+                                        className="w-full px-4 py-2 bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] focus:border-blue-500 outline-none"
+                                    />
+                                </div>
+
+                                <button
+                                    onClick={updatePoll}
+                                    disabled={isSubmitting}
+                                    className="w-full py-3 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                    Simpan Perubahan
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Polls List */}
             {isLoading ? (
                 <div className="flex justify-center py-12">
@@ -341,8 +488,8 @@ export default function PollingTab() {
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
                                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${poll.is_active
-                                                ? "bg-green-500/10 text-green-400 border border-green-500/30"
-                                                : "bg-gray-500/10 text-gray-400 border border-gray-500/30"
+                                            ? "bg-green-500/10 text-green-400 border border-green-500/30"
+                                            : "bg-gray-500/10 text-gray-400 border border-gray-500/30"
                                             }`}>
                                             {poll.is_active ? "Aktif" : "Nonaktif"}
                                         </span>
@@ -359,11 +506,17 @@ export default function PollingTab() {
                                     <button
                                         onClick={() => togglePollActive(poll.id, poll.is_active)}
                                         className={`px-3 py-1.5 rounded-lg text-xs font-medium ${poll.is_active
-                                                ? "bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"
-                                                : "bg-green-500/10 text-green-400 hover:bg-green-500/20"
+                                            ? "bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"
+                                            : "bg-green-500/10 text-green-400 hover:bg-green-500/20"
                                             }`}
                                     >
                                         {poll.is_active ? "Nonaktifkan" : "Aktifkan"}
+                                    </button>
+                                    <button
+                                        onClick={() => startEdit(poll)}
+                                        className="p-2 bg-blue-500/10 text-blue-400 rounded-lg hover:bg-blue-500/20"
+                                    >
+                                        <Edit2 className="w-4 h-4" />
                                     </button>
                                     <button
                                         onClick={() => deletePoll(poll.id)}
@@ -379,8 +532,11 @@ export default function PollingTab() {
                                 {(poll.options as PollOption[]).map(opt => (
                                     <div key={opt.id} className="p-3 bg-white/5 rounded-lg">
                                         <p className="text-sm font-medium text-[var(--text-primary)] truncate">{opt.text}</p>
-                                        <p className="text-lg font-bold text-blue-400">{opt.votes || 0} <span className="text-xs font-normal text-[var(--text-secondary)]">suara</span></p>
-                                        <div className="w-full h-1 bg-white/10 rounded-full mt-1">
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-lg font-bold text-blue-400">{opt.votes || 0} <span className="text-xs font-normal text-[var(--text-secondary)]">suara</span></p>
+                                            <span className="text-sm font-bold text-purple-400">{opt.percentage || 0}%</span>
+                                        </div>
+                                        <div className="w-full h-1.5 bg-white/10 rounded-full mt-1">
                                             <div
                                                 className="h-full bg-blue-500 rounded-full"
                                                 style={{ width: `${opt.percentage || 0}%` }}

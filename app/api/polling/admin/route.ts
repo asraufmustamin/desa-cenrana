@@ -141,6 +141,36 @@ export async function PATCH(request: NextRequest) {
     }
 }
 
+// PUT - Update poll details (question, options, end_date)
+export async function PUT(request: NextRequest) {
+    try {
+        const body = await request.json();
+        const { pollId, question, options, end_date } = body;
+
+        if (!pollId || !question || !options || options.length < 2) {
+            return NextResponse.json({ error: "Invalid poll data" }, { status: 400 });
+        }
+
+        const { error } = await supabase
+            .from("polls")
+            .update({
+                question,
+                options,
+                end_date: end_date || null
+            })
+            .eq("id", pollId);
+
+        if (error) {
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
+        return NextResponse.json({ success: true, message: "Polling berhasil diperbarui" });
+    } catch (error) {
+        console.error("Error updating poll details:", error);
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    }
+}
+
 // DELETE - Delete poll and its votes
 export async function DELETE(request: NextRequest) {
     try {
