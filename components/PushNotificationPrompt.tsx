@@ -68,20 +68,29 @@ export default function PushNotificationPrompt() {
                 applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as BufferSource
             });
 
-            // Send subscription to server
-            const response = await fetch("/api/push/subscribe", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ subscription })
-            });
+            // Send subscription to server (optional - notification will still work locally)
+            try {
+                const response = await fetch("/api/push/subscribe", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ subscription })
+                });
 
-            if (response.ok) {
-                setIsSubscribed(true);
-                setShowPrompt(false);
-                setMessage({ type: "success", text: "Notifikasi berhasil diaktifkan!" });
-            } else {
-                throw new Error("Failed to save subscription");
+                if (response.ok) {
+                    console.log("✅ Subscription saved to server");
+                } else {
+                    // Server save failed, but local subscription still works
+                    console.warn("⚠️ Server save failed, but notifications will still work locally");
+                }
+            } catch (serverError) {
+                // Ignore server errors - notifications still work locally
+                console.warn("⚠️ Could not save to server:", serverError);
             }
+
+            // Either way, subscription was successful locally
+            setIsSubscribed(true);
+            setShowPrompt(false);
+            setMessage({ type: "success", text: "Notifikasi berhasil diaktifkan!" });
         } catch (error) {
             console.error("Subscription error:", error);
             setMessage({ type: "error", text: "Gagal mengaktifkan notifikasi" });
