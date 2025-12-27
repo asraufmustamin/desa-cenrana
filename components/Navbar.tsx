@@ -60,6 +60,7 @@ export default function Navbar() {
             dropdown: [
                 { name: "Buat Aspirasi", href: "/aspirasi" },
                 { name: "Buat Surat Online", href: "/layanan/surat" },
+                { name: "Buku Tamu Digital", href: "/buku-tamu" },
                 { name: "Lacak Status Aspirasi", href: "/aspirasi/track" },
                 ...(isLoggedIn ? [{ name: "Data Penduduk", href: "/admin/penduduk" }] : []),
             ],

@@ -35,7 +35,9 @@ import {
 } from "lucide-react";
 import DashboardTab from "./components/DashboardTab";
 import LapakTab from "./components/LapakTab";
+import BukuTamuTab from "./components/BukuTamuTab";
 import AdminStats from "@/components/AdminStats";
+import { ClipboardList, Download } from "lucide-react";
 
 export default function AdminDashboard() {
     const {
@@ -499,6 +501,17 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                         )}
                                     </motion.button>
                                     <motion.button
+                                        onClick={() => setActiveTab("bukutamu")}
+                                        whileHover={{ x: 3 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "bukutamu"
+                                            ? "bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg shadow-teal-500/30"
+                                            : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
+                                    >
+                                        <ClipboardList className="w-4 h-4 mr-2" />
+                                        Buku Tamu
+                                    </motion.button>
+                                    <motion.button
                                         onClick={() => router.push('/admin/surat')}
                                         whileHover={{ x: 3 }}
                                         whileTap={{ scale: 0.98 }}
@@ -597,6 +610,48 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                             <span className="font-bold text-[var(--text-primary)]">Lapak Warga</span>
                                         </div>
                                         <p className="text-sm text-[var(--text-secondary)]">Kelola produk UMKM</p>
+                                    </div>
+
+                                    <div
+                                        onClick={() => setActiveTab("bukutamu")}
+                                        className="group p-5 rounded-2xl bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border border-teal-500/20 cursor-pointer hover:border-teal-500/50 hover:scale-[1.02] transition-all"
+                                    >
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className="p-2.5 rounded-xl bg-teal-500/20 text-teal-400 group-hover:bg-teal-500/30 transition-colors">
+                                                <ClipboardList className="w-5 h-5" />
+                                            </div>
+                                            <span className="font-bold text-[var(--text-primary)]">Buku Tamu</span>
+                                        </div>
+                                        <p className="text-sm text-[var(--text-secondary)]">Kelola tamu kantor desa</p>
+                                    </div>
+                                </div>
+
+                                {/* Export Data Section */}
+                                <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400">
+                                            <Download className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <span className="font-bold text-[var(--text-primary)]">Export Data ke Excel</span>
+                                            <p className="text-xs text-[var(--text-secondary)]">Download data untuk pelaporan</p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <a
+                                            href="/api/export/aspirasi"
+                                            className="flex items-center justify-center gap-2 p-3 bg-blue-500/20 text-blue-400 rounded-xl font-semibold hover:bg-blue-500/30 transition-colors text-sm"
+                                        >
+                                            <Download className="w-4 h-4" />
+                                            Data Aspirasi
+                                        </a>
+                                        <a
+                                            href="/api/export/lapak"
+                                            className="flex items-center justify-center gap-2 p-3 bg-emerald-500/20 text-emerald-400 rounded-xl font-semibold hover:bg-emerald-500/30 transition-colors text-sm"
+                                        >
+                                            <Download className="w-4 h-4" />
+                                            Data Lapak
+                                        </a>
                                     </div>
                                 </div>
 
@@ -1918,6 +1973,17 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                         <li>Ulangi sampai selesai</li>
                                     </ol>
                                 </div>
+                            </motion.div>
+                        )}
+
+                        {/* Buku Tamu Tab */}
+                        {activeTab === "bukutamu" && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                <BukuTamuTab />
                             </motion.div>
                         )}
                     </div>
