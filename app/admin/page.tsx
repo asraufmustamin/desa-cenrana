@@ -571,8 +571,8 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                 {/* Real-time Stats from API */}
                                 <AdminStats />
 
-                                {/* Quick Actions */}
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {/* Quick Actions - 2x2 Grid */}
+                                <div className="grid grid-cols-2 gap-4">
                                     <div
                                         onClick={() => router.push('/admin/surat')}
                                         className="group p-5 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 cursor-pointer hover:border-indigo-500/50 hover:scale-[1.02] transition-all"
@@ -594,7 +594,7 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                             <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400 group-hover:bg-blue-500/30 transition-colors">
                                                 <MessageSquare className="w-5 h-5" />
                                             </div>
-                                            <span className="font-bold text-[var(--text-primary)]">Aspirasi</span>
+                                            <span className="font-bold text-[var(--text-primary)]">Aspirasi Warga</span>
                                         </div>
                                         <p className="text-sm text-[var(--text-secondary)]">Kelola laporan warga</p>
                                     </div>
@@ -622,49 +622,55 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                             </div>
                                             <span className="font-bold text-[var(--text-primary)]">Buku Tamu</span>
                                         </div>
-                                        <p className="text-sm text-[var(--text-secondary)]">Kelola tamu kantor desa</p>
+                                        <p className="text-sm text-[var(--text-secondary)]">Kelola tamu kantor</p>
                                     </div>
                                 </div>
 
-                                {/* Export Data Section */}
-                                <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400">
-                                            <Download className="w-5 h-5" />
+                                {/* Export & CMS Row */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Export Data Section */}
+                                    <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400">
+                                                <Download className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <span className="font-bold text-[var(--text-primary)]">Export Data</span>
+                                                <p className="text-xs text-[var(--text-secondary)]">Download untuk pelaporan</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span className="font-bold text-[var(--text-primary)]">Export Data ke Excel</span>
-                                            <p className="text-xs text-[var(--text-secondary)]">Download data untuk pelaporan</p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <a
+                                                href="/api/export/aspirasi"
+                                                className="flex items-center justify-center gap-2 p-2.5 bg-blue-500/20 text-blue-400 rounded-xl font-semibold hover:bg-blue-500/30 transition-colors text-sm"
+                                            >
+                                                <Download className="w-4 h-4" />
+                                                Aspirasi
+                                            </a>
+                                            <a
+                                                href="/api/export/lapak"
+                                                className="flex items-center justify-center gap-2 p-2.5 bg-emerald-500/20 text-emerald-400 rounded-xl font-semibold hover:bg-emerald-500/30 transition-colors text-sm"
+                                            >
+                                                <Download className="w-4 h-4" />
+                                                Lapak
+                                            </a>
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <a
-                                            href="/api/export/aspirasi"
-                                            className="flex items-center justify-center gap-2 p-3 bg-blue-500/20 text-blue-400 rounded-xl font-semibold hover:bg-blue-500/30 transition-colors text-sm"
-                                        >
-                                            <Download className="w-4 h-4" />
-                                            Data Aspirasi
-                                        </a>
-                                        <a
-                                            href="/api/export/lapak"
-                                            className="flex items-center justify-center gap-2 p-3 bg-emerald-500/20 text-emerald-400 rounded-xl font-semibold hover:bg-emerald-500/30 transition-colors text-sm"
-                                        >
-                                            <Download className="w-4 h-4" />
-                                            Data Lapak
-                                        </a>
-                                    </div>
-                                </div>
 
-                                {/* CMS Mode Indicator */}
-                                <div className={`p-4 rounded-2xl border ${isEditMode ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-slate-500/10 border-slate-500/30'}`}>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-3 h-3 rounded-full ${isEditMode ? 'bg-emerald-400 animate-pulse' : 'bg-slate-400'}`} />
-                                            <span className="font-bold text-[var(--text-primary)]">Mode CMS</span>
+                                    {/* CMS Mode Indicator */}
+                                    <div className={`p-5 rounded-2xl border flex flex-col justify-center ${isEditMode ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-slate-500/10 border-slate-500/30'}`}>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-3 h-3 rounded-full ${isEditMode ? 'bg-emerald-400 animate-pulse' : 'bg-slate-400'}`} />
+                                                <div>
+                                                    <span className="font-bold text-[var(--text-primary)]">Mode CMS</span>
+                                                    <p className="text-xs text-[var(--text-secondary)]">Edit konten website</p>
+                                                </div>
+                                            </div>
+                                            <span className={`px-3 py-1 rounded-full text-sm font-bold ${isEditMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}`}>
+                                                {isEditMode ? "AKTIF" : "NON-AKTIF"}
+                                            </span>
                                         </div>
-                                        <span className={`px-3 py-1 rounded-full text-sm font-bold ${isEditMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}`}>
-                                            {isEditMode ? "AKTIF" : "NON-AKTIF"}
-                                        </span>
                                     </div>
                                 </div>
                             </div>
