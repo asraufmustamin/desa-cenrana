@@ -8,7 +8,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { AppProvider } from "@/context/AppContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ToastProvider } from "@/components/Toast";
-import { ScrollToTop } from "@/components/FloatingActionButton";
+import { ScrollToTop, WhatsAppFAB } from "@/components/FloatingActionButton";
 import PWAProvider from "@/components/PWAProvider";
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
@@ -88,6 +88,7 @@ export default function RootLayout({
                                 <main className="flex-grow w-full max-w-[100vw] overflow-x-hidden">{children}</main>
                             </ErrorBoundary>
                             <ScrollToTop />
+                            <WhatsAppFAB phone="6285123456789" message="Halo Admin Desa Cenrana, saya ingin bertanya tentang..." />
                             <Footer />
                         </AppProvider>
                     </ToastProvider>
