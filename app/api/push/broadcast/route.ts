@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import webpush from "web-push";
 
-// Configure web-push with VAPID keys
-// In production, generate your own keys with: npx web-push generate-vapid-keys
+// VAPID Keys for Push Notifications
+// Set these in your environment variables (Vercel Dashboard -> Settings -> Environment Variables)
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
-    "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U";
+    "BKXlzT-ExKH5pd6cXyYwD17BZRYuj-A0BRkwWuOS-3seL0xBmjdSp6aMhBOhWRQWDWb1nVsO98hbJxG-y50juYk";
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY ||
-    "UJOdWLo0xIRxK1lFmIVQwO8gTCZL2EY9Y0wSA1Gi0TU";
+    "GZhY7adlMxbxJEHnG_VX8b49fdph-07W23QvO762ypc";
 
 webpush.setVapidDetails(
     "mailto:admin@desacenrana.id",

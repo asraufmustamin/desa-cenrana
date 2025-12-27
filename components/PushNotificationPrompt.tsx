@@ -57,11 +57,9 @@ export default function PushNotificationPrompt() {
             // Get service worker registration
             const registration = await navigator.serviceWorker.ready;
 
-            // Subscribe to push notifications
-            // Note: In production, you need to generate VAPID keys
-            // For demo, we'll use a placeholder
+            // Subscribe to push notifications using VAPID public key
             const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
-                "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U";
+                "BKXlzT-ExKH5pd6cXyYwD17BZRYuj-A0BRkwWuOS-3seL0xBmjdSp6aMhBOhWRQWDWb1nVsO98hbJxG-y50juYk";
 
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
