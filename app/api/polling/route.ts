@@ -63,7 +63,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { pollId, optionId, voterId } = body;
+        const { pollId, optionId, voterId, otherText } = body;
 
         if (!pollId || !optionId || !voterId) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -81,14 +81,20 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Anda sudah memberikan suara" }, { status: 400 });
         }
 
-        // Insert vote
+        // Insert vote with optional other_text
+        const voteData: any = {
+            poll_id: pollId,
+            option_id: optionId,
+            voter_id: voterId
+        };
+
+        if (otherText) {
+            voteData.other_text = otherText;
+        }
+
         const { error } = await supabase
             .from("poll_votes")
-            .insert({
-                poll_id: pollId,
-                option_id: optionId,
-                voter_id: voterId
-            });
+            .insert(voteData);
 
         if (error) {
             console.error("Error inserting vote:", error);

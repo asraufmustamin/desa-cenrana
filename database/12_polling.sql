@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS poll_votes (
     poll_id INTEGER NOT NULL REFERENCES polls(id) ON DELETE CASCADE,
     option_id INTEGER NOT NULL,
     voter_id TEXT NOT NULL, -- Browser fingerprint/localStorage ID
+    other_text TEXT, -- For "Lainnya" option custom input
     voted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(poll_id, voter_id) -- One vote per person per poll
 );
