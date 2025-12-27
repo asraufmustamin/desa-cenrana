@@ -416,16 +416,15 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.2 }}
                     >
-                        <div className="relative rounded-xl overflow-hidden lg:sticky lg:top-28">
+                        <div className="relative rounded-xl overflow-hidden sticky top-28">
                             <div className="absolute -inset-0.5 bg-gradient-to-b from-cyan-500/30 to-emerald-500/30 rounded-xl blur-sm opacity-50"></div>
                             <div className="relative p-3 rounded-xl bg-[var(--bg-card)]/90 backdrop-blur-xl border border-[var(--border-color)]">
-                                {/* Mobile: horizontal scroll, Desktop: vertical stack */}
-                                <nav className="flex lg:flex-col gap-2 lg:gap-1 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 scrollbar-hide">
+                                <nav className="space-y-1">
                                     <motion.button
                                         onClick={() => setActiveTab("dashboard")}
                                         whileHover={{ x: 3 }}
                                         whileTap={{ scale: 0.98 }}
-                                        className={`shrink-0 lg:w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all whitespace-nowrap ${activeTab === "dashboard"
+                                        className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "dashboard"
                                             ? "bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-lg shadow-cyan-500/30"
                                             : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
                                     >
@@ -436,7 +435,7 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                         onClick={() => setActiveTab("news")}
                                         whileHover={{ x: 3 }}
                                         whileTap={{ scale: 0.98 }}
-                                        className={`shrink-0 lg:w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all whitespace-nowrap ${activeTab === "news"
+                                        className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "news"
                                             ? "bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-500/30"
                                             : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
                                     >
@@ -447,7 +446,7 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                         onClick={() => setActiveTab("lapak")}
                                         whileHover={{ x: 3 }}
                                         whileTap={{ scale: 0.98 }}
-                                        className={`shrink-0 lg:w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all whitespace-nowrap ${activeTab === "lapak"
+                                        className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "lapak"
                                             ? "bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-emerald-500/30"
                                             : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
                                     >
@@ -463,7 +462,7 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                         onClick={() => setActiveTab("aspirasi")}
                                         whileHover={{ x: 3 }}
                                         whileTap={{ scale: 0.98 }}
-                                        className={`shrink-0 lg:w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all whitespace-nowrap ${activeTab === "aspirasi"
+                                        className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "aspirasi"
                                             ? "bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-lg shadow-green-500/30"
                                             : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
                                     >
@@ -479,7 +478,7 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                         onClick={() => setActiveTab("pengumuman")}
                                         whileHover={{ x: 3 }}
                                         whileTap={{ scale: 0.98 }}
-                                        className={`shrink-0 lg:w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all whitespace-nowrap ${activeTab === "pengumuman"
+                                        className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "pengumuman"
                                             ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30"
                                             : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
                                     >
@@ -490,7 +489,7 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                         onClick={() => setActiveTab("subscriber")}
                                         whileHover={{ x: 3 }}
                                         whileTap={{ scale: 0.98 }}
-                                        className={`shrink-0 lg:w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all whitespace-nowrap ${activeTab === "subscriber"
+                                        className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "subscriber"
                                             ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/30"
                                             : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
                                     >
@@ -506,7 +505,7 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                         onClick={() => setActiveTab("bukutamu")}
                                         whileHover={{ x: 3 }}
                                         whileTap={{ scale: 0.98 }}
-                                        className={`shrink-0 lg:w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all whitespace-nowrap ${activeTab === "bukutamu"
+                                        className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "bukutamu"
                                             ? "bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg shadow-teal-500/30"
                                             : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
                                     >
@@ -517,7 +516,7 @@ _Kepala Desa & Perangkat Desa Cenrana_`
                                         onClick={() => setActiveTab("polling")}
                                         whileHover={{ x: 3 }}
                                         whileTap={{ scale: 0.98 }}
-                                        className={`shrink-0 lg:w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all whitespace-nowrap ${activeTab === "polling"
+                                        className={`w-full flex items-center px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${activeTab === "polling"
                                             ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/30"
                                             : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel)] hover:text-[var(--text-primary)]"}`}
                                     >
