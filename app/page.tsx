@@ -433,10 +433,10 @@ export default function Home() {
 
       {/* POLLING WARGA SECTION */}
       <section
-        className="py-12 px-4"
+        className="py-10 px-4"
         style={{ backgroundColor: isDark ? '#0D1421' : '#F1F5F9' }}
       >
-        <div className="max-w-xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <motion.div
             initial="hidden"
             whileInView="visible"
