@@ -233,7 +233,7 @@ export default function PushNotificationPrompt() {
                     animate={{ opacity: 1, scale: 1 }}
                     onClick={unsubscribe}
                     disabled={isLoading}
-                    className="fixed bottom-24 right-20 z-30 p-3 bg-green-500/20 text-green-500 rounded-full border border-green-500/30 hover:bg-green-500/30 transition-all shadow-lg"
+                    className="fixed bottom-36 md:bottom-40 right-4 md:right-6 z-30 p-3 bg-green-500/20 text-green-500 rounded-full border border-green-500/30 hover:bg-green-500/30 transition-all shadow-lg"
                     title="Notifikasi Aktif - Klik untuk nonaktifkan"
                 >
                     <Bell className="w-5 h-5" />
