@@ -13,6 +13,7 @@ import {
 import { useAppContext } from "@/context/AppContext";
 import Editable from "@/components/Editable";
 import EditModeIndicator from "@/components/EditModeIndicator";
+import PollWidget from "@/components/PollWidget";
 
 // Animation Variants with proper typing
 const fadeInUp: Variants = {
@@ -426,6 +427,23 @@ export default function Home() {
                 </p>
               </motion.div>
             ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* POLLING WARGA SECTION */}
+      <section
+        className="py-12 px-4"
+        style={{ backgroundColor: isDark ? '#0D1421' : '#F1F5F9' }}
+      >
+        <div className="max-w-xl mx-auto">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+          >
+            <PollWidget />
           </motion.div>
         </div>
       </section>
